@@ -7,6 +7,7 @@ export function evaluateQC(video: VideoItem): QCResult | null {
   const lastScene = scenes[scenes.length - 1];
 
   const isCinema = video.type === 'sinema';
+  const isDocumentary = video.type === 'belgesel';
   const isYouTube = video.type === 'youtube';
 
   // 1. Kanca / Açılış Kontrolü
@@ -17,6 +18,12 @@ export function evaluateQC(video: VideoItem): QCResult | null {
     hookPass = Boolean(
       hookScene &&
       (hookScene.role.includes('Açılış') || hookScene.role === 'Kanca' || hookScene.sec <= 6.0)
+    );
+  } else if (isDocumentary) {
+    hookTitle = 'Belgesel Açılışı & Büyük Gizem sahnesi kuruldu';
+    hookPass = Boolean(
+      hookScene &&
+      (hookScene.role.includes('Açılış') || hookScene.role.includes('Gizem') || hookScene.sec <= 6.0)
     );
   } else if (isYouTube) {
     hookTitle = 'YouTube Retention Kancası ilk 5 sn içinde';
@@ -41,6 +48,14 @@ export function evaluateQC(video: VideoItem): QCResult | null {
       lastScene &&
       (lastScene.role.includes('Final') || lastScene.role.includes('Vizyon') || lastScene.role === 'Çağrı' || hasCinemaWord)
     );
+  } else if (isDocumentary) {
+    ctaTitle = 'Düşündürücü Kapanış & Belgesel Çağrısı yapıldı';
+    const docKeywords = ['belgesel', 'izle', 'keşfet', 'tarih', 'bilim', 'yayın', 'araştırma', 'sonuç', 'devam'];
+    const hasDocWord = docKeywords.some(k => lastTextVo.includes(k));
+    ctaPass = Boolean(
+      lastScene &&
+      (lastScene.role.includes('Sonuç') || lastScene.role.includes('Kapanış') || lastScene.role.includes('Çağrı') || hasDocWord)
+    );
   } else if (isYouTube) {
     ctaTitle = 'YouTube Abone Ol & Beğen çağrısı yapıldı';
     const ytKeywords = ['abone', 'beğen', 'yorum', 'takip', 'katıl', 'video', 'izle', 'paylaş', 'bildirim'];
@@ -56,7 +71,7 @@ export function evaluateQC(video: VideoItem): QCResult | null {
   }
 
   // 3. Altyazı taşması kontrolü (Sinema için 75, YouTube ve Sosyal için 65 karakter)
-  const maxLimit = isCinema ? 75 : 65;
+  const maxLimit = isCinema || isDocumentary ? 75 : 65;
   const maxChars = Math.max(...scenes.map(s => s.text.length));
   const subPass = maxChars <= maxLimit;
 
@@ -76,7 +91,13 @@ export function evaluateQC(video: VideoItem): QCResult | null {
         (s.subtitle && s.subtitle.toLowerCase().includes(prodSnippet))
     );
 
-  const nameTitle = isCinema ? 'Film adı kurguda vurgulandı' : isYouTube ? 'Video konusu kurguda işlendi' : 'Marka/Ürün adı kurguda geçiyor';
+  const nameTitle = isCinema
+    ? 'Film adı kurguda vurgulandı'
+    : isDocumentary
+    ? 'Belgesel konusu kurguda işlendi'
+    : isYouTube
+    ? 'Video konusu kurguda işlendi'
+    : 'Marka/Ürün adı kurguda geçiyor';
 
   const checks = [
     {

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Scene, VideoItem } from '@/types';
-import { CINEMA_ROLES, YOUTUBE_ROLES, SOP_ROLES } from '@/lib/constants';
+import { CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES, SOP_ROLES } from '@/lib/constants';
 import { VisualPickerModal } from './VisualPickerModal';
 import { getScenePhoto } from '@/lib/assets';
 
@@ -51,14 +51,29 @@ export function StoryboardDesigner({
     }
   };
 
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+
+  const generateAllAiImages = async () => {
+    setIsBatchGenerating(true);
+    try {
+      for (let i = 0; i < scenes.length; i++) {
+        await generateAiImageForScene(i);
+      }
+    } finally {
+      setIsBatchGenerating(false);
+    }
+  };
+
   const isCinema = video.type === 'sinema' || video.ratio === '21:9';
+  const isDocumentary = video.type === 'belgesel';
   const isYouTube = video.type === 'youtube';
 
   const roleOptions = useMemo(() => {
     if (isCinema) return CINEMA_ROLES;
+    if (isDocumentary) return DOCUMENTARY_ROLES;
     if (isYouTube) return YOUTUBE_ROLES;
     return SOP_ROLES;
-  }, [isCinema, isYouTube]);
+  }, [isCinema, isDocumentary, isYouTube]);
 
   const totalDuration = useMemo(() => {
     return scenes.reduce((acc, s) => acc + (Number(s.sec) || 0), 0);
@@ -144,6 +159,8 @@ export function StoryboardDesigner({
               className={`badge-mode ${
                 video.mode === 'sinema'
                   ? 'cinema'
+                  : video.mode === 'belgesel'
+                  ? 'documentary'
                   : video.mode === 'youtube'
                   ? 'youtube'
                   : video.mode === 'classic'
@@ -151,7 +168,13 @@ export function StoryboardDesigner({
                   : 'ai'
               }`}
             >
-              {isCinema ? '🎬 Sinema Storyboard' : isYouTube ? '🔴 YouTube Storyboard' : '✨ Sahne Tasarımcısı'}
+              {isCinema
+                ? '🎬 Sinema Storyboard'
+                : isDocumentary
+                ? '🎙️ Belgesel Storyboard'
+                : isYouTube
+                ? '🔴 YouTube Storyboard'
+                : '✨ Sahne Tasarımcısı'}
             </span>
             <span className="badge" style={{ background: 'var(--acc-glow)', color: 'var(--acc-light)' }}>
               {scenes.length} Sahne · Toplam {totalDuration.toFixed(1)} sn (Hedef: {video.dur} sn)
@@ -166,6 +189,21 @@ export function StoryboardDesigner({
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn sm"
+            onClick={generateAllAiImages}
+            disabled={isRendering || isBatchGenerating}
+            title="Tüm sahnelerin kamera yönergelerinden yapay zekâ görseli üret"
+            style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: '#ffffff',
+              fontWeight: 600,
+              border: 'none'
+            }}
+          >
+            {isBatchGenerating ? '⏳ AI Kareleri Üretiliyor...' : '🤖 Tüm Kareleri AI ile Üret'}
+          </button>
           <button
             type="button"
             className="btn sm"

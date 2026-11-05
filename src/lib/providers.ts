@@ -126,19 +126,32 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
   const hookSec = b.dur <= 15 ? 2.5 : isCinema ? 4.0 : 3.0;
   const remainingSec = +((b.dur - hookSec) / (n - 1)).toFixed(1);
 
+  const customLines = (b.customInstructions || '')
+    .split(/[.\n!?;]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 5);
+
   return roles.map((r, i) => {
     let screenText = p;
     let voText = p;
+    let subtitle = '';
+    let highlight = '';
 
     if (isDocumentary && documentaryMap[r]) {
       screenText = documentaryMap[r].screen;
-      voText = documentaryMap[r].vo;
+      voText = customLines[i] || documentaryMap[r].vo;
+      subtitle = pts[i] || `Araştırma ve Keşif Kayıtları`;
+      highlight = i === roles.length - 1 ? (b.cta || 'BİLİM VE TARİHİN DÖNÜM NOKTASI') : `BÖLÜM ${i + 1}`;
     } else if (isCinema && cinemaMap[r]) {
       screenText = cinemaMap[r].screen;
-      voText = cinemaMap[r].vo;
+      voText = customLines[i] || cinemaMap[r].vo;
+      subtitle = pts[i] || `${p} · Sinematik Fragman`;
+      highlight = i === roles.length - 1 ? (b.cta || 'ÇOK YAKINDA SİNEMALARDA') : `${p.toUpperCase()}`;
     } else if (isYouTube && youtubeMap[r]) {
       screenText = youtubeMap[r].screen;
-      voText = youtubeMap[r].vo;
+      voText = customLines[i] || youtubeMap[r].vo;
+      subtitle = pts[i] || `YouTube Analiz & İnceleme`;
+      highlight = i === roles.length - 1 ? (b.cta || 'ABONE OL & BEĞEN') : `DETAY`;
     } else {
       const roleEntry = templates[r];
       if (roleEntry) {
@@ -151,32 +164,40 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
           voText = (roleEntry as { screen: string; vo: string }).vo;
         }
       }
+      subtitle = pts[i] || `${p} Tanıtımı`;
+      highlight = b.cta || '';
     }
 
-    if (r === 'Özellik' || r.includes('Detay')) {
+    if (r === 'Özellik' || r.includes('Detay') || r.includes('Kanıt')) {
       if (pts[ptIndex]) {
         screenText = pts[ptIndex];
-        voText = `${screenText} ile ilgili tüm detaylar.`;
+        voText = customLines[i] || `${screenText} ile ilgili tüm detaylar.`;
         ptIndex++;
       }
-    } else if ((r === 'Çağrı' || r.includes('Çağrısı')) && b.cta) {
+    } else if ((r === 'Çağrı' || r.includes('Çağrısı') || r.includes('Kapanış')) && b.cta) {
       screenText = b.cta;
-      voText = b.cta;
+      voText = customLines[i] || b.cta;
+      highlight = b.cta;
     }
 
     const sceneDuration = i === 0 ? hookSec : remainingSec;
-    const visual = `[${b.tone} ışıklandırma, ${r.toLowerCase()} planı: ${p}]`;
-    const imageUrl = getScenePhoto(b.type, r, visual, i, p);
+    const visualContext = customLines[i] || b.customInstructions || p;
+    const visual = `[${b.tone} ışıklandırma, ${r.toLowerCase()} planı: ${visualContext.slice(0, 80)}]`;
+    const imageUrl = getScenePhoto(b.type, r, visualContext, i, p);
+    const zoomDir: 'in' | 'out' = i % 2 === 0 ? 'in' : 'out';
 
     return {
       id: i + 1,
       role: r,
       sec: sceneDuration,
       text: screenText,
+      subtitle,
+      highlight,
       vo: voText,
       visual,
       grad: GRADIENTS[i % GRADIENTS.length],
-      imageUrl
+      imageUrl,
+      zoomDir
     };
   });
 }

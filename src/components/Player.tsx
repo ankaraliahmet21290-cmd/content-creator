@@ -105,9 +105,9 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     <div>
       <div className="stage-wrap">
         <div>
-          {/* SİNEMATİK / YOUTUBE v5 EKRANI */}
+          {/* SİNEMATİK / BELGESEL / YOUTUBE v5 EKRANI */}
           <div
-            className={`screen-box v5-screen ${isCinema ? 'cinema-letterbox' : ''} ${isYouTube ? 'youtube-screen' : ''}`}
+            className={`screen-box v5-screen ${isCinema ? 'cinema-letterbox' : ''} ${isDocumentary ? 'documentary-screen' : ''} ${isYouTube ? 'youtube-screen' : ''}`}
             style={{
               aspectRatio: `${aspectW} / ${aspectH}`,
               width: `min(${maxWidthPx}px, 100%)`
@@ -127,12 +127,12 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
             />
 
             {/* 2. Sinematik Koyu Alt Kuşak (Dark / Gradient Overlay) */}
-            <div className={`v5-gradient-overlay ${isCinema ? 'cinema-overlay' : ''}`} />
+            <div className={`v5-gradient-overlay ${isCinema || isDocumentary ? 'cinema-overlay' : ''}`} />
 
             {/* 3. Üst Rozet */}
             <div className="v5-top-badge">
-              <span className={`v5-brand-title ${isCinema ? 'cinema-badge' : isYouTube ? 'youtube-badge' : ''}`}>
-                {isCinema ? '🎬 ' : isYouTube ? '🔴 ' : ''}
+              <span className={`v5-brand-title ${isCinema ? 'cinema-badge' : isDocumentary ? 'documentary-badge' : isYouTube ? 'youtube-badge' : ''}`}>
+                {isCinema ? '🎬 ' : isDocumentary ? '🎙️ ' : isYouTube ? '🔴 ' : ''}
                 {video.product.toUpperCase()}
               </span>
               <span className="v5-scene-tag">
@@ -142,17 +142,17 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
 
             {/* 4. Alt Tipografi Grubu (Başlık, Alt Başlık, Vurgu) */}
             <div className="v5-content-group">
-              <div className={`v5-main-title ${isCinema ? 'cinema-title' : ''}`} key={`title-${curIndex}`}>
+              <div className={`v5-main-title ${isCinema || isDocumentary ? 'cinema-title' : ''}`} key={`title-${curIndex}`}>
                 {curScene?.text}
               </div>
               {curScene?.subtitle && (
-                <div className="v5-sub-title" key={`sub-${curIndex}`}>
+                <div className={`v5-sub-title ${isDocumentary ? 'documentary-sub' : ''}`} key={`sub-${curIndex}`}>
                   {curScene.subtitle}
                 </div>
               )}
               {curScene?.highlight && (
-                <div className={`v5-highlight-badge ${isCinema ? 'cinema-hl' : isYouTube ? 'youtube-hl' : ''}`} key={`hl-${curIndex}`}>
-                  {isCinema ? '✦ ' : isYouTube ? '▶ ' : '★ '}
+                <div className={`v5-highlight-badge ${isCinema ? 'cinema-hl' : isDocumentary ? 'documentary-hl' : isYouTube ? 'youtube-hl' : ''}`} key={`hl-${curIndex}`}>
+                  {isCinema ? '✦ ' : isDocumentary ? '🔍 ' : isYouTube ? '▶ ' : '★ '}
                   {curScene.highlight}
                 </div>
               )}
@@ -164,7 +164,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
             {/* İlerleme Çubuğu */}
             <div className="pb-track">
               <div
-                className={`pb-fill ${isYouTube ? 'youtube-pb' : isCinema ? 'cinema-pb' : ''}`}
+                className={`pb-fill ${isYouTube ? 'youtube-pb' : isCinema ? 'cinema-pb' : isDocumentary ? 'documentary-pb' : ''}`}
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -181,7 +181,13 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                 if (!nextState) audioMgr.stopSpeech();
               }}
             >
-              {isPlaying ? '⏸ Duraklat' : '▶ Reklamı Oynat'}
+              {isPlaying
+                ? '⏸ Duraklat'
+                : isCinema
+                ? '▶ Filmi / Fragmanı Oynat'
+                : isDocumentary
+                ? '▶ Belgeseli Oynat'
+                : '▶ Videoyu Oynat'}
             </button>
             <button
               type="button"
@@ -209,7 +215,11 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               className={`btn sm ${isBGMActive ? 'primary' : ''}`}
               onClick={() => setIsBGMActive(!isBGMActive)}
             >
-              {isBGMActive ? '🎵 Satış Müziği Açık' : '🎵 Müzik Kapalı'}
+              {isBGMActive
+                ? isCinema || isDocumentary
+                  ? '🎵 Sinematik Müzik Açık'
+                  : '🎵 Satış Müziği Açık'
+                : '🎵 Müzik Kapalı'}
             </button>
           </div>
 
@@ -221,7 +231,13 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               disabled={isExporting}
               onClick={handleExportVideo}
             >
-              {isExporting ? '⏳ 1080p Sinematik Render Ediliyor...' : '📥 v5 Sinematik Video İndir (.webm)'}
+              {isExporting
+                ? '⏳ 1080p Sinematik Render Ediliyor...'
+                : isCinema
+                ? '📥 Sinema Filmi İndir (.webm)'
+                : isDocumentary
+                ? '📥 Sinematik Belgesel İndir (.webm)'
+                : '📥 Video İndir (.webm)'}
             </button>
             <button
               type="button"

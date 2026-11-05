@@ -22,7 +22,7 @@ export function VisualPickerModal({
   onSelect,
   onClose
 }: VisualPickerModalProps) {
-  const [filter, setFilter] = useState<'all' | 'sinema' | 'youtube' | 'emlak'>('all');
+  const [filter, setFilter] = useState<'all' | 'sinema' | 'belgesel' | 'youtube' | 'emlak'>('all');
   const [search, setSearch] = useState('');
   const [customUrl, setCustomUrl] = useState('');
   const [aiPrompt, setAiPrompt] = useState(visualPrompt || sceneRole);
@@ -129,6 +129,13 @@ export function VisualPickerModal({
               onClick={() => setFilter('sinema')}
             >
               🎬 Sinema (22)
+            </button>
+            <button
+              type="button"
+              className={`btn sm ${filter === 'belgesel' ? 'primary' : ''}`}
+              onClick={() => setFilter('belgesel')}
+            >
+              🎙️ Belgesel
             </button>
             <button
               type="button"

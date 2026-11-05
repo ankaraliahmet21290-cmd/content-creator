@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Scene } from '@/types';
-import { SOP_ROLES } from '@/lib/constants';
+import { SOP_ROLES, CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES } from '@/lib/constants';
 
 interface SceneEditModalProps {
   scene: Scene;
@@ -27,9 +27,26 @@ export function SceneEditModal({ scene, onClose, onSave }: SceneEditModalProps) 
             value={data.role}
             onChange={e => setData({ ...data, role: e.target.value })}
           >
-            {SOP_ROLES.map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
+            <optgroup label="🎬 Sinema Rolleri">
+              {CINEMA_ROLES.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </optgroup>
+            <optgroup label="🎙️ Belgesel Rolleri">
+              {DOCUMENTARY_ROLES.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </optgroup>
+            <optgroup label="🔴 YouTube Rolleri">
+              {YOUTUBE_ROLES.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </optgroup>
+            <optgroup label="⚡ Standart Rolleri">
+              {SOP_ROLES.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </optgroup>
           </select>
 
           <label htmlFor="scene-text-input">Ekran Metni (Kısa & Çarpıcı Altyazı)</label>
