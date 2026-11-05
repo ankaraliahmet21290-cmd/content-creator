@@ -113,7 +113,7 @@ export function createThemedSceneVisual(
       <path d="M 0 ${h * 0.82} Q ${w * 0.38} ${h * 0.75} ${w * 0.68} ${h * 0.85} T ${w} ${h * 0.78} L ${w} ${h} L 0 ${h} Z" fill="#000000" opacity="0.88" />
     `
     : isYouTube
-      ? `
+    ? `
       <!-- YouTube Dinamik Izgara & Grafik Çizgileri -->
       <g opacity="0.18">
         <line x1="0" y1="${h * 0.2}" x2="${w}" y2="${h * 0.2}" stroke="#ffffff" stroke-width="1" stroke-dasharray="8 8" />
@@ -136,7 +136,7 @@ export function createThemedSceneVisual(
         <rect x="${w * 0.57}" y="${h * 0.43}" width="6" height="30" rx="3" fill="#ffffff" />
       </g>
     `
-      : `
+    : `
       <circle cx="${w * 0.25}" cy="${h * 0.3}" r="220" fill="${c2}" opacity="0.35" filter="url(#blur)" />
       <circle cx="${w * 0.75}" cy="${h * 0.65}" r="260" fill="#ffffff" opacity="0.12" filter="url(#blur)" />
       <path d="M 0 ${h * 0.75} Q ${w * 0.5} ${h * 0.6} ${w} ${h * 0.72} L ${w} ${h} L 0 ${h} Z" fill="#000000" opacity="0.35" />
@@ -203,10 +203,10 @@ export async function generateScenesWithGemini(
   const baseRoles = isDocumentary
     ? DOCUMENTARY_ROLES
     : isCinema
-      ? CINEMA_ROLES
-      : isYouTube
-        ? YOUTUBE_ROLES
-        : SOP_ROLES;
+    ? CINEMA_ROLES
+    : isYouTube
+    ? YOUTUBE_ROLES
+    : SOP_ROLES;
   const divisor = isCinema || isDocumentary ? 7.5 : isYouTube ? 8.0 : 6.0;
   const n = Math.max(4, Math.min(10, Math.round(brief.dur / divisor)));
 

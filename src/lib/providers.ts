@@ -45,10 +45,10 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
   const baseRoles = isDocumentary
     ? DOCUMENTARY_ROLES
     : isCinema
-      ? CINEMA_ROLES
-      : isYouTube
-        ? YOUTUBE_ROLES
-        : SOP_ROLES;
+    ? CINEMA_ROLES
+    : isYouTube
+    ? YOUTUBE_ROLES
+    : SOP_ROLES;
   const divisor = isCinema || isDocumentary ? 7.5 : isYouTube ? 8.0 : 5.5;
   const n = Math.max(3, Math.min(8, Math.round(b.dur / divisor)));
 
@@ -218,10 +218,10 @@ export const providers = {
       brief.type === 'sinema'
         ? '🎬 Sinema Modu'
         : brief.type === 'belgesel'
-          ? '🎙️ Belgesel Modu'
-          : brief.type === 'youtube'
-            ? '🔴 YouTube Modu'
-            : '✨ Yapay Zekâ Modu';
+        ? '🎙️ Belgesel Modu'
+        : brief.type === 'youtube'
+        ? '🔴 YouTube Modu'
+        : '✨ Yapay Zekâ Modu';
 
     addLog(`[${modeName}] Gemini 3.6 / 2.5 Flash ile özgün senaryo, sahne rolleri ve altyazılar üretiliyor...`);
     try {
