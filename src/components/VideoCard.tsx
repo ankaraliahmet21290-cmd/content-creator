@@ -24,6 +24,9 @@ export function VideoCard({
     <article className="v-card">
       <h3>{video.title}</h3>
       <div className="v-meta">
+        <span className={`badge-mode ${video.mode === 'classic' ? 'classic' : 'ai'}`}>
+          {video.mode === 'classic' ? '⚡ Klasik' : '✨ AI Üretimi'}
+        </span>
         <span>📱 {video.platform}</span>
         <span>📐 {video.ratio}</span>
         <span>⏱️ {video.dur} sn</span>

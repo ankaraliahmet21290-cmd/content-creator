@@ -13,20 +13,27 @@ import { LogModal } from '@/components/LogModal';
 
 export default function StudioPage() {
   const [form, setForm] = useState<IBriefForm>(INITIAL_FORM);
+  const [mode, setMode] = useState<'ai' | 'classic'>('ai');
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formError, setFormError] = useState('');
   const [isProducing, setIsProducing] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
   const [showSettings, setShowSettings] = useState(false);
   const [activeLogModal, setActiveLogModal] = useState<VideoItem | null>(null);
 
-  // Sayfa ilk yüklendiğinde LocalStorage'dan videoları ve temayı çek
+  // Sayfa ilk yüklendiğinde LocalStorage'dan videoları, temayı ve modu çek
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem('klaket_theme') as 'dark' | 'light' | null;
       if (savedTheme) {
         setTheme(savedTheme);
+      } else {
+        setTheme('light');
+      }
+      const savedMode = localStorage.getItem('klaket_app_mode') as 'ai' | 'classic' | null;
+      if (savedMode) {
+        setMode(savedMode);
       }
       const savedVideos = localStorage.getItem('klaket_sop_vids');
       if (savedVideos) {
@@ -49,6 +56,16 @@ export default function StudioPage() {
       // ignore
     }
   }, [theme]);
+
+  // Mod Değişimi (AI / Klasik)
+  const handleToggleMode = useCallback((newMode: 'ai' | 'classic') => {
+    setMode(newMode);
+    try {
+      localStorage.setItem('klaket_app_mode', newMode);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // LocalStorage Senkronizasyonu
   useEffect(() => {
@@ -84,10 +101,11 @@ export default function StudioPage() {
   }, []);
 
   // SOP Üretim Akışı
-  const produceVideo = useCallback(async (brief: IBriefForm) => {
+  const produceVideo = useCallback(async (brief: IBriefForm, targetMode: 'ai' | 'classic' = mode) => {
     setIsProducing(true);
     const id = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const logList: string[] = [`[${new Date().toLocaleTimeString()}] SOP video üretim süreci başlatıldı.`];
+    const modeLabel = targetMode === 'ai' ? '✨ Yapay Zekâ Modu' : '⚡ Klasik Şablon Modu';
+    const logList: string[] = [`[${new Date().toLocaleTimeString()}] ${modeLabel} ile video üretim süreci başlatıldı.`];
 
     const addLog = (msg: string) => {
       const entry = `[${new Date().toLocaleTimeString()}] ${msg}`;
@@ -98,6 +116,7 @@ export default function StudioPage() {
     const newVideo: VideoItem = {
       id,
       ...brief,
+      mode: targetMode,
       title: `${brief.product} – ${TYPES[brief.type]}`,
       status: 'Senaryo Yazılıyor',
       stage: 'senaryo',
@@ -110,9 +129,9 @@ export default function StudioPage() {
     setVideos(prev => [newVideo, ...prev]);
 
     try {
-      // 1. LLM Senaryo Üretimi
+      // 1. Senaryo Üretimi (AI veya Klasik)
       patchVideo(id, { progress: 25, status: 'Senaryo & Sahne Planlanıyor' });
-      const scenes = await providers.script(brief, addLog);
+      const scenes = await providers.script(brief, targetMode, addLog);
 
       // 2. Görsel & Ses (TTS) Varlık Sentezleme
       patchVideo(id, {
@@ -121,7 +140,7 @@ export default function StudioPage() {
         scenes,
         stage: 'sahneler'
       });
-      const enrichedScenes = await providers.clips(scenes, brief, addLog);
+      const enrichedScenes = await providers.clips(scenes, brief, targetMode, addLog);
 
       // 3. Montaj & Render Pipeline
       patchVideo(id, {
@@ -130,7 +149,7 @@ export default function StudioPage() {
         scenes: enrichedScenes,
         stage: 'render'
       });
-      await providers.render({ ...newVideo, scenes: enrichedScenes }, addLog);
+      await providers.render({ ...newVideo, scenes: enrichedScenes }, targetMode, addLog);
 
       // 4. Kalite Kontrolü Onaylandı ve Hazır
       addLog('Video montajı başarıyla tamamlandı ve kalite kontrol onayından geçti.');
@@ -150,7 +169,7 @@ export default function StudioPage() {
     } finally {
       setIsProducing(false);
     }
-  }, [patchVideo]);
+  }, [mode, patchVideo]);
 
   // Form Gönder
   const handleSubmit = useCallback(() => {
@@ -163,8 +182,8 @@ export default function StudioPage() {
       return;
     }
     setFormError('');
-    produceVideo({ ...form, product: form.product.trim() });
-  }, [form, produceVideo]);
+    produceVideo({ ...form, product: form.product.trim() }, mode);
+  }, [form, mode, produceVideo]);
 
   // Sahne Revizyon Güncellemesi
   const handleUpdateScene = useCallback((videoId: string, updatedScene: Scene) => {
@@ -185,7 +204,9 @@ export default function StudioPage() {
     <div className="wrap">
       <Header
         theme={theme}
+        mode={mode}
         onToggleTheme={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
+        onToggleMode={handleToggleMode}
         onOpenSettings={() => setShowSettings(true)}
       />
 
@@ -193,6 +214,7 @@ export default function StudioPage() {
         {/* Sol Panel: Video Brief Formu */}
         <BriefForm
           form={form}
+          mode={mode}
           isProducing={isProducing}
           formError={formError}
           onUpdateField={updateFormField}
@@ -238,7 +260,7 @@ export default function StudioPage() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
-            onReProduce={v => produceVideo({ ...v })}
+            onReProduce={v => produceVideo({ ...v }, v.mode || mode)}
             onOpenLogs={v => setActiveLogModal(v)}
             onDelete={id => {
               setVideos(list => list.filter(item => item.id !== id));

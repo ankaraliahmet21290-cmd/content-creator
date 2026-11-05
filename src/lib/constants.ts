@@ -134,5 +134,7 @@ export const INITIAL_FORM: BriefForm = {
   dur: 30,
   ratio: '9:16',
   platform: 'Instagram Reels',
-  lang: 'tr-TR'
+  lang: 'tr-TR',
+  voiceGender: 'female',
+  customInstructions: ''
 };

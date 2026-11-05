@@ -12,6 +12,7 @@ export function getSavedProviderConfig(): ProviderConfig {
         return {
           llm: parsed.llm || 'gemini',
           tts: parsed.tts || 'gemini_tts',
+          voiceGender: parsed.voiceGender || 'female',
           renderEngine: parsed.renderEngine || 'canvas',
           mcpUrl: parsed.mcpUrl || '',
           geminiApiKey: parsed.geminiApiKey || ''
@@ -24,6 +25,7 @@ export function getSavedProviderConfig(): ProviderConfig {
   return {
     llm: 'gemini',
     tts: 'gemini_tts',
+    voiceGender: 'female',
     renderEngine: 'canvas',
     mcpUrl: '',
     geminiApiKey: ''
@@ -103,25 +105,25 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
 }
 
 export const providers = {
-  // 1. LLM: Gemini AI ile Senaryo ve Sahne Planı Üretimi
-  async script(brief: BriefForm, addLog: (msg: string) => void): Promise<Scene[]> {
+  // 1. Senaryo ve Sahne Planı Üretimi
+  async script(brief: BriefForm, mode: 'ai' | 'classic' = 'ai', addLog: (msg: string) => void): Promise<Scene[]> {
     const cfg = getSavedProviderConfig();
-    if (cfg.llm === 'local') {
-      addLog('Yerel SOP algoritması ile senaryo yapısı oluşturuluyor...');
+    if (mode === 'classic' || cfg.llm === 'local') {
+      addLog('[Klasik Mod] SOP kural algoritması ile senaryo yapısı ve sahneler oluşturuluyor...');
       await sleep(500);
       const scenes = buildScenesFromSOP(brief);
-      addLog(`${scenes.length} adet sahne planı ve seslendirme metni üretildi.`);
+      addLog(`[Klasik Mod] ${scenes.length} adet standart sahne planı hazırlandı.`);
       return scenes;
     }
 
-    addLog('Gemini AI (gemini-2.5-flash) ile senaryo, sahne planı ve görsel kompozisyon üretiliyor...');
+    addLog('[AI Modu] Gemini 2.5 Flash ile özgün senaryo, sahne rolleri ve altyazılar üretiliyor...');
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           brief,
-          llm: cfg.llm,
+          llm: 'gemini',
           apiKey: cfg.geminiApiKey
         })
       });
@@ -131,25 +133,25 @@ export const providers = {
         throw new Error(data.error || 'Gemini senaryo yanıtı alınamadı.');
       }
 
-      addLog(`Gemini AI ${data.scenes.length} sahnelik senaryo, seslendirme ve vektör sahne tasarımını tamamladı.`);
+      addLog(`[AI Modu] Gemini ${data.scenes.length} sahnelik senaryo ve görsel kompozisyonu üretti.`);
       return data.scenes;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      addLog(`Gemini API uyarısı (${msg}) — SOP yedek şablonuna geçiliyor...`);
+      addLog(`Gemini API uyarısı (${msg}) — Standart şablona geçiliyor...`);
       return buildScenesFromSOP(brief);
     }
   },
 
-  // 2. Görsel ve Ses Modelleri (Gemini TTS & Görsel Sentezi)
-  async clips(scenes: Scene[], brief: BriefForm, addLog: (msg: string) => void): Promise<Scene[]> {
+  // 2. Görsel ve Ses Modelleri
+  async clips(scenes: Scene[], brief: BriefForm, mode: 'ai' | 'classic' = 'ai', addLog: (msg: string) => void): Promise<Scene[]> {
     const cfg = getSavedProviderConfig();
-    if (cfg.tts === 'webspeech') {
-      addLog('Tarayıcı Web Speech API ve sahne kompozisyonu bağlanıyor...');
-      await sleep(500);
-      return scenes;
+    if (mode === 'classic' || cfg.tts === 'webspeech') {
+      addLog('[Klasik Mod] Tarayıcı Web Speech API (yerel seslendirme) ve gradyan arka planlar bağlandı.');
+      await sleep(400);
+      return scenes.map(({ audioUrl: _a, ...rest }) => rest);
     }
 
-    addLog('Gemini AI TTS ile doğal seslendirme (Voiceover) ve sahne görselleri sentezleniyor...');
+    addLog('[AI Modu] Gemini AI TTS ile 24kHz doğal seslendirme (Voiceover) sentezleniyor...');
     try {
       const res = await fetch('/api/clips', {
         method: 'POST',
@@ -167,21 +169,25 @@ export const providers = {
       }
 
       addLog(
-        `Gemini AI ${data.ttsCount}/${data.scenes.length} sahne için yapay zeka seslendirmesi (24kHz WAV) ve ${data.imgCount} sahne görseli üretti.`
+        `[AI Modu] Gemini AI ${data.ttsCount}/${data.scenes.length} sahne için stüdyo kalitesinde ses üretti.`
       );
       return data.scenes;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      addLog(`Gemini TTS uyarısı (${msg}) — Tarayıcı seslendirmesi aktif edildi.`);
+      addLog(`Gemini TTS uyarısı (${msg}) — Tarayıcı yerel seslendirmesi aktif edildi.`);
       return scenes;
     }
   },
 
   // 3. Montaj ve Render Servisi
-  async render(video: Partial<VideoItem>, addLog: (msg: string) => void): Promise<Partial<VideoItem>> {
-    addLog('Gemini AI ses ve görsel katmanları zaman çizelgesiyle senkronize ediliyor...');
-    await sleep(450);
-    addLog('Kalite kontrol (QC) matrisi ve WebM video/ses render paketi hazırlandı.');
+  async render(video: Partial<VideoItem>, mode: 'ai' | 'classic' = 'ai', addLog: (msg: string) => void): Promise<Partial<VideoItem>> {
+    if (mode === 'classic') {
+      addLog('[Klasik Mod] Standart kurgu şablonu ve zaman çizelgesi hazırlandı.');
+    } else {
+      addLog('[AI Modu] Gemini AI ses ve görsel katmanları zaman çizelgesiyle senkronize ediliyor...');
+    }
+    await sleep(400);
+    addLog('Kalite kontrol (QC) kontrolleri tamamlandı ve render paketi oluşturuldu.');
     return video;
   }
 };

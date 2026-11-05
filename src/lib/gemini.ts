@@ -1,9 +1,8 @@
 import { BriefForm, Scene } from '@/types';
-import { GRADIENTS, SOP_ROLES, TYPES } from './constants';
+import { GRADIENTS, SOP_ROLES } from './constants';
 import { buildScenesFromSOP } from './providers';
 
 const DEFAULT_GEMINI_KEY = process.env.GEMINI_API_KEY || '';
-
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 export function resolveApiKey(customKey?: string): string {
@@ -12,6 +11,34 @@ export function resolveApiKey(customKey?: string): string {
     throw new Error('GEMINI_API_KEY tanımlı değil. Lütfen .env.local dosyasına ekleyin.');
   }
   return key;
+}
+
+// v5 Standardındaki yüksek çözünürlüklü profesyonel gayrimenkul / ticari varlık havuzu
+const REAL_PHOTO_POOL: Record<string, string[]> = {
+  residence: ['/real_assets/hero_residence.jpg', '/real_assets/01-hero.jpg', '/real_assets/04-ilan1.jpg'],
+  villa: ['/real_assets/luxury_villa.jpg', '/real_assets/02-villa.jpg', '/real_assets/05-ilan2.jpg'],
+  portfolio: ['/real_assets/03-portfoy.jpg', '/real_assets/06-ilan3.jpg', '/real_assets/07-ilan4.jpg', '/real_assets/08-ilan5.jpg', '/real_assets/09-ilan6.jpg'],
+  team: ['/real_assets/client_seeoff_1.jpg', '/real_assets/client_seeoff_2.jpg'],
+  map: ['/real_assets/modern_map.jpg', '/real_assets/real_office_street.jpg'],
+  outro: ['/real_assets/outro_luxury.jpg', '/real_assets/real_office_front_hd.jpg']
+};
+
+export function matchBestRealPhoto(role: string, visualDesc: string, index: number): string {
+  const v = (visualDesc || '').toLowerCase();
+  if (v.includes('villa') || v.includes('müstakil')) return REAL_PHOTO_POOL.villa[index % REAL_PHOTO_POOL.villa.length];
+  if (v.includes('ekip') || v.includes('ofis') || v.includes('danışman') || v.includes('müşteri') || role === 'Kanıt') {
+    return REAL_PHOTO_POOL.team[index % REAL_PHOTO_POOL.team.length];
+  }
+  if (v.includes('harita') || v.includes('konum') || v.includes('merkez') || role === 'Özellik') {
+    return REAL_PHOTO_POOL.map[index % REAL_PHOTO_POOL.map.length];
+  }
+  if (role === 'Çağrı' || v.includes('iletişim') || v.includes('çağrı')) {
+    return REAL_PHOTO_POOL.outro[index % REAL_PHOTO_POOL.outro.length];
+  }
+  if (role === 'Çözüm' || role === 'Fayda') {
+    return REAL_PHOTO_POOL.portfolio[index % REAL_PHOTO_POOL.portfolio.length];
+  }
+  return REAL_PHOTO_POOL.residence[index % REAL_PHOTO_POOL.residence.length];
 }
 
 /**
@@ -30,8 +57,8 @@ function pcm16ToWavDataUrl(pcmBase64: string, sampleRate = 24000): string {
   wavBuffer.writeUInt32LE(36 + dataSize, 4);
   wavBuffer.write('WAVE', 8);
   wavBuffer.write('fmt ', 12);
-  wavBuffer.writeUInt32LE(16, 16); // Subchunk1Size (PCM)
-  wavBuffer.writeUInt16LE(1, 20);  // AudioFormat (1 = PCM)
+  wavBuffer.writeUInt32LE(16, 16);
+  wavBuffer.writeUInt16LE(1, 20);
   wavBuffer.writeUInt16LE(numChannels, 22);
   wavBuffer.writeUInt32LE(sampleRate, 24);
   wavBuffer.writeUInt32LE(byteRate, 28);
@@ -44,110 +71,68 @@ function pcm16ToWavDataUrl(pcmBase64: string, sampleRate = 24000): string {
   return `data:audio/wav;base64,${wavBuffer.toString('base64')}`;
 }
 
-/**
- * Her sahne için yedek veya zenginleştirilmiş AI SVG arka plan kompozisyonu oluşturur.
- */
-function createSceneSvgDataUrl(
-  grad: [string, string],
-  role: string,
-  index: number,
-  customSvgInner?: string
-): string {
-  const [c1, c2] = grad;
-  const shapes =
-    customSvgInner && customSvgInner.trim().length > 10
-      ? customSvgInner
-      : `
-        <circle cx="${180 + (index * 90) % 440}" cy="${200 + (index * 70) % 360}" r="220" fill="${c2}" opacity="0.28" filter="url(#blur)" />
-        <circle cx="${620 - (index * 80) % 400}" cy="${580 - (index * 60) % 320}" r="260" fill="#ffffff" opacity="0.08" filter="url(#blur)" />
-        <path d="M 0 ${620 - (index % 3) * 40} Q 400 ${480 + (index % 2) * 80} 800 ${600 - (index % 4) * 30} L 800 800 L 0 800 Z" fill="#000000" opacity="0.22" />
-      `;
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
-    <defs>
-      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${c1}" />
-        <stop offset="100%" stop-color="${c2}" />
-      </linearGradient>
-      <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="45" />
-      </filter>
-      <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
-      </pattern>
-    </defs>
-    <rect width="800" height="800" fill="url(#bg)" />
-    <rect width="800" height="800" fill="url(#grid)" />
-    ${shapes}
-    <rect width="800" height="800" fill="rgba(0,0,0,0.18)" />
-  </svg>`;
-
-  return `data:image/svg+xml;base64,${Buffer.from(svg, 'utf-8').toString('base64')}`;
-}
-
 interface RawGeminiScene {
   role?: string;
   sec?: number;
   text?: string;
+  subtitle?: string;
+  highlight?: string;
   vo?: string;
   visual?: string;
   grad?: [string, string];
-  svgInner?: string;
+  zoomDir?: 'in' | 'out';
 }
 
 /**
- * Gemini 2.5 Flash kullanarak SOP kurallarına tam uyumlu senaryo, sahne planı ve vektörel sahne kompozisyonu üretir.
+ * Gemini 2.5 Flash ile v5 standardında sinematik TV/sosyal medya reklam kurgusu üretir.
  */
 export async function generateScenesWithGemini(
   brief: BriefForm,
   customApiKey?: string
 ): Promise<Scene[]> {
   const apiKey = resolveApiKey(customApiKey);
-  const n = Math.max(3, Math.min(8, Math.round(brief.dur / 5.5)));
+  const n = Math.max(3, Math.min(8, Math.round(brief.dur / 6.0)));
   const roles =
     n === 8
       ? SOP_ROLES
       : [SOP_ROLES[0], ...SOP_ROLES.slice(1, 7).slice(0, n - 2), SOP_ROLES[7]];
 
-  const hookSec = brief.dur <= 15 ? 2.5 : 3.0;
+  const hookSec = brief.dur <= 20 ? 3.5 : 4.0;
   const remainingSec = +((brief.dur - hookSec) / (n - 1)).toFixed(1);
 
-  const prompt = `Sen profesyonel bir AI Video Yönetmeni ve Senaryo Yazarısın.
-Aşağıdaki brief bilgilerine göre tam ${n} sahnelik bir video prodüksiyon planı oluştur.
+  const prompt = `Sen Türkiye'nin en iyi televizyon ve sosyal medya reklam yönetmenisin.
+Aşağıdaki brief bilgilerine göre korkmaz-gayrimenkul-tanitim-v5 kalitesinde tam ${n} sahnelik SİNEMATİK bir ticari reklam filmi kurgula.
 
-BRIEF BİLGİLERİ:
+BRIEF VE KULLANICI TALİMATI:
 - Ürün / Marka / Konu: "${brief.product}"
-- Video Türü: "${TYPES[brief.type] || brief.type}"
-- Hedef Kitle: "${brief.audience || 'Genel izleyici kitlesi'}"
-- Ana Mesajlar / Öne Çıkanlar: "${brief.points || ''}"
-- Harekete Geçirici Mesaj (CTA): "${brief.cta || 'Hemen inceleyin'}"
-- Ton ve Atmosfer: "${brief.tone}"
+${brief.customInstructions ? `- ÖZEL REKLAM TALİMATI & İSTEKLER: "${brief.customInstructions}"` : ''}
 - Toplam Süre: ${brief.dur} saniye
-- Platform & Oran: ${brief.platform} (${brief.ratio})
-- Dil Kodu: ${brief.lang}
+- En-Boy Oranı: ${brief.ratio}
+- Dil Kodu: ${brief.lang || 'tr-TR'}
 
-ZORUNLU SOP VE KALİTE KONTROL (QC) KURALLARI:
-1. Tam olarak ${n} adet sahne üretmelisin. Sırasıyla sahne rolleri şu şekilde olmalıdır: ${JSON.stringify(roles)}.
-2. 1. sahnenin rolü kesinlikle "Kanca" olmalı ve süresi (sec) ${hookSec} saniye olmalıdır.
-3. Diğer ${n - 1} sahnenin her birinin süresi (sec) ${remainingSec} saniye olmalıdır.
-4. Son sahnenin rolü kesinlikle "Çağrı" olmalı ve CTA mesajını ("${brief.cta || 'Hemen arayın'}") içermelidir.
-5. Her sahnenin "text" (ekran üstü başlık/altyazı) alanı çarpıcı, net ve EN FAZLA 55 karakter olmalıdır (kesinlikle 60 karakteri geçmemeli).
-6. En az bir sahnenin "text" veya "vo" alanında ürün/marka adı ("${brief.product}") doğrudan geçmelidir.
-7. "vo" alanı, seçilen dilde (${brief.lang}) seslendirilecek akıcı, doğal ve sahne süresine uygun uzunlukta seslendirme metnidir.
-8. "visual" alanı, sahnenin sinematik kamera açısı, ışıklandırma ve görsel kompozisyon tarifidir.
-9. "grad" alanı, sahnenin duygusuna uygun koyu/kontrastlı 2 adet HEX renk kodundan oluşan bir dizi olmalıdır (ör. ["#1e1b4b", "#7c3aed"]). Beyaz metinlerin okunabilmesi için çok açık renklerden kaçın.
-10. "svgInner" alanı, 800x800 viewBox'lı bir SVG'nin içine yerleştirilecek, sahnenin konusunu simgeleyen estetik, modern, yarı saydam (opacity 0.12 - 0.35 arası) geometrik/ikonik SVG şekil etiketleri (<circle>, <path>, <rect>, <polygon> vb.) içermelidir. İçinde <svg> veya <text> etiketi KULLANMA, sadece şekil elementlerini yaz.
+V5 REKLAM STANDARDI KURALLARI:
+1. Sahne Rolleri: ${JSON.stringify(roles)}.
+2. 1. sahne ("Kanca") süresi ${hookSec}s, diğer ${n - 1} sahne süresi ${remainingSec}s olmalı.
+3. Her sahne için 3 kademeli güçlü tipografi oluştur:
+   - "text": Ana Başlık (Büyük harf, vurucu, örn: "SEÇKİN PORTFÖY & DOĞRU YATIRIM", max 50 karakter)
+   - "subtitle": Alt Başlık (Tamamlayıcı detay, örn: "Konut • İş Yeri • Arsa • Yatırım Danışmanlığı", max 65 karakter)
+   - "highlight": Sarı/Altın Vurgu Metni (Ekranın en can alıcı vaadi veya çağrısı, max 60 karakter)
+4. "vo": TV reklam seslendirmesi tonunda, çok akıcı, profesyonel ve etkileyici Türkçe konuşma metni.
+5. "visual": Kamera çekim planı (örn: "Geniş açı villa ve havuz çekimi", "Ofiste sözleşme ve anahtar teslimi", "3D modern şehir ve yatırım haritası").
+6. "zoomDir": Kamera hareket yönü ("in" veya "out").
 
-Yanıtı SADECE aşağıdaki JSON şemasında bir dizi (array) olarak döndür:
+Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
 [
   {
     "role": "Kanca",
     "sec": ${hookSec},
-    "text": "Kısa Çarpıcı Başlık",
-    "vo": "Seslendirme metni...",
-    "visual": "Sinematik kamera ve ışık tarifi...",
-    "grad": ["#1e1b4b", "#7c3aed"],
-    "svgInner": "<circle cx='400' cy='400' r='180' fill='rgba(255,255,255,0.12)' />"
+    "text": "HAYALİNİZDEKİ YAŞAMA ADIM ATIN",
+    "subtitle": "Kırşehir'de Güven, Kalite ve Doğru Yatırım",
+    "highlight": "Korkmaz Gayrimenkul Güvencesiyle",
+    "vo": "Geleceğinizi güvenle inşa etmeye hazır mısınız? Şehrin en prestijli projeleri sizleri bekliyor.",
+    "visual": "Lüks rezidans kuleleri ve gökyüzü günbatımı çekimi",
+    "grad": ["#0b1329", "#1d2b4f"],
+    "zoomDir": "in"
   }
 ]`;
 
@@ -167,75 +152,54 @@ Yanıtı SADECE aşağıdaki JSON şemasında bir dizi (array) olarak döndür:
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Gemini LLM API Hatası (${response.status}): ${errText.slice(0, 200)}`);
+    throw new Error(`Gemini LLM Hatası (${response.status}): ${errText.slice(0, 200)}`);
   }
 
   const data = await response.json();
-  const rawText: string =
-    data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+  const rawText: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
 
   let parsed: RawGeminiScene[] = [];
   try {
     parsed = JSON.parse(rawText);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('Geçersiz sahne dizisi');
-    }
   } catch {
-    return buildScenesFromSOP(brief);
+    parsed = [];
   }
 
   const fallbackScenes = buildScenesFromSOP(brief);
 
-  const normalized: Scene[] = roles.map((expectedRole, i) => {
+  return roles.map((expectedRole, i) => {
     const raw = parsed[i] || {};
     const fb = fallbackScenes[i] || fallbackScenes[0];
     const sec = i === 0 ? hookSec : remainingSec;
 
-    let text = (raw.text || fb.text || brief.product).trim();
-    if (text.length > 60) {
-      text = text.slice(0, 57).trim() + '...';
-    }
-
+    const text = (raw.text || fb.text || brief.product).trim();
+    const subtitle = (raw.subtitle || fb.visual || '').trim();
+    const highlight = (raw.highlight || (i === roles.length - 1 ? (brief.cta || 'Hemen Bize Ulaşın') : '')).trim();
     const vo = (raw.vo || fb.vo || text).trim();
     const visual = (raw.visual || fb.visual).trim();
-
-    const isValidHex = (c: unknown): c is string =>
-      typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c.trim());
-
     const grad: [string, string] =
-      Array.isArray(raw.grad) && isValidHex(raw.grad[0]) && isValidHex(raw.grad[1])
-        ? [raw.grad[0].trim(), raw.grad[1].trim()]
+      Array.isArray(raw.grad) && raw.grad.length === 2
+        ? [raw.grad[0], raw.grad[1]]
         : GRADIENTS[i % GRADIENTS.length];
+    const zoomDir: 'in' | 'out' = raw.zoomDir === 'out' ? 'out' : 'in';
 
-    const imageUrl = createSceneSvgDataUrl(grad, expectedRole, i, raw.svgInner);
+    // Gerçek sinematik görsel eşleştirmesi
+    const imageUrl = matchBestRealPhoto(expectedRole, visual, i);
 
     return {
       id: i + 1,
       role: expectedRole,
       sec,
       text,
+      subtitle,
+      highlight,
       vo,
       visual,
       grad,
-      imageUrl
+      imageUrl,
+      zoomDir
     };
   });
-
-  // QC Kural 5 güvencesi: Ürün/marka adı hiçbir sahnede geçmiyorsa ilk sahneye ekle
-  const prodSnippet = (brief.product || '').toLowerCase().slice(0, 5);
-  const hasBrand =
-    prodSnippet.length > 0 &&
-    normalized.some(
-      s =>
-        s.text.toLowerCase().includes(prodSnippet) ||
-        s.vo.toLowerCase().includes(prodSnippet)
-    );
-
-  if (!hasBrand && normalized.length > 0) {
-    normalized[0].vo = `${brief.product}: ${normalized[0].vo}`;
-  }
-
-  return normalized;
 }
 
 const TTS_MODELS = [
@@ -245,17 +209,19 @@ const TTS_MODELS = [
 ];
 
 /**
- * Tek bir sahne metni için Gemini TTS modeliyle gerçekçi AI seslendirme (WAV Data URL) üretir.
+ * Gemini TTS seslendirmesi üretir (Kadın: Kore, Erkek: Puck)
  */
 async function generateSceneTTS(
   text: string,
   sceneIndex: number,
-  apiKey: string
+  apiKey: string,
+  voiceGender: 'female' | 'male' = 'female'
 ): Promise<string | undefined> {
   if (!text || !text.trim()) return undefined;
 
   const model = TTS_MODELS[sceneIndex % TTS_MODELS.length];
   const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const voiceName = voiceGender === 'male' ? 'Puck' : 'Kore';
 
   try {
     const res = await fetch(url, {
@@ -268,7 +234,7 @@ async function generateSceneTTS(
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
-                voiceName: 'Kore'
+                voiceName
               }
             }
           }
@@ -277,7 +243,6 @@ async function generateSceneTTS(
     });
 
     if (!res.ok) return undefined;
-
     const json = await res.json();
     const inlineData = json?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
     if (!inlineData?.data) return undefined;
@@ -289,50 +254,7 @@ async function generateSceneTTS(
 }
 
 /**
- * Opsiyonel olarak Gemini Image modeliyle sahne görseli üretmeyi dener (kota varsa).
- */
-async function tryGenerateRasterImage(
-  visualPrompt: string,
-  product: string,
-  apiKey: string
-): Promise<string | undefined> {
-  const url = `${GEMINI_BASE_URL}/gemini-2.5-flash-image:generateContent?key=${encodeURIComponent(apiKey)}`;
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: `Cinematic background visual for "${product}": ${visualPrompt}. No text, high contrast, modern commercial photography.`
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          responseModalities: ['IMAGE']
-        }
-      })
-    });
-    if (!res.ok) return undefined;
-    const json = await res.json();
-    const part = json?.candidates?.[0]?.content?.parts?.find(
-      (p: { inlineData?: { mimeType?: string; data?: string } }) => p.inlineData?.data
-    );
-    if (part?.inlineData?.data) {
-      const mime = part.inlineData.mimeType || 'image/png';
-      return `data:${mime};base64,${part.inlineData.data}`;
-    }
-    return undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Tüm sahneler için Gemini TTS seslendirmelerini ve görsel varlıklarını sentezler.
+ * Sahnelerin seslendirmelerini ve sinematik varlıklarını bağlar
  */
 export async function synthesizeClipsWithGemini(
   scenes: Scene[],
@@ -341,35 +263,13 @@ export async function synthesizeClipsWithGemini(
 ): Promise<{ scenes: Scene[]; ttsCount: number; imgCount: number }> {
   const apiKey = resolveApiKey(customApiKey);
   let ttsCount = 0;
-  let imgCount = 0;
-
-  // İlk sahne için raster image kotasını kontrol et; 429 dönerse diğer sahnelerde vakit kaybetmeden AI SVG kompozisyonunu kullan
-  const firstRaster =
-    scenes.length > 0
-      ? await tryGenerateRasterImage(scenes[0].visual, brief.product, apiKey)
-      : undefined;
 
   const updatedScenes = await Promise.all(
     scenes.map(async (scene, idx) => {
-      const audioUrl = await generateSceneTTS(scene.vo, idx, apiKey);
+      const audioUrl = await generateSceneTTS(scene.vo, idx, apiKey, brief.voiceGender || 'female');
       if (audioUrl) ttsCount++;
 
-      let imageUrl = scene.imageUrl;
-      if (idx === 0 && firstRaster) {
-        imageUrl = firstRaster;
-        imgCount++;
-      } else if (idx > 0 && firstRaster) {
-        const raster = await tryGenerateRasterImage(scene.visual, brief.product, apiKey);
-        if (raster) {
-          imageUrl = raster;
-          imgCount++;
-        }
-      } else {
-        if (!imageUrl) {
-          imageUrl = createSceneSvgDataUrl(scene.grad, scene.role, idx);
-        }
-        imgCount++;
-      }
+      const imageUrl = scene.imageUrl || matchBestRealPhoto(scene.role, scene.visual, idx);
 
       return {
         ...scene,
@@ -379,6 +279,5 @@ export async function synthesizeClipsWithGemini(
     })
   );
 
-  return { scenes: updatedScenes, ttsCount, imgCount };
+  return { scenes: updatedScenes, ttsCount, imgCount: updatedScenes.length };
 }
-

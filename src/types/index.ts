@@ -2,6 +2,8 @@ export type VideoType = 'reklam' | 'tanitim' | 'sosyal' | 'egitim' | 'kurumsal';
 
 export type AspectRatio = '9:16' | '1:1' | '16:9';
 
+export type VoiceGender = 'female' | 'male';
+
 export interface BriefForm {
   type: VideoType;
   product: string;
@@ -13,6 +15,8 @@ export interface BriefForm {
   ratio: AspectRatio;
   platform: string;
   lang: string;
+  voiceGender?: VoiceGender;
+  customInstructions?: string;
 }
 
 export interface Scene {
@@ -20,11 +24,14 @@ export interface Scene {
   role: string;
   sec: number;
   text: string;
+  subtitle?: string;
+  highlight?: string;
   vo: string;
   visual: string;
   grad: [string, string];
   imageUrl?: string;
   audioUrl?: string;
+  zoomDir?: 'in' | 'out';
 }
 
 export type VideoStatus =
@@ -35,9 +42,12 @@ export type VideoStatus =
   | 'Hazır'
   | 'Başarısız';
 
+export type AppMode = 'ai' | 'classic';
+
 export interface VideoItem extends BriefForm {
   id: string;
   title: string;
+  mode?: AppMode;
   status: VideoStatus;
   stage: 'senaryo' | 'sahneler' | 'render' | 'hazir' | 'hata';
   progress: number;
@@ -66,6 +76,7 @@ export interface Preset {
 export interface ProviderConfig {
   llm: string;
   tts: string;
+  voiceGender?: VoiceGender;
   renderEngine: string;
   mcpUrl: string;
   geminiApiKey?: string;

@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react';
 import { Scene, VideoItem } from '@/types';
 import { RATIOS } from '@/lib/constants';
 import { audioMgr } from '@/lib/audio';
-import { evaluateQC } from '@/lib/qc';
 import { exportVideoFile, downloadVideoJson } from '@/lib/exportVideo';
 import { SceneTimeline } from './SceneTimeline';
-import { QCChecklist } from './QCChecklist';
 import { SceneEditModal } from './SceneEditModal';
 
 interface PlayerProps {
@@ -20,15 +18,15 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSActive, setIsTTSActive] = useState(true);
-  const [isBGMActive, setIsBGMActive] = useState(false);
+  const [isBGMActive, setIsBGMActive] = useState(true);
   const [editScene, setEditScene] = useState<Scene | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   const scenes = video.scenes;
   const curScene = scenes[curIndex] || scenes[0];
-  const [aspectW, aspectH] = RATIOS[video.ratio] || [9, 16];
+  const [aspectW, aspectH] = RATIOS[video.ratio] || [16, 9];
+  const isAi = video.mode === 'ai';
 
-  // Video ID değiştiğinde sıfırla ve duraklatılmış (otomatik başlamaz) halde tut
   useEffect(() => {
     setCurIndex(0);
     setProgress(0);
@@ -37,14 +35,17 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     audioMgr.stopBGM();
   }, [video.id]);
 
-  // Sahne değiştiğinde TTS seslendir (Gemini AI WAV veya Web Speech)
   useEffect(() => {
     if (isPlaying && isTTSActive && curScene) {
-      audioMgr.speak(curScene.vo, video.lang || 'tr-TR', curScene.audioUrl);
+      audioMgr.speak(
+        curScene.vo,
+        video.lang || 'tr-TR',
+        curScene.audioUrl,
+        video.voiceGender || 'female'
+      );
     }
-  }, [curIndex, isPlaying, isTTSActive, curScene, video.lang, video.id]);
+  }, [curIndex, isPlaying, isTTSActive, curScene, video.lang, video.voiceGender, video.id]);
 
-  // BGM Aç / Kapat
   useEffect(() => {
     if (isBGMActive && isPlaying) {
       audioMgr.startBGM();
@@ -54,10 +55,9 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     return () => audioMgr.stopBGM();
   }, [isBGMActive, isPlaying]);
 
-  // Oynatma Döngüsü
   useEffect(() => {
     if (!isPlaying || !curScene) return;
-    const intervalMs = 80;
+    const intervalMs = 60;
     const step = 100 / (curScene.sec * (1000 / intervalMs));
 
     const id = setInterval(() => {
@@ -91,41 +91,63 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     setEditScene(null);
   }
 
-  const qc = evaluateQC(video);
-  const maxWidthPx = aspectW > aspectH ? 520 : aspectW === aspectH ? 360 : 270;
-  const screenStyle: React.CSSProperties = {
-    aspectRatio: `${aspectW} / ${aspectH}`,
-    width: `min(${maxWidthPx}px, 100%)`,
-    background: curScene?.imageUrl
-      ? `url("${curScene.imageUrl}") center / cover no-repeat, linear-gradient(145deg, ${curScene.grad[0]}, ${curScene.grad[1]})`
-      : curScene
-      ? `linear-gradient(145deg, ${curScene.grad[0]}, ${curScene.grad[1]})`
-      : '#1e1b4b'
-  };
+  const maxWidthPx = aspectW > aspectH ? 640 : aspectW === aspectH ? 420 : 320;
+  const isZoomIn = curScene?.zoomDir !== 'out';
+  const zoomScale = isZoomIn ? 1.0 + (progress / 100) * 0.12 : 1.12 - (progress / 100) * 0.12;
 
   return (
     <div>
       <div className="stage-wrap">
-        {/* Sol Sütun: Ekran Önizleme & Oynatıcı Kontrolleri */}
         <div>
-          <div className="screen-box" style={screenStyle}>
-            <div className="top-bar">
-              <span className="tag">
+          {/* SİNEMATİK v5 EKRANI */}
+          <div
+            className={`screen-box v5-screen ${isAi ? 'ai-cinema-screen' : ''}`}
+            style={{
+              aspectRatio: `${aspectW} / ${aspectH}`,
+              width: `min(${maxWidthPx}px, 100%)`
+            }}
+          >
+            {/* 1. Arka Plan Sinematik Fotoğrafı (Ken Burns Canlı Zoom) */}
+            <div
+              className="v5-photo-layer"
+              style={{
+                backgroundImage: curScene?.imageUrl ? `url("${curScene.imageUrl}")` : undefined,
+                transform: `scale(${zoomScale})`
+              }}
+            />
+
+            {/* 2. Sinematik Koyu Alt Kuşak (v5 Dark/Gradient Overlay) */}
+            <div className="v5-gradient-overlay" />
+
+            {/* 3. Üst Kurumsal Rozet */}
+            <div className="v5-top-badge">
+              <span className="v5-brand-title">{video.product.toUpperCase()}</span>
+              <span className="v5-scene-tag">
                 {curScene?.role} · {curIndex + 1}/{scenes.length}
-                {curScene?.audioUrl ? ' · ✨ Gemini AI' : ''}
               </span>
-              <span className="brand-mark">{video.product}</span>
             </div>
 
-            <div className="center-content">
-              <div className="cap" key={`${video.id}-${curIndex}`}>
+            {/* 4. Alt v5 Tipografi Grubu (Başlık, Alt Başlık, Vurgu) */}
+            <div className="v5-content-group">
+              <div className="v5-main-title" key={`title-${curIndex}`}>
                 {curScene?.text}
               </div>
-              <div className="vo-sub">
+              {curScene?.subtitle && (
+                <div className="v5-sub-title" key={`sub-${curIndex}`}>
+                  {curScene.subtitle}
+                </div>
+              )}
+              {curScene?.highlight && (
+                <div className="v5-highlight-badge" key={`hl-${curIndex}`}>
+                  ★ {curScene.highlight}
+                </div>
+              )}
+              <div className="v5-vo-line">
                 🎙️ {curScene?.vo}
               </div>
             </div>
 
+            {/* İlerleme Çubuğu */}
             <div className="pb-track">
               <div className="pb-fill" style={{ width: `${progress}%` }} />
             </div>
@@ -142,7 +164,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                 if (!nextState) audioMgr.stopSpeech();
               }}
             >
-              {isPlaying ? '⏸ Duraklat' : '▶ Oynat'}
+              {isPlaying ? '⏸ Duraklat' : '▶ Reklamı Oynat'}
             </button>
             <button
               type="button"
@@ -163,14 +185,14 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                 if (!nextTTS) audioMgr.stopSpeech();
               }}
             >
-              {isTTSActive ? '🔊 TTS Açık' : '🔇 TTS Kapalı'}
+              {isTTSActive ? '🔊 AI Ses Açık' : '🔇 AI Ses Kapalı'}
             </button>
             <button
               type="button"
               className={`btn sm ${isBGMActive ? 'primary' : ''}`}
               onClick={() => setIsBGMActive(!isBGMActive)}
             >
-              {isBGMActive ? '🎵 Müzik Açık' : '🎵 Müzik Kapalı'}
+              {isBGMActive ? '🎵 Satış Müziği Açık' : '🎵 Müzik Kapalı'}
             </button>
           </div>
 
@@ -182,7 +204,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               disabled={isExporting}
               onClick={handleExportVideo}
             >
-              {isExporting ? '⏳ Render Ediliyor...' : '📥 Video İndir (.webm)'}
+              {isExporting ? '⏳ 1080p Sinematik Render Ediliyor...' : '📥 v5 Sinematik Video İndir (.webm)'}
             </button>
             <button
               type="button"
@@ -194,7 +216,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
           </div>
         </div>
 
-        {/* Sağ Sütun: Sahne Zaman Çizelgesi & Kalite Kontrolü */}
+        {/* Sağ Sütun: Sahne Zaman Çizelgesi */}
         <div>
           <SceneTimeline
             scenes={scenes}
@@ -206,8 +228,6 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
             }}
             onEditScene={s => setEditScene({ ...s })}
           />
-
-          <QCChecklist qc={qc} />
         </div>
       </div>
 

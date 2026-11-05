@@ -51,6 +51,16 @@ export function ProviderModal({ onClose }: ProviderModalProps) {
           <option value="webspeech">Web Speech API (Tarayıcı İçi Yerel Seslendirme)</option>
         </select>
 
+        <label htmlFor="voice-gender-select">Ses Cinsiyeti (AI & Tarayıcı TTS)</label>
+        <select
+          id="voice-gender-select"
+          value={config.voiceGender || 'female'}
+          onChange={e => setConfig({ ...config, voiceGender: e.target.value as 'female' | 'male' })}
+        >
+          <option value="female">Kadın Sesi (Doğal, Akıcı, Profesyonel)</option>
+          <option value="male">Erkek Sesi (Kararlı, Güven Verici, Dinamik)</option>
+        </select>
+
         <label htmlFor="gemini-key-input">Özel Gemini API Key (Boş bırakılırsa .env.local anahtarı kullanılır)</label>
         <input
           id="gemini-key-input"

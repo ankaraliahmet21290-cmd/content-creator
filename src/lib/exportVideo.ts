@@ -15,38 +15,16 @@ function loadImage(src?: string): Promise<HTMLImageElement | null> {
   });
 }
 
-function drawWrappedText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number
-) {
-  const words = text.split(' ');
-  let line = '';
-  const lines: string[] = [];
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' ';
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && n > 0) {
-      lines.push(line.trim());
-      line = words[n] + ' ';
-    } else {
-      line = testLine;
-    }
-  }
-  if (line.trim()) lines.push(line.trim());
-
-  const totalHeight = lines.length * lineHeight;
-  let curY = y - totalHeight / 2 + lineHeight / 2;
-  for (const l of lines) {
-    ctx.fillText(l, x, curY);
-    curY += lineHeight;
-  }
+function loadAudioBuffer(audioCtx: AudioContext, url: string): Promise<AudioBuffer | null> {
+  return fetch(url)
+    .then(r => r.arrayBuffer())
+    .then(buf => audioCtx.decodeAudioData(buf))
+    .catch(() => null);
 }
 
+/**
+ * korkmaz-gayrimenkul-tanitim-v5 kalitesinde 1080p sinematik render motoru
+ */
 export async function exportVideoFile(video: VideoItem): Promise<void> {
   let canvas = document.getElementById('renderCanvas') as HTMLCanvasElement | null;
   if (!canvas) {
@@ -56,24 +34,38 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
     document.body.appendChild(canvas);
   }
 
-  const [aspectW, aspectH] = RATIOS[video.ratio] || [9, 16];
-  const w = aspectW > aspectH ? 1280 : aspectW === aspectH ? 720 : 720;
-  const h = aspectW > aspectH ? 720 : aspectW === aspectH ? 720 : 1280;
+  const [aspectW, aspectH] = RATIOS[video.ratio] || [16, 9];
+  const w = aspectW >= aspectH ? 1920 : 1080;
+  const h = aspectW >= aspectH ? 1080 : 1920;
   canvas.width = w;
   canvas.height = h;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D context oluşturulamadı.');
 
-  // Sahnelerin AI görsellerini önceden yükle
+  // Gerçek fotoğrafları önceden yükle
   const sceneImages = await Promise.all(video.scenes.map(sc => loadImage(sc.imageUrl)));
 
-  // Ses akışı için AudioContext hazırla (Gemini TTS seslerini videoya gömmek için)
+  // Ses sistemi: Satış fon müziği + Gemini AI seslendirmesini miksle
   const AudioCtx =
     window.AudioContext ||
     (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   const audioCtx = AudioCtx ? new AudioCtx() : null;
   const audioDest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
+
+  // Fon müziği buffer'ını yükle
+  const bgmBuffer = audioCtx ? await loadAudioBuffer(audioCtx, '/sales-music.wav') : null;
+  let bgmSource: AudioBufferSourceNode | null = null;
+  if (audioCtx && audioDest && bgmBuffer) {
+    bgmSource = audioCtx.createBufferSource();
+    bgmSource.buffer = bgmBuffer;
+    bgmSource.loop = true;
+    const bgmGain = audioCtx.createGain();
+    bgmGain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+    bgmSource.connect(bgmGain);
+    bgmGain.connect(audioDest);
+    bgmSource.start();
+  }
 
   const canvasStream = canvas.captureStream(30);
   const combinedTracks: MediaStreamTrack[] = [...canvasStream.getVideoTracks()];
@@ -95,6 +87,11 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
     };
 
     recorder.onstop = () => {
+      if (bgmSource) {
+        try {
+          bgmSource.stop();
+        } catch {}
+      }
       if (audioCtx) {
         audioCtx.close().catch(() => {});
       }
@@ -103,7 +100,7 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${video.product.replace(/\s+/g, '_')}_ai_video.webm`;
+        a.download = `${video.product.replace(/\s+/g, '_')}_sinematik_reklam.webm`;
         a.click();
         URL.revokeObjectURL(url);
         resolve();
@@ -113,7 +110,6 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
     };
 
     recorder.onerror = e => reject(e);
-
     recorder.start();
 
     (async () => {
@@ -122,59 +118,90 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
           const sc = video.scenes[idx];
           const img = sceneImages[idx];
 
-          // Sahnenin Gemini TTS sesi varsa AudioContext üzerinden stream'e çal
+          // TTS sesini mikse dahil et
           if (sc.audioUrl && audioCtx && audioDest) {
-            try {
-              const res = await fetch(sc.audioUrl);
-              const arrBuf = await res.arrayBuffer();
-              const audioBuf = await audioCtx.decodeAudioData(arrBuf);
-              const source = audioCtx.createBufferSource();
-              source.buffer = audioBuf;
-              source.connect(audioDest);
-              source.start();
-            } catch {
-              // Ses decode edilemezse sessiz devam et
+            const voBuf = await loadAudioBuffer(audioCtx, sc.audioUrl);
+            if (voBuf) {
+              const voSrc = audioCtx.createBufferSource();
+              voSrc.buffer = voBuf;
+              const voGain = audioCtx.createGain();
+              voGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+              voSrc.connect(voGain);
+              voGain.connect(audioDest);
+              voSrc.start();
             }
           }
 
-          const frames = Math.max(10, Math.round(sc.sec * 15));
+          const frames = Math.max(15, Math.round(sc.sec * 30));
+          const isZoomIn = sc.zoomDir !== 'out';
+
           for (let f = 0; f < frames; f++) {
-            // 1. Arka Plan Gradyanı veya AI Görseli (Ken Burns hafif zoom efektiyle)
-            const grad = ctx.createLinearGradient(0, 0, w, h);
-            grad.addColorStop(0, sc.grad[0]);
-            grad.addColorStop(1, sc.grad[1]);
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, w, h);
+            const progress = f / frames;
+
+            // 1. Sinematik Ken Burns Kamera Hareketi (v5 algoritması)
+            const zoom = isZoomIn ? 1.0 + progress * 0.12 : 1.12 - progress * 0.12;
 
             if (img) {
-              const scale = 1 + (f / frames) * 0.06;
-              const drawW = w * scale;
-              const drawH = h * scale;
+              const drawW = w * zoom;
+              const drawH = h * zoom;
               const offsetX = (w - drawW) / 2;
               const offsetY = (h - drawH) / 2;
               ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+            } else {
+              const grad = ctx.createLinearGradient(0, 0, w, h);
+              grad.addColorStop(0, sc.grad[0]);
+              grad.addColorStop(1, sc.grad[1]);
+              ctx.fillStyle = grad;
+              ctx.fillRect(0, 0, w, h);
             }
 
-            // 2. Üst Rozet & Rol
-            ctx.fillStyle = 'rgba(0,0,0,0.55)';
-            ctx.fillRect(40, 40, 320, 48);
+            // 2. Sinematik Koyu Alt Kuşak (v5 Dark/Gradient Overlay)
+            const overlayGrad = ctx.createLinearGradient(0, h * 0.45, 0, h);
+            overlayGrad.addColorStop(0, 'rgba(10, 16, 32, 0)');
+            overlayGrad.addColorStop(0.35, 'rgba(10, 16, 32, 0.65)');
+            overlayGrad.addColorStop(1, 'rgba(10, 16, 32, 0.95)');
+            ctx.fillStyle = overlayGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            // 3. Üst Kurumsal Rozet (v5 Brand Badge)
+            const badgeAlpha = Math.min(1, Math.max(0, (progress - 0.05) / 0.15));
+            ctx.save();
+            ctx.globalAlpha = badgeAlpha;
+            ctx.fillStyle = '#9fc4f5';
+            ctx.font = '600 32px "Segoe UI", system-ui, sans-serif';
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 3;
+            ctx.fillText(video.product.toUpperCase(), 100, 95);
+
+            // 4. v5 Büyük Başlık (Lead Text)
+            const titleAlpha = Math.min(1, Math.max(0, (progress - 0.1) / 0.2));
+            ctx.globalAlpha = titleAlpha;
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
-            ctx.fillText(`${sc.role} • ${sc.sec}s • Gemini AI`, 55, 71);
+            ctx.font = 'bold 56px "Segoe UI", system-ui, sans-serif';
+            ctx.fillText(sc.text, 100, h - 230);
 
-            // 3. Ekran Metni (Başlık)
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 40px system-ui, -apple-system, sans-serif';
-            ctx.textAlign = 'center';
-            drawWrappedText(ctx, sc.text, w / 2, h / 2 - 40, w - 120, 50);
+            // 5. v5 Mavi Alt Başlık (Subtitle)
+            if (sc.subtitle) {
+              const subAlpha = Math.min(1, Math.max(0, (progress - 0.2) / 0.2));
+              ctx.globalAlpha = subAlpha;
+              ctx.fillStyle = '#bfe0ff';
+              ctx.font = '500 34px "Segoe UI", system-ui, sans-serif';
+              ctx.fillText(sc.subtitle, 102, h - 165);
+            }
 
-            // 4. Seslendirme Altyazısı
-            ctx.font = 'italic 24px system-ui, -apple-system, sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.92)';
-            drawWrappedText(ctx, `🎙️ ${sc.vo}`, w / 2, h / 2 + 85, w - 140, 34);
+            // 6. v5 Altın Vurgu Metni (Highlight / CTA)
+            if (sc.highlight) {
+              const hlAlpha = Math.min(1, Math.max(0, (progress - 0.3) / 0.2));
+              ctx.globalAlpha = hlAlpha;
+              ctx.fillStyle = '#ffd35c';
+              ctx.font = '600 28px "Segoe UI", system-ui, sans-serif';
+              ctx.fillText(`★  ${sc.highlight}`, 102, h - 105);
+            }
 
-            ctx.textAlign = 'left';
-            await sleep(65);
+            ctx.restore();
+            await sleep(30);
           }
         }
         recorder.stop();

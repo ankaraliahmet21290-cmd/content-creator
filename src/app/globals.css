@@ -1,31 +1,4 @@
 :root {
-  --bg: #0b0f17;
-  --card: #131926;
-  --card-sub: #1a2233;
-  --ink: #f0f6fc;
-  --mute: #94a3b8;
-  --line: #222f44;
-  --acc: #8b5cf6;
-  --acc-glow: rgba(139, 92, 246, 0.35);
-  --acc-light: #a78bfa;
-  --acc-ink: #ffffff;
-  --ok: #10b981;
-  --ok-bg: rgba(16, 185, 129, 0.15);
-  --warn: #f59e0b;
-  --warn-bg: rgba(245, 158, 11, 0.15);
-  --err: #ef4444;
-  --err-bg: rgba(239, 68, 68, 0.15);
-  --cyan: #06b6d4;
-  --cyan-glow: rgba(6, 182, 212, 0.3);
-  --radius: 14px;
-  --font-main: var(--font-inter), system-ui, -apple-system, sans-serif;
-  --font-heading: var(--font-bricolage), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-jetbrains), monospace;
-  color-scheme: dark;
-  box-sizing: border-box;
-}
-
-:root[data-theme="light"] {
   --bg: #f8fafc;
   --card: #ffffff;
   --card-sub: #f1f5f9;
@@ -44,7 +17,34 @@
   --err-bg: rgba(220, 38, 38, 0.12);
   --cyan: #0891b2;
   --cyan-glow: rgba(8, 145, 178, 0.2);
+  --radius: 14px;
+  --font-main: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-bricolage), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
   color-scheme: light;
+  box-sizing: border-box;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0f17;
+  --card: #131926;
+  --card-sub: #1a2233;
+  --ink: #f0f6fc;
+  --mute: #94a3b8;
+  --line: #222f44;
+  --acc: #8b5cf6;
+  --acc-glow: rgba(139, 92, 246, 0.35);
+  --acc-light: #a78bfa;
+  --acc-ink: #ffffff;
+  --ok: #10b981;
+  --ok-bg: rgba(16, 185, 129, 0.15);
+  --warn: #f59e0b;
+  --warn-bg: rgba(245, 158, 11, 0.15);
+  --err: #ef4444;
+  --err-bg: rgba(239, 68, 68, 0.15);
+  --cyan: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.3);
+  color-scheme: dark;
 }
 
 *, *::before, *::after {
@@ -148,6 +148,318 @@ header {
   background: rgba(139, 92, 246, 0.15);
   border-color: rgba(139, 92, 246, 0.35);
   color: var(--acc-light);
+}
+
+.badge.badge-ai {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #6366f1;
+  font-weight: 700;
+}
+
+:root[data-theme="dark"] .badge.badge-ai {
+  color: #a78bfa;
+}
+
+.mode-toggle-group {
+  display: flex;
+  background: var(--card-sub);
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  gap: 3px;
+}
+
+.mode-banner {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+}
+
+.mode-banner.ai-banner {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(236, 72, 153, 0.06));
+  border-color: rgba(99, 102, 241, 0.3);
+  color: var(--ink);
+}
+
+.mode-banner.classic-banner {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--ink);
+}
+
+.badge-mode {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+.badge-mode.ai {
+  background: rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+:root[data-theme="dark"] .badge-mode.ai {
+  color: #a78bfa;
+}
+
+/* Canlı Reklam Animasyon Katmanı */
+.motion-fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.fx-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+}
+
+.fx-ring-1 {
+  width: 190px;
+  height: 190px;
+  animation: ringPulse 2.8s ease-in-out infinite;
+}
+
+.fx-ring-2 {
+  width: 260px;
+  height: 260px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.12);
+  animation: ringPulse 3.6s ease-in-out infinite reverse;
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+.fx-particle {
+  position: absolute;
+  color: #fff;
+  font-size: 14px;
+  filter: drop-shadow(0 0 6px #fff);
+  opacity: 0.75;
+  animation: particleOrbit 4s linear infinite;
+}
+
+.fx-particle.p1 { top: 25%; left: 22%; animation-duration: 3.2s; color: #fde047; }
+.fx-particle.p2 { top: 30%; right: 20%; animation-duration: 4.5s; }
+.fx-particle.p3 { bottom: 28%; left: 26%; animation-duration: 3.8s; color: #a78bfa; }
+.fx-particle.p4 { bottom: 25%; right: 24%; animation-duration: 5s; color: #38bdf8; }
+
+@keyframes particleOrbit {
+  0% { transform: translateY(0px) rotate(0deg) scale(0.9); }
+  50% { transform: translateY(-12px) rotate(180deg) scale(1.2); }
+  100% { transform: translateY(0px) rotate(360deg) scale(0.9); }
+}
+
+/* Ses Cinsiyeti Butonları */
+.gender-toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+
+.gender-btn {
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--card-sub);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.gender-btn:hover {
+  background: var(--line);
+}
+
+.gender-btn.active {
+  background: var(--acc);
+  color: #fff;
+  border-color: var(--acc);
+  box-shadow: 0 2px 10px var(--acc-glow);
+}
+
+/* AI Özel Talimatlar Kutusu */
+.ai-instructions-box {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.04));
+  border: 1px dashed rgba(99, 102, 241, 0.35);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+
+.ai-instructions-box label {
+  margin-top: 0;
+  color: var(--acc-light);
+  font-weight: 600;
+}
+
+.ai-instructions-box textarea {
+  background: var(--card);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.badge-mode.classic {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+:root[data-theme="dark"] /* Canlı Reklam Animasyon Katmanı */
+.motion-fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.fx-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+}
+
+.fx-ring-1 {
+  width: 190px;
+  height: 190px;
+  animation: ringPulse 2.8s ease-in-out infinite;
+}
+
+.fx-ring-2 {
+  width: 260px;
+  height: 260px;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.12);
+  animation: ringPulse 3.6s ease-in-out infinite reverse;
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+.fx-particle {
+  position: absolute;
+  color: #fff;
+  font-size: 14px;
+  filter: drop-shadow(0 0 6px #fff);
+  opacity: 0.75;
+  animation: particleOrbit 4s linear infinite;
+}
+
+.fx-particle.p1 { top: 25%; left: 22%; animation-duration: 3.2s; color: #fde047; }
+.fx-particle.p2 { top: 30%; right: 20%; animation-duration: 4.5s; }
+.fx-particle.p3 { bottom: 28%; left: 26%; animation-duration: 3.8s; color: #a78bfa; }
+.fx-particle.p4 { bottom: 25%; right: 24%; animation-duration: 5s; color: #38bdf8; }
+
+@keyframes particleOrbit {
+  0% { transform: translateY(0px) rotate(0deg) scale(0.9); }
+  50% { transform: translateY(-12px) rotate(180deg) scale(1.2); }
+  100% { transform: translateY(0px) rotate(360deg) scale(0.9); }
+}
+
+/* Ses Cinsiyeti Butonları */
+.gender-toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+
+.gender-btn {
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--card-sub);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.gender-btn:hover {
+  background: var(--line);
+}
+
+.gender-btn.active {
+  background: var(--acc);
+  color: #fff;
+  border-color: var(--acc);
+  box-shadow: 0 2px 10px var(--acc-glow);
+}
+
+/* AI Özel Talimatlar Kutusu */
+.ai-instructions-box {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.04));
+  border: 1px dashed rgba(99, 102, 241, 0.35);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+
+.ai-instructions-box label {
+  margin-top: 0;
+  color: var(--acc-light);
+  font-weight: 600;
+}
+
+.ai-instructions-box textarea {
+  background: var(--card);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.badge-mode.classic {
+  color: #34d399;
 }
 
 .hdr-acts {
