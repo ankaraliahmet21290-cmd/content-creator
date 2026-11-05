@@ -32,7 +32,23 @@ export function SceneTimeline({
             className="scene-item"
             aria-current={idx === currentIndex}
             onClick={() => onSelectScene(idx)}
+            style={{ display: 'grid', gridTemplateColumns: '52px 85px 1fr auto', gap: 12, alignItems: 'center' }}
           >
+            <div
+              style={{
+                width: 52,
+                height: 34,
+                borderRadius: 6,
+                overflow: 'hidden',
+                backgroundColor: '#0f172a',
+                backgroundImage: s.imageUrl ? `url("${s.imageUrl}")` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                border: '1px solid var(--line)',
+                flexShrink: 0
+              }}
+              title={s.role}
+            />
             <div className="scene-role">
               <strong>{s.role}</strong>
               <span>{s.sec} sn</span>

@@ -25,7 +25,10 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const scenes = video.scenes;
   const curScene = scenes[curIndex] || scenes[0];
   const [aspectW, aspectH] = RATIOS[video.ratio] || [16, 9];
-  const isAi = video.mode === 'ai';
+  const isCinema = video.type === 'sinema' || video.ratio === '21:9';
+  const isDocumentary = video.type === 'belgesel';
+  const isYouTube = video.type === 'youtube';
+  const isAi = video.mode !== 'classic';
 
   useEffect(() => {
     setCurIndex(0);
@@ -37,6 +40,9 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
 
   useEffect(() => {
     if (isPlaying && isTTSActive && curScene) {
+      if (isCinema && curIndex > 0) {
+        audioMgr.playTransitionSFX();
+      }
       audioMgr.speak(
         curScene.vo,
         video.lang || 'tr-TR',
@@ -44,16 +50,16 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
         video.voiceGender || 'female'
       );
     }
-  }, [curIndex, isPlaying, isTTSActive, curScene, video.lang, video.voiceGender, video.id]);
+  }, [curIndex, isPlaying, isTTSActive, curScene, video.lang, video.voiceGender, video.id, isCinema]);
 
   useEffect(() => {
     if (isBGMActive && isPlaying) {
-      audioMgr.startBGM();
+      audioMgr.startBGM(video.type);
     } else {
       audioMgr.stopBGM();
     }
     return () => audioMgr.stopBGM();
-  }, [isBGMActive, isPlaying]);
+  }, [isBGMActive, isPlaying, video.type]);
 
   useEffect(() => {
     if (!isPlaying || !curScene) return;
@@ -94,8 +100,6 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const maxWidthPx = video.ratio === '21:9' ? 720 : aspectW > aspectH ? 640 : aspectW === aspectH ? 420 : 320;
   const isZoomIn = curScene?.zoomDir !== 'out';
   const zoomScale = isZoomIn ? 1.0 + (progress / 100) * 0.12 : 1.12 - (progress / 100) * 0.12;
-  const isCinema = video.type === 'sinema' || video.ratio === '21:9';
-  const isYouTube = video.type === 'youtube';
 
   return (
     <div>
@@ -109,11 +113,15 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               width: `min(${maxWidthPx}px, 100%)`
             }}
           >
-            {/* 1. Arka Plan Sinematik Fotoğrafı veya AI Vektör Sanatı (Ken Burns Canlı Zoom) */}
+            {/* 1. Arka Plan Sinematik Fotoğrafı (Ken Burns Canlı Zoom) */}
             <div
               className="v5-photo-layer"
               style={{
-                backgroundImage: curScene?.imageUrl ? `url("${curScene.imageUrl}")` : undefined,
+                backgroundImage: curScene?.imageUrl
+                  ? `url("${curScene.imageUrl}")`
+                  : `linear-gradient(135deg, ${curScene?.grad?.[0] || '#0a1020'}, ${curScene?.grad?.[1] || '#000000'})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
                 transform: `scale(${zoomScale})`
               }}
             />

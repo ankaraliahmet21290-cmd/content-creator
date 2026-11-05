@@ -1,16 +1,17 @@
 'use client';
 
-import { BriefForm as IBriefForm, Preset, VideoType, AspectRatio } from '@/types';
+import { BriefForm as IBriefForm, Preset, VideoType, AspectRatio, AppMode } from '@/types';
 import { TYPES, TONES, RATIOS, PLATFORMS, LANGUAGES, PRESETS } from '@/lib/constants';
 
 interface BriefFormProps {
   form: IBriefForm;
-  mode: 'ai' | 'classic';
+  mode: AppMode;
   isProducing: boolean;
   formError: string;
   onUpdateField: <K extends keyof IBriefForm>(field: K, value: IBriefForm[K]) => void;
   onSelectPreset: (preset: Preset) => void;
   onSubmit: () => void;
+  onSubmitStoryboard?: () => void;
 }
 
 export function BriefForm({
@@ -20,30 +21,55 @@ export function BriefForm({
   formError,
   onUpdateField,
   onSelectPreset,
-  onSubmit
+  onSubmit,
+  onSubmitStoryboard
 }: BriefFormProps) {
-  const isAi = mode === 'ai';
+  const isClassic = mode === 'classic';
+  const isCinema = mode === 'sinema' || form.type === 'sinema';
+  const isDocumentary = mode === 'belgesel' || form.type === 'belgesel';
+  const isYouTube = mode === 'youtube' || form.type === 'youtube';
+  const isAi = !isClassic;
 
   return (
     <section className="panel" aria-labelledby="brief-section-title">
       <div className="panel-hdr">
         <h2 id="brief-section-title">
-          {isAi ? '✨ Yapay Zekâ Video Stüdyosu' : '⚡ Klasik Video Brief\'i'}
+          {isCinema
+            ? '🎬 AI Sinema Filmi & Fragman Stüdyosu'
+            : isDocumentary
+            ? '🎙️ AI Sinematik Belgesel Stüdyosu'
+            : isYouTube
+            ? '🔴 AI YouTube Video Stüdyosu'
+            : isClassic
+            ? '⚡ Klasik Video Brief\'i'
+            : '✨ Yapay Zekâ Reklam Stüdyosu'}
         </h2>
-        <span className={`badge ${isAi ? 'badge-ai' : ''}`}>
-          {isAi ? 'Gemini 2.5 AI' : 'Kural Şablonu'}
+        <span className={`badge ${isCinema ? 'badge-cinema' : isDocumentary ? 'badge-documentary' : isYouTube ? 'badge-youtube' : isClassic ? 'sop' : 'badge-ai'}`}>
+          {isCinema ? '21:9 Cinemascope' : isDocumentary ? '16:9 Belgesel' : isYouTube ? '16:9 Full HD' : isClassic ? 'Kural Şablonu' : 'Gemini 2.5 AI'}
         </span>
       </div>
 
       {/* Aktif Mod Açıklama Kartı */}
-      <div className={`mode-banner ${isAi ? 'ai-banner' : 'classic-banner'}`}>
-        {isAi ? (
+      <div className={`mode-banner ${isCinema ? 'cinema-banner' : isDocumentary ? 'documentary-banner' : isYouTube ? 'youtube-banner' : isClassic ? 'classic-banner' : 'ai-banner'}`}>
+        {isCinema ? (
           <div>
-            <strong>✨ Tek Kutudan AI Video Üretimi:</strong> Ürün adını ve reklam talimatınızı yazın; Gemini hedef kitleyi, çarpıcı kancayı, sahne kurgusunu ve çağrıyı (CTA) otomatik oluştursun.
+            <strong>🎬 Sinema Modu:</strong> 21:9 Cinemascope geniş ekran formatında Hollywood 3-Perde film kurgusu, replikler, anamorfik sahne planlaması ve tok seslendirme ile sinematik fragman/film üretir.
+          </div>
+        ) : isDocumentary ? (
+          <div>
+            <strong>🎙️ Belgesel Modu:</strong> BBC Earth ve National Geographic standartlarında araştırma kurgusu, kilit kanıtlar, tarihi/bilimsel analiz ve usta anlatıcı sesiyle büyüleyici bir belgesel üretir.
+          </div>
+        ) : isYouTube ? (
+          <div>
+            <strong>🔴 YouTube Modu:</strong> 16:9 Full HD formatında ilk 5 saniye kancası, retention (izleyici tutma) akışı, görsel grafikler ve abone ol çağrısıyla tam YouTube videosu üretir.
+          </div>
+        ) : isClassic ? (
+          <div>
+            <strong>⚡ Klasik Mod:</strong> Standart SOP kural şablonları üzerinden anında senaryo üretir.
           </div>
         ) : (
           <div>
-            <strong>⚡ Klasik Mod:</strong> Standart SOP kural şablonları üzerinden anında senaryo üretir.
+            <strong>✨ AI Reklam Modu:</strong> Ürün ve kampanya talimatınızı yazın; Gemini hedef kitleyi, çarpıcı kancayı ve çağrıyı (CTA) otomatik oluştursun.
           </div>
         )}
       </div>
@@ -70,7 +96,7 @@ export function BriefForm({
       {/* Hızlı Yapım Türü Seçici */}
       <label style={{ marginTop: 12 }}>
         🎬 Video & Yapım Türü
-        <span className="label-hint">(Sinema, YouTube veya Sosyal Medya)</span>
+        <span className="label-hint">(Sinema, Belgesel, YouTube veya Sosyal Medya)</span>
       </label>
       <div className="format-pills">
         <button
@@ -85,6 +111,19 @@ export function BriefForm({
           }}
         >
           🎬 Sinema Filmi & Fragman
+        </button>
+        <button
+          type="button"
+          className={`format-pill ${form.type === 'belgesel' ? 'active' : ''}`}
+          onClick={() => {
+            onUpdateField('type', 'belgesel');
+            onUpdateField('ratio', '16:9');
+            onUpdateField('tone', 'Belgesel & Merak Uyandırıcı');
+            onUpdateField('platform', 'YouTube (Yatay 16:9)');
+            if (form.dur < 30) onUpdateField('dur', 45);
+          }}
+        >
+          🎙️ Sinematik Belgesel
         </button>
         <button
           type="button"
@@ -130,6 +169,8 @@ export function BriefForm({
       <label htmlFor="input-product" style={{ marginTop: 12 }}>
         {form.type === 'sinema'
           ? 'Film, Fragman veya Eser Adı *'
+          : form.type === 'belgesel'
+          ? 'Belgesel, Keşif veya Araştırma Başlığı *'
           : form.type === 'youtube'
           ? 'YouTube Video Başlığı veya Konusu *'
           : 'Ürün, Marka veya Konu Adı *'}
@@ -140,6 +181,8 @@ export function BriefForm({
         placeholder={
           form.type === 'sinema'
             ? 'Örn: 2088: Son Şafak (The Last Dawn) veya Zamanın Ötesi'
+            : form.type === 'belgesel'
+            ? 'Örn: Gize Piramitlerinin Gizemi veya Okyanusun Karanlık Derinlikleri'
             : form.type === 'youtube'
             ? 'Örn: Yapay Zekâ Sinema Sektörünü Nasıl Değiştiriyor? veya 2026 AI Donanımları'
             : 'Örn: Korkmaz Gayrimenkul Lüks Rezidans veya Artisan Kahve'
@@ -152,13 +195,17 @@ export function BriefForm({
         <div className="ai-instructions-box" style={{ marginTop: 12 }}>
           <label htmlFor="ai-instructions" style={{ fontSize: 13.5 }}>
             {form.type === 'sinema'
-              ? '✨ Film Hikâyesi, Karakterler & Sahne Notları'
+              ? '✨ Film Hikâyesi, Karakterler & Yönetmen Talimatı'
+              : form.type === 'belgesel'
+              ? '✨ Belgesel Konusu, Araştırma Notları & Yönetmen Talimatı'
               : form.type === 'youtube'
               ? '✨ YouTube Video Talimatı & İşlenecek Konular'
               : '✨ Reklam Talimatı & Senaryo Özeti'}
             <span className="label-hint">
               {form.type === 'sinema'
                 ? '(Atmosfer, karakter replikleri, gerilim, kamera hareketleri)'
+                : form.type === 'belgesel'
+                ? '(Kanca soru, tarihi belgeler, saha keşifleri, bilimsel kanıtlar)'
                 : form.type === 'youtube'
                 ? '(Retention kancası, ana argümanlar, B-roll, abone olma çağrısı)'
                 : '(Hedef kitle, öne çıkanlar, ton veya CTA)'}
@@ -170,6 +217,8 @@ export function BriefForm({
             placeholder={
               form.type === 'sinema'
                 ? 'Örn: 2088 yılında yapay zekanın kontrolündeki bir distopyada geçen bilim kurgu gerilim filmi. Baş karakter dedektif Kaan, karanlık neon ışıklı sokaklar, fütüristik araçlar ve insanlığın kaderini belirleyecek son şifre. Müzikal yükseliş, sinematik kamera açıları ve vizyon tarihi çağrısı...'
+                : form.type === 'belgesel'
+                ? 'Örn: Mısır piramitlerinin astronomik dizilimi ve derinliklerindeki gizli odalar hakkında merak uyandıran bir belgesel kurgula. Sisli çöl gün doğumu drone çekimleri, hiyerogliflerin şifresi, modern jeoradar keşifleri ve tarihin bilinmeyen yönlerini anlatan bilge, usta bir anlatıcı tonu...'
                 : form.type === 'youtube'
                 ? 'Örn: Yapay zekanın sinema sektörünü nasıl kökten değiştirdiğini anlatan sürükleyici bir YouTube belgeseli. İzleyiciyi ilk 5 saniyede ekrana kitleyen bir kanca, Hollywood\'dan örnekler, B-roll önerileri ve sonunda kanala abone olma & yorum yapma çağrısı...'
                 : 'Örn: Genç aileleri ve yatırımcıları hedefle. Deniz manzarası, akıllı ev konforu ve %20 peşinat indirimini vurgula. Reklam çok enerjik olsun, sonunda hemen arayın desin...'
@@ -335,19 +384,62 @@ export function BriefForm({
         </div>
       )}
 
-      {/* Üretim Butonu */}
-      <button
-        id="btn-produce"
-        type="button"
-        className="btn-produce"
-        disabled={isProducing}
-        onClick={onSubmit}
-        style={{ marginTop: 18 }}
-      >
-        {isProducing
-          ? (isAi ? '⏳ Gemini AI Video & Film Üretiyor...' : '⏳ Video Oluşturuluyor...')
-          : (isAi ? '✨ Tek Tıkla AI Video & Film Üret' : '⚡ Klasik Video Üret')}
-      </button>
+      {/* İki Aşamalı Üretim Seçenekleri */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+        {/* 1. Seçenek: Storyboard Sahne Tasarımcısı */}
+        <button
+          id="btn-produce-storyboard"
+          type="button"
+          className="btn-produce"
+          disabled={isProducing}
+          onClick={onSubmitStoryboard || onSubmit}
+          style={{
+            background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+            boxShadow: '0 6px 20px rgba(124, 58, 237, 0.35)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            padding: '13px 16px',
+            fontSize: 14.5,
+            fontWeight: 700
+          }}
+        >
+          {isProducing ? '⏳ Senaryo & Sahneler Tasarlanıyor...' : '🎨 1. Sahneleri Tasarla (Storyboard Modu)'}
+        </button>
+        <div style={{ fontSize: 11.5, color: 'var(--mute)', textAlign: 'center', marginTop: -4 }}>
+          💡 AI senaryoyu ve film karelerini hazırlar; render etmeden önce her sahneyi düzenleyebilirsiniz.
+        </div>
+
+        {/* 2. Seçenek: Hızlı Doğrudan Üretim */}
+        <button
+          id="btn-produce"
+          type="button"
+          className={`btn-produce ${isCinema ? 'btn-produce-cinema' : isDocumentary ? 'btn-produce-documentary' : isYouTube ? 'btn-produce-youtube' : ''}`}
+          disabled={isProducing}
+          onClick={onSubmit}
+          style={{
+            padding: '11px 14px',
+            fontSize: 13.5,
+            opacity: 0.95
+          }}
+        >
+          {isProducing
+            ? (isCinema
+                ? '⏳ Gemini AI Sinema Filmini Kurguluyor...'
+                : isDocumentary
+                ? '⏳ Gemini AI Belgeseli Kurguluyor...'
+                : isYouTube
+                ? '⏳ Gemini AI YouTube Videosunu Hazırlıyor...'
+                : '⏳ Video Oluşturuluyor...')
+            : (isCinema
+                ? '⚡ Hızlı Üret (Doğrudan Sinema Filmi Render Et)'
+                : isDocumentary
+                ? '⚡ Hızlı Üret (Doğrudan Belgesel Render Et)'
+                : isYouTube
+                ? '⚡ Hızlı Üret (Doğrudan YouTube Videosu Render Et)'
+                : isClassic
+                ? '⚡ Hızlı Klasik Video Üret'
+                : '⚡ Hızlı AI Reklamı Üret')}
+        </button>
+      </div>
     </section>
   );
 }

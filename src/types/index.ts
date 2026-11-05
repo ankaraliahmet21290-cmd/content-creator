@@ -1,5 +1,6 @@
 export type VideoType =
   | 'sinema'
+  | 'belgesel'
   | 'youtube'
   | 'reklam'
   | 'tanitim'
@@ -44,19 +45,20 @@ export interface Scene {
 export type VideoStatus =
   | 'Senaryo Yazılıyor'
   | 'Senaryo & Sahne Planlanıyor'
+  | 'Tasarım Bekliyor (Storyboard)'
   | 'Görsel & Ses Üretiliyor'
   | 'Render & Kalite Kontrolü'
   | 'Hazır'
   | 'Başarısız';
 
-export type AppMode = 'ai' | 'classic';
+export type AppMode = 'sinema' | 'belgesel' | 'youtube' | 'reklam' | 'classic';
 
 export interface VideoItem extends BriefForm {
   id: string;
   title: string;
   mode?: AppMode;
   status: VideoStatus;
-  stage: 'senaryo' | 'sahneler' | 'render' | 'hazir' | 'hata';
+  stage: 'senaryo' | 'storyboard' | 'sahneler' | 'render' | 'hazir' | 'hata';
   progress: number;
   scenes: Scene[];
   logs: string[];

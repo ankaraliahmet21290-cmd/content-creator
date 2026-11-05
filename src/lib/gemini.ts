@@ -1,6 +1,14 @@
 import { BriefForm, Scene } from '@/types';
-import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, YOUTUBE_ROLES } from './constants';
+import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES } from './constants';
 import { buildScenesFromSOP } from './providers';
+import {
+  matchBestCinemaPhoto,
+  matchBestYouTubePhoto,
+  matchBestRealPhoto,
+  getScenePhoto
+} from './assets';
+
+export { matchBestCinemaPhoto, matchBestYouTubePhoto, matchBestRealPhoto, getScenePhoto };
 
 const DEFAULT_GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -13,33 +21,6 @@ export function resolveApiKey(customKey?: string): string {
   return key;
 }
 
-// v5 Standardındaki yüksek çözünürlüklü profesyonel gayrimenkul / ticari varlık havuzu
-const REAL_PHOTO_POOL: Record<string, string[]> = {
-  residence: ['/real_assets/hero_residence.jpg', '/real_assets/01-hero.jpg', '/real_assets/04-ilan1.jpg'],
-  villa: ['/real_assets/luxury_villa.jpg', '/real_assets/02-villa.jpg', '/real_assets/05-ilan2.jpg'],
-  portfolio: ['/real_assets/03-portfoy.jpg', '/real_assets/06-ilan3.jpg', '/real_assets/07-ilan4.jpg', '/real_assets/08-ilan5.jpg', '/real_assets/09-ilan6.jpg'],
-  team: ['/real_assets/client_seeoff_1.jpg', '/real_assets/client_seeoff_2.jpg'],
-  map: ['/real_assets/modern_map.jpg', '/real_assets/real_office_street.jpg'],
-  outro: ['/real_assets/outro_luxury.jpg', '/real_assets/real_office_front_hd.jpg']
-};
-
-export function matchBestRealPhoto(role: string, visualDesc: string, index: number): string {
-  const v = (visualDesc || '').toLowerCase();
-  if (v.includes('villa') || v.includes('müstakil')) return REAL_PHOTO_POOL.villa[index % REAL_PHOTO_POOL.villa.length];
-  if (v.includes('ekip') || v.includes('ofis') || v.includes('danışman') || v.includes('müşteri') || role === 'Kanıt') {
-    return REAL_PHOTO_POOL.team[index % REAL_PHOTO_POOL.team.length];
-  }
-  if (v.includes('harita') || v.includes('konum') || v.includes('merkez') || role === 'Özellik') {
-    return REAL_PHOTO_POOL.map[index % REAL_PHOTO_POOL.map.length];
-  }
-  if (role === 'Çağrı' || v.includes('iletişim') || v.includes('çağrı')) {
-    return REAL_PHOTO_POOL.outro[index % REAL_PHOTO_POOL.outro.length];
-  }
-  if (role === 'Çözüm' || role === 'Fayda') {
-    return REAL_PHOTO_POOL.portfolio[index % REAL_PHOTO_POOL.portfolio.length];
-  }
-  return REAL_PHOTO_POOL.residence[index % REAL_PHOTO_POOL.residence.length];
-}
 
 /**
  * Raw 16-bit mono PCM (24000 Hz) verisini standart WAV Buffer -> Base64 Data URL formatına dönüştürür.
@@ -212,10 +193,21 @@ export async function generateScenesWithGemini(
 
   // Türe göre sahne rolleri ve sahne sayısı belirleme
   const isCinema = brief.type === 'sinema';
-  const isYouTube = brief.type === 'youtube';
+  const isDocumentary =
+    brief.type === 'belgesel' ||
+    brief.tone?.toLowerCase().includes('belgesel') ||
+    /belgesel|documentary/i.test(brief.customInstructions || '') ||
+    /belgesel|documentary/i.test(brief.product || '');
+  const isYouTube = !isDocumentary && brief.type === 'youtube';
 
-  const baseRoles = isCinema ? CINEMA_ROLES : isYouTube ? YOUTUBE_ROLES : SOP_ROLES;
-  const divisor = isCinema ? 7.5 : isYouTube ? 8.0 : 6.0;
+  const baseRoles = isDocumentary
+    ? DOCUMENTARY_ROLES
+    : isCinema
+    ? CINEMA_ROLES
+    : isYouTube
+    ? YOUTUBE_ROLES
+    : SOP_ROLES;
+  const divisor = isCinema || isDocumentary ? 7.5 : isYouTube ? 8.0 : 6.0;
   const n = Math.max(4, Math.min(10, Math.round(brief.dur / divisor)));
 
   // Rol dizisini n uzunluğuna genişlet veya daralt
@@ -234,12 +226,56 @@ export async function generateScenesWithGemini(
     }
   }
 
-  const hookSec = brief.dur <= 20 ? 3.5 : isCinema ? 4.5 : 4.0;
+  const hookSec = brief.dur <= 20 ? 3.5 : isCinema || isDocumentary ? 4.5 : 4.0;
   const remainingSec = +((brief.dur - hookSec) / (n - 1)).toFixed(1);
 
   let prompt = '';
 
-  if (isCinema) {
+  if (isDocumentary) {
+    prompt = `Sen BBC Earth, National Geographic ve TRT Belgesel standartlarında ödüllü bir Baş Belgesel Yönetmeni, Bilim/Tarih Araştırmacısı ve Belgesel Senaristisin.
+Kullanıcının talimatlarına ve araştırma notlarına göre 16:9 / 21:9 Geniş Ekran formatında tam ${n} sahnelik BÜYÜLEYİCİ BİR SİNEMATİK BELGESEL kurgula.
+
+BELGESEL BİLGİLERİ:
+- Belgesel Adı / Konu: "${brief.product}"
+${brief.customInstructions ? `- KULLANICININ YÖNETMEN VE ARAŞTIRMA TALİMATI: "${brief.customInstructions}"` : ''}
+${brief.audience ? `- Hedef Kitle: "${brief.audience}"` : ''}
+${brief.points ? `- Araştırılacak Kilit Bulgular / Kanıtlar: "${brief.points}"` : ''}
+${brief.cta ? `- Kapanış Düşüncesi / Yayın Çağrısı: "${brief.cta}"` : ''}
+- Anlatım Tonu: "${brief.tone || 'Belgesel & Merak Uyandırıcı'}"
+- Toplam Süre: ${brief.dur} saniye
+- En-Boy Oranı: ${brief.ratio}
+- Dil: ${brief.lang || 'tr-TR'}
+
+MUTLAK YÖNETMEN TALİMATI KURALI:
+Kullanıcının belirttiği özel talimatlar senaryonun en temel taşıdır. Talimatta geçen tüm tarihi olaylar, keşifler, mekanlar, hipotezler ve sorular sahne metinlerine, altyazılara ve seslendirmeye doğrudan, tutarlı ve derinlikli olarak yansıtılmalıdır.
+
+BELGESEL KURGUSU VE TİPOGRAFİ STANDARTLARI:
+1. Sahne Rolleri: ${JSON.stringify(roles)}.
+2. 1. sahne ("${roles[0]}") süresi ${hookSec}s, diğer ${n - 1} sahne süresi ${remainingSec}s olmalıdır.
+3. Her sahne için profesyonel belgesel tipografi tasarımı:
+   - "text": Belgesel Bölüm Başlığı (Büyük harf, vurucu ve merak uyandıran, örn: "BÖLÜM 1: BÜYÜK GİZEM", "KAYIP ŞİFRE: 1513", max 50 karakter)
+   - "subtitle": Konum / Tarih / Arşiv Bilgi Notu (Belgesel bilgi kartı formatında, örn: "Gize Platosu, M.Ö. 2500 • Son Jeoradar Taramaları", max 65 karakter)
+   - "highlight": Belgesel Çarpıcı Bilgisi / Kanıt Vurgusu (örn: "TARİHTE İLK KEZ BELGELENDİ", "BİLİM DÜNYASINI SARSAN VERİ", max 60 karakter)
+4. "vo": Usta bir belgesel seslendirme sanatçısı tonunda (merak uyandıran, dingin, bilge, derin ve akıcı) profesyonel Türkçe belgesel anlatımı (David Attenborough / Morgan Freeman / TRT Belgesel üslubu).
+5. "visual": Belgesel kamera açısı, lens ve ışık yönergesi (örn: "Geniş açı 4K drone çekimi ile sisli çöl ve piramitler, altın saat ışığı", "Ultra makro lens ile antik hiyeroglif tableti ve loş fener aydınlatması").
+6. "grad": Belgeselin atmosferine uygun 2 derin ve zengin HEX renk kodu (örn: ["#022c22", "#0f766e"] doğa/tarih veya ["#030712", "#1e3a8a"] uzay/derinlik).
+7. "zoomDir": Kamera hareket yönü ("in" veya "out").
+
+Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
+[
+  {
+    "role": "${roles[0]}",
+    "sec": ${hookSec},
+    "text": "BÖLÜM 1: GİZEMİN BAŞLANGICI",
+    "subtitle": "Gize Platosu • Son Jeoradar Keşifleri",
+    "highlight": "TARİHİ YENİDEN YAZAN KEŞİF",
+    "vo": "Yüzyıllardır göz önünde duran bu devasa anıtlar, aslında insanlığın henüz çözemediği bir kozmik haritayı mı gizliyordu?",
+    "visual": "4K geniş açı drone çekimi, sisli çöl manzarası ve gün batımı ışığı",
+    "grad": ["#022c22", "#0f766e"],
+    "zoomDir": "in"
+  }
+]`;
+  } else if (isCinema) {
     prompt = `Sen dünya çapında ödüllü bir Sinema Yönetmeni, Hollywood Senaryo Yazarı ve Görüntü Yönetmenisin (DoP).
 Aşağıdaki brief ve yönetmen notlarına göre 21:9 / 16:9 Sinematik Geniş Ekran formatında tam ${n} sahnelik EPİK BİR SİNEMA FİLMİ / FRAGMANI kurgula.
 
@@ -254,18 +290,35 @@ ${brief.cta ? `- Vizyon / Çıkış Çağrısı: "${brief.cta}"` : ''}
 - En-Boy Oranı: ${brief.ratio} (Sinematik Format)
 - Dil: ${brief.lang || 'tr-TR'}
 
+MUTLAK YÖNETMEN VE SENARYO KURALI:
+Kullanıcının talimatında belirttiği tüm karakterler, olay örgüsü, mekanlar, nesneler ve replikler senaryonun omurgasıdır. Asla jenerik kalıplar kullanma; doğrudan kullanıcının vizyonunu beyaz perdeye aktar.
+
 SİNEMA YAPIM KURALLARI:
 1. Sahne Rolleri: ${JSON.stringify(roles)}.
 2. 1. sahne ("${roles[0]}") süresi ${hookSec}s, diğer ${n - 1} sahnenin her birinin süresi ${remainingSec}s olmalıdır.
 3. Her sahne için sinematik tipografi ve replik tasarımı:
    - "text": Sahne Başlığı / Çarpıcı Sinematik Replik (Büyük harf, vurucu, max 50 karakter)
-   - "subtitle": Sahne Açıklaması / Diyalog Notu (max 65 karakter)
+   - "subtitle": Sahne Açıklaması / Karakter Diyalog Notu (max 65 karakter)
    - "highlight": Film Adı / Vizyon Müjdesi (örn: "ÇOK YAKINDA SİNEMALARDA", max 60 karakter)
 4. "vo": Sinema fragmanı seslendirme sanatçısı tonunda (tok, derin, dramatik ve büyüleyici) profesyonel Türkçe seslendirme metni.
 5. "visual": Sinematik kamera açısı, lens ve ışık yönergesi (örn: "Anamorphic 35mm lens, yağmurlu neon sokaklar, alçak açı silüet ve sis", "Dolly zoom ve dramatik gün batımı ışığı").
 6. "grad": Sahnenin dramatik atmosferine uygun 2 adet koyu/kontrastlı sinematik HEX renk kodu (örn: ["#020617", "#1e1b4b"] veya ["#180808", "#450a0a"]).
 7. "zoomDir": Kamera hareket yönü ("in" veya "out").
-8. "svgIllustration": Sahnenin atmosferini 1400x600 oranına uygun çizen zengin SVG vektör kodları (<g> içine fütüristik kuleler, uzay gemisi, antik saat çarkları, dağ zirvesi, neon ışık huzmeleri vb.). Dışına <svg> etiketi koyma!`;
+
+Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
+[
+  {
+    "role": "${roles[0]}",
+    "sec": ${hookSec},
+    "text": "SİNEMATİK ÇARPICI CÜMLE",
+    "subtitle": "Karanlık bir gelecekte tek bir umut...",
+    "highlight": "${brief.product.toUpperCase()}",
+    "vo": "Tok ve dramatik anlatıcı sesiyle fragman repliği...",
+    "visual": "Anamorfik 35mm lens, neon sokaklar ve sis",
+    "grad": ["#020617", "#1e1b4b"],
+    "zoomDir": "in"
+  }
+]`;
   } else if (isYouTube) {
     prompt = `Sen milyonlarca abonesi olan profesyonel bir YouTube İçerik Üreticisi ve YouTube Baş Editörüsün.
 Aşağıdaki brief bilgilerine göre YouTube algoritmasında en yüksek izlenme ve izleyici tutma (Audience Retention) sağlayacak tam ${n} sahnelik bir YOUTUBE VİDEO kurgusu oluştur.
@@ -292,7 +345,22 @@ YOUTUBE STANDARTLARI:
 5. "visual": YouTube B-roll ve hareketli grafik yönlendirmesi (örn: "Hızlı tempolu ekran kayıtları, veri grafikleri ve animasyonlu geçişler", "Stüdyo kamera yakın çekim ve dinamik zoom").
 6. "grad": YouTube estetiğine uygun canlı ve zengin 2 HEX renk kodu (örn: ["#09090b", "#7f1d1d"] veya ["#030712", "#1d4ed8"]).
 7. "zoomDir": Kamera hareket yönü ("in" veya "out").
-8. "svgIllustration": YouTube konseptine uygun infografik ve grafik vektör şekilleri (<g> içine <rect>, <circle>, veri eğrisi vb.). Dışına <svg> etiketi koyma!`;
+8. "svgIllustration": YouTube konseptine uygun infografik ve grafik vektör şekilleri (<g> içine <rect>, <circle>, veri eğrisi vb.). Dışına <svg> etiketi koyma!
+
+Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
+[
+  {
+    "role": "${roles[0]}",
+    "sec": ${hookSec},
+    "text": "YOUTUBE DİKKAT ÇEKİCİ BAŞLIK",
+    "subtitle": "İnfografik ve Açıklama Notu",
+    "highlight": "ABONE OL & BEĞEN",
+    "vo": "Samimi ve enerjik YouTube anlatım metni...",
+    "visual": "Ekran grafikleri ve dinamik kamera çekimi",
+    "grad": ["#09090b", "#991b1b"],
+    "zoomDir": "in"
+  }
+]`;
   } else {
     prompt = `Sen Türkiye'nin en iyi televizyon ve sosyal medya reklam yönetmenisin.
 Aşağıdaki brief bilgilerine göre tam ${n} sahnelik SİNEMATİK bir ticari reklam filmi kurgula.
@@ -355,17 +423,31 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
 
   let parsed: RawGeminiScene[] = [];
   try {
-    parsed = JSON.parse(rawText);
+    let cleanText = rawText.trim();
+    if (cleanText.startsWith('```json')) {
+      cleanText = cleanText.replace(/^```json/, '').replace(/```$/, '').trim();
+    } else if (cleanText.startsWith('```')) {
+      cleanText = cleanText.replace(/^```/, '').replace(/```$/, '').trim();
+    }
+    const json = JSON.parse(cleanText);
+    if (Array.isArray(json)) {
+      parsed = json;
+    } else if (json && Array.isArray((json as { scenes?: RawGeminiScene[] }).scenes)) {
+      parsed = (json as { scenes: RawGeminiScene[] }).scenes;
+    } else if (json && Array.isArray((json as { data?: RawGeminiScene[] }).data)) {
+      parsed = (json as { data: RawGeminiScene[] }).data;
+    }
   } catch {
     parsed = [];
   }
 
   const fallbackScenes = buildScenesFromSOP(brief);
 
-  // Gayrimenkul / ticari varlık havuzunu kullanıp kullanmayacağımızı tespit et
+  // Gayrimenkul / ticari varlık havuzunu kullanıp kullanmayacağımızı tespit et (Sinema ve YouTube'da ASLA gayrimenkul fotoğrafı kullanma)
   const isRealEstateBrief =
-    brief.type === 'tanitim' ||
-    /gayrimenkul|emlak|rezidans|villa|arsa|konut/i.test(brief.product || '');
+    !isCinema &&
+    !isYouTube &&
+    (brief.type === 'tanitim' || /gayrimenkul|emlak|rezidans|villa|arsa|konut/i.test(brief.product || ''));
 
   return roles.map((expectedRole, i) => {
     const raw = parsed[i] || {};
@@ -387,21 +469,8 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
         : GRADIENTS[i % GRADIENTS.length];
     const zoomDir: 'in' | 'out' = raw.zoomDir === 'out' ? 'out' : 'in';
 
-    // Sinema ve YouTube için sanatsal dinamik vektörel sahne üretimi; gayrimenkul tanıtımları için yüksek çözünürlüklü fotoğraf eşleştirmesi
-    let imageUrl = '';
-    if (isRealEstateBrief) {
-      imageUrl = matchBestRealPhoto(expectedRole, visual, i);
-    } else {
-      imageUrl = createThemedSceneVisual(
-        grad,
-        expectedRole,
-        visual,
-        i,
-        brief.ratio,
-        brief.type,
-        raw.svgIllustration
-      );
-    }
+    // Gerçek yüksek çözünürlüklü sinematik / YouTube / emlak sahne görselini ata
+    const imageUrl = getScenePhoto(brief.type, expectedRole, visual, i, brief.product);
 
     return {
       id: i + 1,
@@ -486,21 +555,9 @@ export async function synthesizeClipsWithGemini(
       const audioUrl = await generateSceneTTS(scene.vo, idx, apiKey, brief.voiceGender || 'female');
       if (audioUrl) ttsCount++;
 
-      const isRealEstateBrief =
-        brief.type === 'tanitim' ||
-        /gayrimenkul|emlak|rezidans|villa|arsa|konut/i.test(brief.product || '');
       const imageUrl =
         scene.imageUrl ||
-        (isRealEstateBrief
-          ? matchBestRealPhoto(scene.role, scene.visual, idx)
-          : createThemedSceneVisual(
-              scene.grad,
-              scene.role,
-              scene.visual,
-              idx,
-              brief.ratio,
-              brief.type
-            ));
+        getScenePhoto(brief.type, scene.role, scene.visual, idx, brief.product);
 
       return {
         ...scene,

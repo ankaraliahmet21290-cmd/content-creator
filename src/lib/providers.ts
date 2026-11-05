@@ -1,5 +1,6 @@
-import { BriefForm, ProviderConfig, Scene, VideoItem } from '@/types';
-import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, YOUTUBE_ROLES } from './constants';
+import { BriefForm, ProviderConfig, Scene, VideoItem, AppMode } from '@/types';
+import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES } from './constants';
+import { getScenePhoto } from './assets';
 
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -34,10 +35,21 @@ export function getSavedProviderConfig(): ProviderConfig {
 
 export function buildScenesFromSOP(b: BriefForm): Scene[] {
   const isCinema = b.type === 'sinema';
-  const isYouTube = b.type === 'youtube';
+  const isDocumentary =
+    b.type === 'belgesel' ||
+    b.tone?.toLowerCase().includes('belgesel') ||
+    /belgesel|documentary/i.test(b.customInstructions || '') ||
+    /belgesel|documentary/i.test(b.product || '');
+  const isYouTube = !isDocumentary && b.type === 'youtube';
 
-  const baseRoles = isCinema ? CINEMA_ROLES : isYouTube ? YOUTUBE_ROLES : SOP_ROLES;
-  const divisor = isCinema ? 7.5 : isYouTube ? 8.0 : 5.5;
+  const baseRoles = isDocumentary
+    ? DOCUMENTARY_ROLES
+    : isCinema
+    ? CINEMA_ROLES
+    : isYouTube
+    ? YOUTUBE_ROLES
+    : SOP_ROLES;
+  const divisor = isCinema || isDocumentary ? 7.5 : isYouTube ? 8.0 : 5.5;
   const n = Math.max(3, Math.min(8, Math.round(b.dur / divisor)));
 
   const roles =
@@ -46,9 +58,36 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
       : [baseRoles[0], ...baseRoles.slice(1, -1).slice(0, Math.max(1, n - 2)), baseRoles[baseRoles.length - 1]];
 
   const p = b.product;
-  const a = b.audience || (isCinema ? 'sinemaseverler' : isYouTube ? 'değerli takipçiler' : 'değerli izleyiciler');
+  const a = b.audience || (isDocumentary ? 'belgeselseverler' : isCinema ? 'sinemaseverler' : isYouTube ? 'değerli takipçiler' : 'değerli izleyiciler');
   const pts = (b.points || '').split('\n').map(s => s.trim()).filter(Boolean);
   let ptIndex = 0;
+
+  const documentaryMap: Record<string, { screen: string; vo: string }> = {
+    'Açılış: Büyük Gizem': {
+      screen: `${p.toUpperCase()}: GİZEM`,
+      vo: `Yüzyıllardır insanlığın zihnini meşgul eden bu büyük sır, şimdi gün yüzüne çıkıyor.`
+    },
+    'Tarihsel / Bilimsel Arka Plan': {
+      screen: 'Tarihin Tozlu Sayfaları',
+      vo: `Arşivlerdeki ilk kayıtlar ve saha araştırmaları, bilinen tüm teorileri sorgulatacak ipuçları veriyor.`
+    },
+    'Kritik Kanıt & Saha Bulguları': {
+      screen: 'Kritik Keşif ve Kanıtlar',
+      vo: `Son radar taramaları ve elde edilen somut bulgular, ezber bozan bir gerçeğe işaret ediyor.`
+    },
+    'Dönüm Noktası & Ezber Bozan Gerçek': {
+      screen: 'Dönüm Noktası',
+      vo: `Tüm parçalar birleştiğinde ortaya çıkan bu tablo, tarihin yeniden yazılması gerektiğinin en büyük kanıtı.`
+    },
+    'Uzman Analizi & Derinleşme': {
+      screen: 'Derin Analiz ve Yansımalar',
+      vo: `Bilim insanları ve araştırmacılar için bu keşif, geleceğe ışık tutan eşsiz bir kapı aralıyor.`
+    },
+    'Sonuç & Düşündürücü Kapanış': {
+      screen: b.cta || 'Keşfetmeye Devam Edin',
+      vo: b.cta || `Görünenden çok daha fazlası var. Gerçeğin peşindeki bu yolculuk asla sona ermeyecek.`
+    }
+  };
 
   const cinemaMap: Record<string, { screen: string; vo: string }> = {
     'Açılış & Atmosfer': { screen: p, vo: `Karanlığın ortasında, her şeyin başladığı o an.` },
@@ -91,7 +130,10 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     let screenText = p;
     let voText = p;
 
-    if (isCinema && cinemaMap[r]) {
+    if (isDocumentary && documentaryMap[r]) {
+      screenText = documentaryMap[r].screen;
+      voText = documentaryMap[r].vo;
+    } else if (isCinema && cinemaMap[r]) {
       screenText = cinemaMap[r].screen;
       voText = cinemaMap[r].vo;
     } else if (isYouTube && youtubeMap[r]) {
@@ -123,6 +165,8 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     }
 
     const sceneDuration = i === 0 ? hookSec : remainingSec;
+    const visual = `[${b.tone} ışıklandırma, ${r.toLowerCase()} planı: ${p}]`;
+    const imageUrl = getScenePhoto(b.type, r, visual, i, p);
 
     return {
       id: i + 1,
@@ -130,15 +174,16 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
       sec: sceneDuration,
       text: screenText,
       vo: voText,
-      visual: `[${b.tone} ışıklandırma, ${r.toLowerCase()} planı: ${p}]`,
-      grad: GRADIENTS[i % GRADIENTS.length]
+      visual,
+      grad: GRADIENTS[i % GRADIENTS.length],
+      imageUrl
     };
   });
 }
 
 export const providers = {
   // 1. Senaryo ve Sahne Planı Üretimi
-  async script(brief: BriefForm, mode: 'ai' | 'classic' = 'ai', addLog: (msg: string) => void): Promise<Scene[]> {
+  async script(brief: BriefForm, mode: AppMode = 'sinema', addLog: (msg: string) => void): Promise<Scene[]> {
     const cfg = getSavedProviderConfig();
     if (mode === 'classic' || cfg.llm === 'local') {
       addLog('[Klasik Mod] SOP kural algoritması ile senaryo yapısı ve sahneler oluşturuluyor...');
@@ -148,7 +193,16 @@ export const providers = {
       return scenes;
     }
 
-    addLog('[AI Modu] Gemini 2.5 Flash ile özgün senaryo, sahne rolleri ve altyazılar üretiliyor...');
+    const modeName =
+      brief.type === 'sinema'
+        ? '🎬 Sinema Modu'
+        : brief.type === 'belgesel'
+        ? '🎙️ Belgesel Modu'
+        : brief.type === 'youtube'
+        ? '🔴 YouTube Modu'
+        : '✨ Yapay Zekâ Modu';
+
+    addLog(`[${modeName}] Gemini 2.5 Flash ile özgün senaryo, sahne rolleri ve altyazılar üretiliyor...`);
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -165,7 +219,7 @@ export const providers = {
         throw new Error(data.error || 'Gemini senaryo yanıtı alınamadı.');
       }
 
-      addLog(`[AI Modu] Gemini ${data.scenes.length} sahnelik senaryo ve görsel kompozisyonu üretti.`);
+      addLog(`[${modeName}] Gemini ${data.scenes.length} sahnelik senaryo ve görsel kompozisyonu üretti.`);
       return data.scenes;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -175,15 +229,20 @@ export const providers = {
   },
 
   // 2. Görsel ve Ses Modelleri
-  async clips(scenes: Scene[], brief: BriefForm, mode: 'ai' | 'classic' = 'ai', addLog: (msg: string) => void): Promise<Scene[]> {
+  async clips(scenes: Scene[], brief: BriefForm, mode: AppMode = 'sinema', addLog: (msg: string) => void): Promise<Scene[]> {
     const cfg = getSavedProviderConfig();
     if (mode === 'classic' || cfg.tts === 'webspeech') {
-      addLog('[Klasik Mod] Tarayıcı Web Speech API (yerel seslendirme) ve gradyan arka planlar bağlandı.');
+      addLog('[Klasik Mod] Tarayıcı Web Speech API (yerel seslendirme) ve sahne görsel katmanları bağlandı.');
       await sleep(400);
       return scenes.map(({ audioUrl: _a, ...rest }) => rest);
     }
 
-    addLog('[AI Modu] Gemini AI TTS ile 24kHz doğal seslendirme (Voiceover) sentezleniyor...');
+    const isCinema = brief.type === 'sinema';
+    const isDocumentary = brief.type === 'belgesel';
+    const isYouTube = brief.type === 'youtube';
+    const logTag = isCinema ? '[Sinema Modu]' : isDocumentary ? '[Belgesel Modu]' : isYouTube ? '[YouTube Modu]' : '[AI Modu]';
+
+    addLog(`${logTag} 24kHz seslendirme (Voiceover) ve görsel varlıklar sentezleniyor...`);
     try {
       const res = await fetch('/api/clips', {
         method: 'POST',
@@ -201,7 +260,7 @@ export const providers = {
       }
 
       addLog(
-        `[AI Modu] Gemini AI ${data.ttsCount}/${data.scenes.length} sahne için stüdyo kalitesinde ses üretti.`
+        `${logTag} Stüdyo kalitesinde seslendirme ve sinematik görsel katmanları bağlandı.`
       );
       return data.scenes;
     } catch (err) {
@@ -212,11 +271,17 @@ export const providers = {
   },
 
   // 3. Montaj ve Render Servisi
-  async render(video: Partial<VideoItem>, mode: 'ai' | 'classic' = 'ai', addLog: (msg: string) => void): Promise<Partial<VideoItem>> {
+  async render(video: Partial<VideoItem>, mode: AppMode = 'sinema', addLog: (msg: string) => void): Promise<Partial<VideoItem>> {
     if (mode === 'classic') {
       addLog('[Klasik Mod] Standart kurgu şablonu ve zaman çizelgesi hazırlandı.');
+    } else if (video.type === 'sinema' || video.ratio === '21:9') {
+      addLog('[Sinema Modu] 21:9 Cinemascope geniş ekran kompozisyonu ve sinematik zaman çizelgesi hazırlandı.');
+    } else if (video.type === 'belgesel') {
+      addLog('[Belgesel Modu] Sinematik belgesel kompozisyonu, derinlik filtreleri ve zaman çizelgesi hazırlandı.');
+    } else if (video.type === 'youtube') {
+      addLog('[YouTube Modu] 16:9 Full HD YouTube şablonu ve retention katmanları senkronize edildi.');
     } else {
-      addLog('[AI Modu] Gemini AI ses ve görsel katmanları zaman çizelgesiyle senkronize ediliyor...');
+      addLog('[AI Modu] Ses ve görsel katmanları zaman çizelgesiyle senkronize ediliyor...');
     }
     await sleep(400);
     addLog('Kalite kontrol (QC) kontrolleri tamamlandı ve render paketi oluşturuldu.');

@@ -2,7 +2,8 @@ import { BriefForm, Preset, VideoType } from '@/types';
 
 export const TYPES: Record<VideoType, string> = {
   sinema: '🎬 Sinema Filmi & Fragman',
-  youtube: '🔴 YouTube Video & Belgesel',
+  belgesel: '🎙️ Sinematik Belgesel & Araştırma',
+  youtube: '🔴 YouTube Video',
   reklam: '📢 Reklam Filmi',
   tanitim: '🏢 Ürün & Portföy Tanıtımı',
   sosyal: '📱 Sosyal Medya (Reels/Shorts)',
@@ -79,6 +80,15 @@ export const CINEMA_ROLES = [
   'Final & Vizyon Çağrısı'
 ];
 
+export const DOCUMENTARY_ROLES = [
+  'Açılış: Büyük Gizem',
+  'Tarihsel / Bilimsel Arka Plan',
+  'Kritik Kanıt & Saha Bulguları',
+  'Dönüm Noktası & Ezber Bozan Gerçek',
+  'Uzman Analizi & Derinleşme',
+  'Sonuç & Düşündürücü Kapanış'
+];
+
 export const YOUTUBE_ROLES = [
   'YouTube Kancası',
   'Giriş & Konu Özeti',
@@ -104,6 +114,40 @@ export const PRESETS: Preset[] = [
       lang: 'tr-TR',
       voiceGender: 'male',
       customInstructions: 'Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karakter: Dedektif Kaan. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.'
+    }
+  },
+  {
+    name: '🎙️ Belgesel: Piramitlerin Gizemi',
+    data: {
+      type: 'belgesel',
+      product: 'Gize: Zamana Meydan Okuyan Sırlar',
+      audience: 'Tarih, arkeoloji ve belgesel tutkunları',
+      points: 'M.Ö. 2500 yılında inşa edilen dev blokların astronomik Orion hizalanması\nModern jeoradarların piramidin derinliklerinde tespit ettiği gizli odalar\nMühendislik sınırlarını aşan matematiksel ve mimari kusursuzluk',
+      cta: 'Bölüm 1 bu akşam yayında. Tarihi yeniden keşfetmeye hazır olun.',
+      tone: 'Belgesel & Merak Uyandırıcı',
+      dur: 45,
+      ratio: '16:9',
+      platform: 'YouTube (Yatay 16:9)',
+      lang: 'tr-TR',
+      voiceGender: 'male',
+      customInstructions: 'BBC Earth ve National Geographic standartlarında büyüleyici bir arkeoloji belgeseli kurgula. Merak uyandıran kadim bir soru ile başla. Sisli çöl ve gün doğumu drone çekimleri, antik hiyerogliflerin çözülüşü ve tarihin ezber bozan yönleri tok ve bilge bir sesle anlatılsın.'
+    }
+  },
+  {
+    name: '🌊 Belgesel: Okyanusun Derinlikleri',
+    data: {
+      type: 'belgesel',
+      product: 'Mariana: Gezegenin En Karanlık Noktası',
+      audience: 'Doğa, bilim ve deniz biyolojisi meraklıları',
+      points: '11 bin metre derinlikte güneş ışığının hiç ulaşmadığı dünya\nİnanılmaz basınca ve dondurucu soğuğa meydan okuyan biyolüminesans canlılar\nDerin deniz araştırma denizaltısı ile yapılan son keşif seferi',
+      cta: 'Belgesel serisinin tamamı web sitemizde.',
+      tone: 'Belgesel & Merak Uyandırıcı',
+      dur: 40,
+      ratio: '16:9',
+      platform: 'YouTube (Yatay 16:9)',
+      lang: 'tr-TR',
+      voiceGender: 'female',
+      customInstructions: 'David Attenborough tarzında büyüleyici ve merak uyandıran bir derin deniz belgeseli. Karanlık sular, parlayan canlılar, denizaltı fenerleri ve okyanus tabanındaki mutlak sessizlik.'
     }
   },
   {
@@ -220,16 +264,16 @@ export const PRESETS: Preset[] = [
 ];
 
 export const INITIAL_FORM: BriefForm = {
-  type: 'tanitim',
-  product: 'Korkmaz Gayrimenkul - Elit Rezidans',
-  audience: 'Yatırımcılar ve prestijli konut arayan aileler',
-  points: 'Merkezi konum ve panoramik şehir manzarası\nAkıllı ev altyapısı ve 7/24 özel güvenlik\nYüksek kira getirisi ve uygun ödeme planı',
-  cta: 'Özel randevu ve kat planları için hemen arayın.',
-  tone: 'Prestijli & Lüks',
-  dur: 30,
-  ratio: '9:16',
-  platform: 'Instagram Reels',
+  type: 'sinema',
+  product: '2088: Son Şafak (The Last Dawn)',
+  audience: 'Bilim kurgu, distopya ve sinemaseverler',
+  points: 'Güneşin doğmadığı siberpunk mega kentte son insan direnişi\nYapay zekanın kontrolündeki gökdelenler ve karanlık yağmurlu sokaklar\nİnsanlığın kaderini belirleyecek son şifre',
+  cta: 'Çok Yakında Sinemalarda ve IMAX Salonlarında.',
+  tone: 'Sinematik & Dramatik',
+  dur: 45,
+  ratio: '21:9',
+  platform: 'Sinema & Film Festivali (21:9 / 16:9)',
   lang: 'tr-TR',
-  voiceGender: 'female',
-  customInstructions: ''
+  voiceGender: 'male',
+  customInstructions: 'Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karakter: Dedektif Kaan. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.'
 };

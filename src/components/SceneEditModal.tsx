@@ -61,13 +61,36 @@ export function SceneEditModal({ scene, onClose, onSave }: SceneEditModalProps) 
               />
             </div>
             <div>
-              <label htmlFor="scene-visual-input">Görsel / Video Prompt Tarifi</label>
+              <label htmlFor="scene-visual-input">Görsel / Sahne Betimlemesi</label>
               <input
                 id="scene-visual-input"
                 value={data.visual}
                 onChange={e => setData({ ...data, visual: e.target.value })}
               />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="scene-image-input">Sahne Görsel Dosyası / URL</label>
+            <input
+              id="scene-image-input"
+              value={data.imageUrl || ''}
+              onChange={e => setData({ ...data, imageUrl: e.target.value })}
+              placeholder="/cinema_assets/... veya https://..."
+            />
+            {data.imageUrl && (
+              <div
+                style={{
+                  marginTop: 8,
+                  height: 90,
+                  borderRadius: 8,
+                  backgroundImage: `url("${data.imageUrl}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  border: '1px solid var(--line)'
+                }}
+              />
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>

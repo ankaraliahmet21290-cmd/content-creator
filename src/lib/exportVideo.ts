@@ -63,21 +63,33 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   const AudioCtx =
     window.AudioContext ||
     (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const isCinema = video.type === 'sinema' || video.ratio === '21:9';
+  const isDocumentary = video.type === 'belgesel';
+  const isYouTube = video.type === 'youtube';
+
   const audioCtx = AudioCtx ? new AudioCtx() : null;
   const audioDest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
 
-  // Fon müziği buffer'ını yükle
-  const bgmBuffer = audioCtx ? await loadAudioBuffer(audioCtx, '/sales-music.wav') : null;
+  // Fon müziği: Sinema & Belgesel için Epic Trailer, YouTube için Upbeat Lo-Fi, diğerleri için Satış Müziği
   let bgmSource: AudioBufferSourceNode | null = null;
-  if (audioCtx && audioDest && bgmBuffer) {
-    bgmSource = audioCtx.createBufferSource();
-    bgmSource.buffer = bgmBuffer;
-    bgmSource.loop = true;
-    const bgmGain = audioCtx.createGain();
-    bgmGain.gain.setValueAtTime(0.22, audioCtx.currentTime);
-    bgmSource.connect(bgmGain);
-    bgmGain.connect(audioDest);
-    bgmSource.start();
+  if (audioCtx && audioDest) {
+    const bgmTrackPath = isCinema || isDocumentary
+      ? '/audio_assets/cinema_epic_trailer.wav'
+      : isYouTube
+      ? '/audio_assets/youtube_upbeat_lofi.wav'
+      : '/sales-music.wav';
+
+    const bgmBuffer = await loadAudioBuffer(audioCtx, bgmTrackPath);
+    if (bgmBuffer) {
+      bgmSource = audioCtx.createBufferSource();
+      bgmSource.buffer = bgmBuffer;
+      bgmSource.loop = true;
+      const bgmGain = audioCtx.createGain();
+      bgmGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      bgmSource.connect(bgmGain);
+      bgmGain.connect(audioDest);
+      bgmSource.start();
+    }
   }
 
   const canvasStream = canvas.captureStream(30);
@@ -93,9 +105,6 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
 
   const recorder = new MediaRecorder(combinedStream, { mimeType });
   const chunks: Blob[] = [];
-
-  const isCinema = video.type === 'sinema' || video.ratio === '21:9';
-  const isYouTube = video.type === 'youtube';
 
   return new Promise<void>((resolve, reject) => {
     recorder.ondataavailable = e => {
@@ -184,41 +193,41 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
             const badgeAlpha = Math.min(1, Math.max(0, (progress - 0.05) / 0.15));
             ctx.save();
             ctx.globalAlpha = badgeAlpha;
-            ctx.fillStyle = isCinema ? '#fde047' : isYouTube ? '#f87171' : '#9fc4f5';
+            ctx.fillStyle = isCinema ? '#fde047' : isDocumentary ? '#34d399' : isYouTube ? '#f87171' : '#9fc4f5';
             ctx.font = '600 28px "Segoe UI", system-ui, sans-serif';
             ctx.shadowColor = 'rgba(0,0,0,0.8)';
             ctx.shadowBlur = 8;
             ctx.shadowOffsetX = 2;
             ctx.shadowOffsetY = 3;
-            const badgePrefix = isCinema ? '🎬 SİNEMA · ' : isYouTube ? '🔴 YOUTUBE · ' : '';
+            const badgePrefix = isCinema ? '🎬 SİNEMA · ' : isDocumentary ? '🎙️ BELGESEL · ' : isYouTube ? '🔴 YOUTUBE · ' : '';
             ctx.fillText(`${badgePrefix}${video.product.toUpperCase()}`, 80, 75);
 
-            // 4. Ana Başlık / Replik
+            // 4. Ana Başlık / Replik / Belgesel Bölümü
             const titleAlpha = Math.min(1, Math.max(0, (progress - 0.1) / 0.2));
             ctx.globalAlpha = titleAlpha;
             ctx.fillStyle = '#ffffff';
-            ctx.font = isCinema
+            ctx.font = isCinema || isDocumentary
               ? 'bold 48px "Georgia", "Segoe UI", serif'
               : 'bold 52px "Segoe UI", system-ui, sans-serif';
-            const textY = isCinema ? h - 170 : h - 210;
+            const textY = isCinema || isDocumentary ? h - 170 : h - 210;
             ctx.fillText(sc.text, 80, textY);
 
-            // 5. Alt Başlık (Subtitle)
+            // 5. Alt Başlık (Subtitle / Lokasyon & Bilgi Kartı)
             if (sc.subtitle) {
               const subAlpha = Math.min(1, Math.max(0, (progress - 0.2) / 0.2));
               ctx.globalAlpha = subAlpha;
-              ctx.fillStyle = isCinema ? '#e2e8f0' : isYouTube ? '#fed7aa' : '#bfe0ff';
+              ctx.fillStyle = isCinema ? '#e2e8f0' : isDocumentary ? '#a7f3d0' : isYouTube ? '#fed7aa' : '#bfe0ff';
               ctx.font = '500 30px "Segoe UI", system-ui, sans-serif';
               ctx.fillText(sc.subtitle, 82, textY + 50);
             }
 
-            // 6. Vurgu Metni (Highlight / CTA / Abone Ol)
+            // 6. Vurgu Metni (Highlight / Çarpıcı Belgesel Bulgusu / Vizyon Tarihi)
             if (sc.highlight) {
               const hlAlpha = Math.min(1, Math.max(0, (progress - 0.3) / 0.2));
               ctx.globalAlpha = hlAlpha;
-              ctx.fillStyle = isCinema ? '#38bdf8' : isYouTube ? '#ef4444' : '#ffd35c';
+              ctx.fillStyle = isCinema ? '#38bdf8' : isDocumentary ? '#fbbf24' : isYouTube ? '#ef4444' : '#ffd35c';
               ctx.font = '600 26px "Segoe UI", system-ui, sans-serif';
-              const icon = isCinema ? '✦ ' : isYouTube ? '▶ ' : '★  ';
+              const icon = isCinema ? '✦ ' : isDocumentary ? '🔍 ' : isYouTube ? '▶ ' : '★  ';
               ctx.fillText(`${icon}${sc.highlight}`, 82, textY + 95);
             }
 

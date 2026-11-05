@@ -161,6 +161,29 @@ header {
   color: #a78bfa;
 }
 
+.badge.badge-cinema {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35));
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #d97706;
+  font-weight: 800;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
+:root[data-theme="dark"] .badge.badge-cinema {
+  color: #fbbf24;
+}
+
+.badge.badge-youtube {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #dc2626;
+  font-weight: 800;
+}
+
+:root[data-theme="dark"] .badge.badge-youtube {
+  color: #f87171;
+}
+
 .mode-toggle-group {
   display: flex;
   background: var(--card-sub);
@@ -168,6 +191,37 @@ header {
   border-radius: 10px;
   border: 1px solid var(--line);
   gap: 3px;
+  flex-wrap: wrap;
+}
+
+.btn-cinema-mode.primary {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  border-color: #f59e0b !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
+}
+
+.btn-youtube-mode.primary {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  border-color: #dc2626 !important;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
+}
+
+.btn-produce-cinema {
+  background: linear-gradient(135deg, #f59e0b, #b45309) !important;
+  color: #ffffff !important;
+  font-weight: 800;
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.45) !important;
+}
+
+.btn-produce-youtube {
+  background: linear-gradient(135deg, #ef4444, #b91c1c) !important;
+  color: #ffffff !important;
+  font-weight: 800;
+  box-shadow: 0 4px 18px rgba(239, 68, 68, 0.45) !important;
 }
 
 .mode-banner {
@@ -177,6 +231,20 @@ header {
   line-height: 1.5;
   margin-bottom: 18px;
   border: 1px solid var(--line);
+}
+
+.mode-banner.cinema-banner {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(180, 83, 9, 0.08));
+  border-left: 4px solid #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+  color: var(--ink);
+}
+
+.mode-banner.youtube-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(185, 28, 28, 0.06));
+  border-left: 4px solid #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--ink);
 }
 
 .mode-banner.ai-banner {
@@ -189,6 +257,22 @@ header {
   background: rgba(16, 185, 129, 0.08);
   border-color: rgba(16, 185, 129, 0.3);
   color: var(--ink);
+}
+
+.badge-mode.cinema {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+:root[data-theme="dark"] .badge-mode.cinema {
+  color: #fbbf24;
+}
+
+.badge-mode.youtube {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
 .badge-mode {
@@ -1278,6 +1362,13 @@ input:focus, select:focus, textarea:focus {
 .v-status.ready { color: var(--ok); }
 .v-status.failed { color: var(--err); }
 .v-status.processing { color: var(--warn); }
+.v-status.storyboard { color: var(--acc); font-weight: 700; }
+
+.asset-hover-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--acc) !important;
+  box-shadow: 0 4px 14px var(--acc-glow);
+}
 
 .v-acts {
   display: flex;

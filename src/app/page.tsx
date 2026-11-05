@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { BriefForm as IBriefForm, Preset, Scene, VideoItem } from '@/types';
-import { INITIAL_FORM, TYPES } from '@/lib/constants';
+import { BriefForm as IBriefForm, Preset, Scene, VideoItem, AppMode } from '@/types';
+import { INITIAL_FORM, TYPES, PRESETS } from '@/lib/constants';
 import { providers } from '@/lib/providers';
 import { Header } from '@/components/Header';
 import { BriefForm } from '@/components/BriefForm';
@@ -10,10 +10,11 @@ import { Player } from '@/components/Player';
 import { VideoGrid } from '@/components/VideoGrid';
 import { ProviderModal } from '@/components/ProviderModal';
 import { LogModal } from '@/components/LogModal';
+import { StoryboardDesigner } from '@/components/StoryboardDesigner';
 
 export default function StudioPage() {
   const [form, setForm] = useState<IBriefForm>(INITIAL_FORM);
-  const [mode, setMode] = useState<'ai' | 'classic'>('ai');
+  const [mode, setMode] = useState<AppMode>('sinema');
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formError, setFormError] = useState('');
@@ -31,9 +32,11 @@ export default function StudioPage() {
       } else {
         setTheme('light');
       }
-      const savedMode = localStorage.getItem('klaket_app_mode') as 'ai' | 'classic' | null;
+      const savedMode = localStorage.getItem('klaket_app_mode') as AppMode | null;
       if (savedMode) {
         setMode(savedMode);
+      } else {
+        setMode('sinema');
       }
       const savedVideos = localStorage.getItem('klaket_sop_vids');
       if (savedVideos) {
@@ -57,13 +60,29 @@ export default function StudioPage() {
     }
   }, [theme]);
 
-  // Mod Değişimi (AI / Klasik)
-  const handleToggleMode = useCallback((newMode: 'ai' | 'classic') => {
+  // Mod Değişimi (Sinema / YouTube / Reklam / Klasik)
+  const handleToggleMode = useCallback((newMode: AppMode) => {
     setMode(newMode);
     try {
       localStorage.setItem('klaket_app_mode', newMode);
     } catch {
       // ignore
+    }
+
+    if (newMode === 'sinema') {
+      const p = PRESETS.find(x => x.data.type === 'sinema') || PRESETS[0];
+      setForm({ ...p.data });
+    } else if (newMode === 'belgesel') {
+      const p = PRESETS.find(x => x.data.type === 'belgesel') || PRESETS[1];
+      setForm({ ...p.data });
+    } else if (newMode === 'youtube') {
+      const p = PRESETS.find(x => x.data.type === 'youtube') || PRESETS[2];
+      setForm({ ...p.data });
+    } else if (newMode === 'reklam') {
+      const p = PRESETS.find(x => x.data.type === 'reklam') || PRESETS[5];
+      setForm({ ...p.data });
+    } else if (newMode === 'classic') {
+      setForm(prev => ({ ...prev, type: 'tanitim' }));
     }
   }, []);
 
@@ -101,10 +120,19 @@ export default function StudioPage() {
   }, []);
 
   // SOP Üretim Akışı
-  const produceVideo = useCallback(async (brief: IBriefForm, targetMode: 'ai' | 'classic' = mode) => {
+  const produceVideo = useCallback(async (brief: IBriefForm, targetMode: AppMode = mode) => {
     setIsProducing(true);
     const id = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const modeLabel = targetMode === 'ai' ? '✨ Yapay Zekâ Modu' : '⚡ Klasik Şablon Modu';
+    const modeLabel =
+      targetMode === 'sinema'
+        ? '🎬 Sinema Filmi Modu'
+        : targetMode === 'belgesel'
+        ? '🎙️ Sinematik Belgesel Modu'
+        : targetMode === 'youtube'
+        ? '🔴 YouTube Video Modu'
+        : targetMode === 'reklam'
+        ? '📢 Ticari Reklam Modu'
+        : '⚡ Klasik Şablon Modu';
     const logList: string[] = [`[${new Date().toLocaleTimeString()}] ${modeLabel} ile video üretim süreci başlatıldı.`];
 
     const addLog = (msg: string) => {
@@ -171,7 +199,119 @@ export default function StudioPage() {
     }
   }, [mode, patchVideo]);
 
-  // Form Gönder
+  // Storyboard Sahne Tasarımı Akışı (Adım 1: Senaryo ve Sahneleri Hazırla)
+  const produceStoryboard = useCallback(async (brief: IBriefForm, targetMode: AppMode = mode) => {
+    setIsProducing(true);
+    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const modeLabel =
+      targetMode === 'sinema'
+        ? '🎬 Sinema Filmi'
+        : targetMode === 'belgesel'
+        ? '🎙️ Sinematik Belgesel'
+        : targetMode === 'youtube'
+        ? '🔴 YouTube Videosu'
+        : targetMode === 'reklam'
+        ? '📢 Reklam Filmi'
+        : '⚡ Klasik Video';
+    const logList: string[] = [`[${new Date().toLocaleTimeString()}] ${modeLabel} için Storyboard sahne tasarım süreci başlatıldı.`];
+
+    const addLog = (msg: string) => {
+      const entry = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logList.push(entry);
+      patchVideo(id, { logs: [...logList] });
+    };
+
+    const newVideo: VideoItem = {
+      id,
+      ...brief,
+      mode: targetMode,
+      title: `${brief.product} – ${TYPES[brief.type]}`,
+      status: 'Senaryo & Sahne Planlanıyor',
+      stage: 'senaryo',
+      progress: 30,
+      scenes: [],
+      logs: logList,
+      created: new Date().toLocaleString('tr-TR')
+    };
+
+    setVideos(prev => [newVideo, ...prev]);
+    setSelectedId(id);
+
+    try {
+      addLog('Yapay zekâ sahne planlarını, replikleri, kamera açılarını ve film karelerini oluşturuyor...');
+      const scenes = await providers.script(brief, targetMode, addLog);
+
+      addLog(`Storyboard hazırlandı (${scenes.length} sahne). Sahne Tasarım Masası açıldı.`);
+      patchVideo(id, {
+        status: 'Tasarım Bekliyor (Storyboard)',
+        stage: 'storyboard',
+        progress: 50,
+        scenes,
+        logs: [...logList]
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      addLog(`Hata oluştu: ${msg}`);
+      patchVideo(id, { status: 'Başarısız', progress: 0, stage: 'hata' });
+    } finally {
+      setIsProducing(false);
+    }
+  }, [mode, patchVideo]);
+
+  // Storyboard Onaylanıp Final Render Başlatıldığında (Adım 2: Montaj & Render)
+  const finalizeStoryboardRender = useCallback(async (videoId: string, designedScenes: Scene[]) => {
+    const video = videos.find(v => v.id === videoId);
+    if (!video) return;
+
+    setIsProducing(true);
+    const logList = [...(video.logs || [])];
+    const addLog = (msg: string) => {
+      const entry = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logList.push(entry);
+      patchVideo(videoId, { logs: [...logList] });
+    };
+
+    addLog('Kullanıcı sahne tasarımını onayladı. Video montaj ve ses miksaj pipeline başlatılıyor...');
+    patchVideo(videoId, {
+      status: 'Görsel & Ses Üretiliyor',
+      stage: 'sahneler',
+      progress: 65,
+      scenes: designedScenes
+    });
+
+    try {
+      // 1. Görsel & Ses (TTS) Varlık Sentezleme
+      const enrichedScenes = await providers.clips(designedScenes, video, video.mode || mode, addLog);
+
+      // 2. Montaj & Render Pipeline
+      patchVideo(videoId, {
+        progress: 85,
+        status: 'Render & Kalite Kontrolü',
+        scenes: enrichedScenes,
+        stage: 'render'
+      });
+      await providers.render({ ...video, scenes: enrichedScenes }, video.mode || mode, addLog);
+
+      // 3. Kalite Kontrolü Onaylandı ve Hazır
+      addLog('Video montajı başarıyla tamamlandı ve kalite kontrol onayından geçti.');
+      patchVideo(videoId, {
+        progress: 100,
+        status: 'Hazır',
+        stage: 'hazir',
+        scenes: enrichedScenes,
+        logs: [...logList]
+      });
+      setSelectedId(videoId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      addLog(`Render hatası: ${msg}`);
+      patchVideo(videoId, { status: 'Başarısız', progress: 0, stage: 'hata' });
+    } finally {
+      setIsProducing(false);
+    }
+  }, [videos, mode, patchVideo]);
+
+  // Hızlı Tek Tıkla Üret
   const handleSubmit = useCallback(() => {
     if (!form.product.trim()) {
       setFormError('Lütfen ürün veya konu başlığını giriniz.');
@@ -185,7 +325,21 @@ export default function StudioPage() {
     produceVideo({ ...form, product: form.product.trim() }, mode);
   }, [form, mode, produceVideo]);
 
-  // Sahne Revizyon Güncellemesi
+  // Storyboard Modunda Üret
+  const handleSubmitStoryboard = useCallback(() => {
+    if (!form.product.trim()) {
+      setFormError('Lütfen ürün veya konu başlığını giriniz.');
+      return;
+    }
+    if (form.dur < 5 || form.dur > 300) {
+      setFormError('Süre 5 ile 300 saniye arasında olmalıdır.');
+      return;
+    }
+    setFormError('');
+    produceStoryboard({ ...form, product: form.product.trim() }, mode);
+  }, [form, mode, produceStoryboard]);
+
+  // Sahne Revizyon Güncellemesi (Player içinden)
   const handleUpdateScene = useCallback((videoId: string, updatedScene: Scene) => {
     setVideos(prev =>
       prev.map(v => {
@@ -196,9 +350,20 @@ export default function StudioPage() {
     );
   }, []);
 
-  const selectedVideo =
-    videos.find(v => v.id === selectedId && v.status === 'Hazır') ||
+  // Sahne Listesi Güncellemesi (Storyboard içinden)
+  const handleUpdateStoryboardScenes = useCallback((videoId: string, newScenes: Scene[]) => {
+    setVideos(prev =>
+      prev.map(v => (v.id === videoId ? { ...v, scenes: newScenes } : v))
+    );
+  }, []);
+
+  const activeVideo =
+    videos.find(v => v.id === selectedId) ||
+    videos.find(v => v.stage === 'storyboard') ||
     videos.find(v => v.status === 'Hazır');
+
+  const isStoryboardActive = activeVideo?.stage === 'storyboard';
+  const isPlayerActive = activeVideo?.status === 'Hazır';
 
   return (
     <div className="wrap">
@@ -220,24 +385,33 @@ export default function StudioPage() {
           onUpdateField={updateFormField}
           onSelectPreset={handleSelectPreset}
           onSubmit={handleSubmit}
+          onSubmitStoryboard={handleSubmitStoryboard}
         />
 
-        {/* Sağ Panel: Aktif Video Oynatıcısı & Video Listesi */}
+        {/* Sağ Panel: Aktif Video Oynatıcısı, Storyboard Tasarımcısı & Video Listesi */}
         <main>
-          {selectedVideo ? (
+          {isStoryboardActive && activeVideo ? (
+            <StoryboardDesigner
+              video={activeVideo}
+              onUpdateScenes={s => handleUpdateStoryboardScenes(activeVideo.id, s)}
+              onConfirmAndRender={s => finalizeStoryboardRender(activeVideo.id, s)}
+              onCancel={() => setSelectedId(null)}
+              isRendering={isProducing}
+            />
+          ) : isPlayerActive && activeVideo ? (
             <section className="panel" style={{ marginBottom: 20 }}>
               <div className="panel-hdr">
                 <div>
-                  <h2>{selectedVideo.title}</h2>
+                  <h2>{activeVideo.title}</h2>
                   <div style={{ fontSize: 12, color: 'var(--mute)', marginTop: 2 }}>
-                    {`${selectedVideo.platform} · ${selectedVideo.ratio} · ${selectedVideo.dur} sn · ${selectedVideo.tone} · ${selectedVideo.lang}`}
+                    {`${activeVideo.platform} · ${activeVideo.ratio} · ${activeVideo.dur} sn · ${activeVideo.tone} · ${activeVideo.lang}`}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button
                     type="button"
                     className="btn sm"
-                    onClick={() => setActiveLogModal(selectedVideo)}
+                    onClick={() => setActiveLogModal(activeVideo)}
                   >
                     📋 İşlem Kaydı (Logs)
                   </button>
@@ -245,7 +419,7 @@ export default function StudioPage() {
               </div>
 
               <Player
-                video={selectedVideo}
+                video={activeVideo}
                 onUpdateScene={handleUpdateScene}
               />
             </section>

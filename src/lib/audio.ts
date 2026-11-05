@@ -3,20 +3,53 @@
 export class AudioManager {
   private bgmAudio: HTMLAudioElement | null = null;
   private currentSpeechAudio: HTMLAudioElement | null = null;
+  private synthCtx: AudioContext | null = null;
+  private oscSub: OscillatorNode | null = null;
+  private oscDrone: OscillatorNode | null = null;
+  private synthGain: GainNode | null = null;
+  private currentTrackUrl: string = '';
+  private sfxAudio: HTMLAudioElement | null = null;
   public isPlaying: boolean = false;
   public isBGMEnabled: boolean = true;
 
-  // Gerçek kurumsal v5 satış müziğini başlat
-  public startBGM(): void {
+  // Fon müziğini yapım türüne uygun olarak başlat (Sinema, Belgesel, YouTube, Reklam)
+  public startBGM(type: string = 'sinema'): void {
     if (typeof window === 'undefined') return;
     try {
-      if (!this.bgmAudio) {
-        this.bgmAudio = new Audio('/sales-music.wav');
-        this.bgmAudio.loop = true;
-        this.bgmAudio.volume = 0.22; // Konuşmanın altında duyulacak ideal fon seviyesi
+      let targetTrack = '/sales-music.wav';
+      if (type === 'sinema' || type === 'belgesel') {
+        targetTrack = '/audio_assets/cinema_epic_trailer.wav';
+      } else if (type === 'youtube') {
+        targetTrack = '/audio_assets/youtube_upbeat_lofi.wav';
       }
+
+      if (!this.bgmAudio || this.currentTrackUrl !== targetTrack) {
+        if (this.bgmAudio) {
+          try { this.bgmAudio.pause(); } catch {}
+        }
+        this.bgmAudio = new Audio(targetTrack);
+        this.bgmAudio.loop = true;
+        this.currentTrackUrl = targetTrack;
+      }
+
+      this.bgmAudio.volume = 0.25;
       this.bgmAudio.play().catch(() => {});
       this.isPlaying = true;
+    } catch {
+      // ignore
+    }
+  }
+
+  // Sinematik Sahne Geçiş Efekti (Whoosh + Sub Impact)
+  public playTransitionSFX(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!this.sfxAudio) {
+        this.sfxAudio = new Audio('/audio_assets/cinema_sfx_impact.wav');
+      }
+      this.sfxAudio.currentTime = 0;
+      this.sfxAudio.volume = 0.35;
+      this.sfxAudio.play().catch(() => {});
     } catch {
       // ignore
     }
@@ -27,17 +60,15 @@ export class AudioManager {
       try {
         this.bgmAudio.pause();
         this.bgmAudio.currentTime = 0;
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
     this.isPlaying = false;
   }
 
   public setBGMVolume(ducked: boolean): void {
     if (this.bgmAudio) {
-      // Konuşma varken müziği hafifçe kıs (ducking)
-      this.bgmAudio.volume = ducked ? 0.14 : 0.28;
+      // Konuşma varken müziği kıs (ducking: 0.12), konuşma bitince yükselt (0.28)
+      this.bgmAudio.volume = ducked ? 0.12 : 0.28;
     }
   }
 
