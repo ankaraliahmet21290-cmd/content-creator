@@ -28,23 +28,23 @@ export function SceneEditModal({ scene, onClose, onSave }: SceneEditModalProps) 
             onChange={e => setData({ ...data, role: e.target.value })}
           >
             <optgroup label="🎬 Sinema Rolleri">
-              {CINEMA_ROLES.map(r => (
-                <option key={r} value={r}>{r}</option>
+              {Array.from(new Set(CINEMA_ROLES)).map((r, idx) => (
+                <option key={`cin-${idx}-${r}`} value={r}>{r}</option>
               ))}
             </optgroup>
             <optgroup label="🎙️ Belgesel Rolleri">
-              {DOCUMENTARY_ROLES.map(r => (
-                <option key={r} value={r}>{r}</option>
+              {Array.from(new Set(DOCUMENTARY_ROLES)).map((r, idx) => (
+                <option key={`doc-${idx}-${r}`} value={r}>{r}</option>
               ))}
             </optgroup>
             <optgroup label="🔴 YouTube Rolleri">
-              {YOUTUBE_ROLES.map(r => (
-                <option key={r} value={r}>{r}</option>
+              {Array.from(new Set(YOUTUBE_ROLES)).map((r, idx) => (
+                <option key={`yt-${idx}-${r}`} value={r}>{r}</option>
               ))}
             </optgroup>
             <optgroup label="⚡ Standart Rolleri">
-              {SOP_ROLES.map(r => (
-                <option key={r} value={r}>{r}</option>
+              {Array.from(new Set(SOP_ROLES)).map((r, idx) => (
+                <option key={`sop-${idx}-${r}`} value={r}>{r}</option>
               ))}
             </optgroup>
           </select>

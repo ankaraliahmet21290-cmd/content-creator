@@ -299,8 +299,8 @@ export function StoryboardDesigner({
                     background: 'var(--card)'
                   }}
                 >
-                  {roleOptions.map(r => (
-                    <option key={r} value={r}>
+                  {Array.from(new Set(roleOptions)).map((r, rIdx) => (
+                    <option key={`${r}-${rIdx}`} value={r}>
                       {r}
                     </option>
                   ))}

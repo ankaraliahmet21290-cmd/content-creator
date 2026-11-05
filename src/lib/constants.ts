@@ -65,7 +65,7 @@ export const SOP_ROLES = [
   'Sorun',
   'Çözüm',
   'Özellik',
-  'Özellik',
+  'Detay',
   'Kanıt',
   'Fayda',
   'Çağrı'
