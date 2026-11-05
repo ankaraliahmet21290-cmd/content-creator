@@ -45,7 +45,7 @@ export function BriefForm({
             : '✨ Yapay Zekâ Reklam Stüdyosu'}
         </h2>
         <span className={`badge ${isCinema ? 'badge-cinema' : isDocumentary ? 'badge-documentary' : isYouTube ? 'badge-youtube' : isClassic ? 'sop' : 'badge-ai'}`}>
-          {isCinema ? '21:9 Cinemascope' : isDocumentary ? '16:9 Belgesel' : isYouTube ? '16:9 Full HD' : isClassic ? 'Kural Şablonu' : 'Gemini 2.5 AI'}
+          {isCinema ? '21:9 Cinemascope' : isDocumentary ? '16:9 Belgesel' : isYouTube ? '16:9 Full HD' : isClassic ? 'Kural Şablonu' : 'Gemini 3.6 AI'}
         </span>
       </div>
 

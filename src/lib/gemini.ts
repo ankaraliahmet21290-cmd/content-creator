@@ -113,7 +113,7 @@ export function createThemedSceneVisual(
       <path d="M 0 ${h * 0.82} Q ${w * 0.38} ${h * 0.75} ${w * 0.68} ${h * 0.85} T ${w} ${h * 0.78} L ${w} ${h} L 0 ${h} Z" fill="#000000" opacity="0.88" />
     `
     : isYouTube
-    ? `
+      ? `
       <!-- YouTube Dinamik Izgara & Grafik Çizgileri -->
       <g opacity="0.18">
         <line x1="0" y1="${h * 0.2}" x2="${w}" y2="${h * 0.2}" stroke="#ffffff" stroke-width="1" stroke-dasharray="8 8" />
@@ -136,7 +136,7 @@ export function createThemedSceneVisual(
         <rect x="${w * 0.57}" y="${h * 0.43}" width="6" height="30" rx="3" fill="#ffffff" />
       </g>
     `
-    : `
+      : `
       <circle cx="${w * 0.25}" cy="${h * 0.3}" r="220" fill="${c2}" opacity="0.35" filter="url(#blur)" />
       <circle cx="${w * 0.75}" cy="${h * 0.65}" r="260" fill="#ffffff" opacity="0.12" filter="url(#blur)" />
       <path d="M 0 ${h * 0.75} Q ${w * 0.5} ${h * 0.6} ${w} ${h * 0.72} L ${w} ${h} L 0 ${h} Z" fill="#000000" opacity="0.35" />
@@ -203,10 +203,10 @@ export async function generateScenesWithGemini(
   const baseRoles = isDocumentary
     ? DOCUMENTARY_ROLES
     : isCinema
-    ? CINEMA_ROLES
-    : isYouTube
-    ? YOUTUBE_ROLES
-    : SOP_ROLES;
+      ? CINEMA_ROLES
+      : isYouTube
+        ? YOUTUBE_ROLES
+        : SOP_ROLES;
   const divisor = isCinema || isDocumentary ? 7.5 : isYouTube ? 8.0 : 6.0;
   const n = Math.max(4, Math.min(10, Math.round(brief.dur / divisor)));
 
@@ -399,27 +399,44 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
 ]`;
   }
 
-  const url = `${GEMINI_BASE_URL}/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+  // En yeni ve güçlü Gemini 3.6 Flash'ı öncelikli kullan; yoğunluk (503/429) durumunda 2.5 Flash'a geç
+  const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+  let rawText = '[]';
+  let lastError: Error | null = null;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        responseMimeType: 'application/json'
+  for (const model of candidateModels) {
+    const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+        lastError = null;
+        break;
+      } else {
+        const errText = await response.text();
+        lastError = new Error(`${model} (${response.status}): ${errText.slice(0, 150)}`);
       }
-    })
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini LLM Hatası (${response.status}): ${errText.slice(0, 200)}`);
+    } catch (fetchErr) {
+      lastError = fetchErr instanceof Error ? fetchErr : new Error(String(fetchErr));
+    }
   }
 
-  const data = await response.json();
-  const rawText: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+  if (lastError && rawText === '[]') {
+    // Model çağrısı başarısız olduysa SOP kural motoruna fallback yap
+    return buildScenesFromSOP(brief);
+  }
 
   let parsed: RawGeminiScene[] = [];
   try {

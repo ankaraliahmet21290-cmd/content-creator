@@ -20,7 +20,7 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
       case 'youtube':
         return '🔴 YouTube Modu: 16:9 Full HD, İlk 5 Sn Kancası, Retention Akışı & Abone Ol Çağrısı';
       case 'reklam':
-        return '📢 AI Reklam Modu: Gemini 2.5 Flash ile TV & Sosyal Medya Ticari Tanıtım Kurgusu';
+        return '📢 AI Reklam Modu: Gemini 3.6 / 2.5 Flash ile TV & Sosyal Medya Ticari Tanıtım Kurgusu';
       case 'classic':
       default:
         return '⚡ Klasik Mod: Standart SOP Şablonları & Web Speech Yerel Seslendirme';
