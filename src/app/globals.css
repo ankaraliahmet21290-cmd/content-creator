@@ -331,6 +331,129 @@ header {
   border-color: rgba(99, 102, 241, 0.25);
 }
 
+/* korkmaz-gayrimenkul-tanitim-v5 Sinematik Ekran Stilleri */
+.v5-screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #0a1020;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+.v5-photo-layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.2s linear;
+  will-change: transform;
+}
+
+.v5-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 16, 32, 0.45) 0%,
+    rgba(10, 16, 32, 0) 30%,
+    rgba(10, 16, 32, 0.65) 60%,
+    rgba(10, 16, 32, 0.95) 100%
+  );
+  pointer-events: none;
+}
+
+.v5-top-badge {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.v5-brand-title {
+  color: #9fc4f5;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.v5-scene-tag {
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.v5-content-group {
+  position: absolute;
+  bottom: 24px;
+  left: 22px;
+  right: 22px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v5-main-title {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+  animation: v5Reveal 0.4s ease-out;
+}
+
+.v5-sub-title {
+  color: #bfe0ff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+  animation: v5Reveal 0.6s ease-out;
+}
+
+.v5-highlight-badge {
+  color: #ffd35c;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 3px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  animation: v5Reveal 0.8s ease-out;
+}
+
+.v5-vo-line {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 6px;
+  line-height: 1.35;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 4px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes v5Reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .badge-mode.classic {
   background: rgba(16, 185, 129, 0.15);
   color: #059669;
@@ -456,6 +579,129 @@ header {
 .ai-instructions-box textarea {
   background: var(--card);
   border-color: rgba(99, 102, 241, 0.25);
+}
+
+/* korkmaz-gayrimenkul-tanitim-v5 Sinematik Ekran Stilleri */
+.v5-screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #0a1020;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+.v5-photo-layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.2s linear;
+  will-change: transform;
+}
+
+.v5-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 16, 32, 0.45) 0%,
+    rgba(10, 16, 32, 0) 30%,
+    rgba(10, 16, 32, 0.65) 60%,
+    rgba(10, 16, 32, 0.95) 100%
+  );
+  pointer-events: none;
+}
+
+.v5-top-badge {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.v5-brand-title {
+  color: #9fc4f5;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.v5-scene-tag {
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.v5-content-group {
+  position: absolute;
+  bottom: 24px;
+  left: 22px;
+  right: 22px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v5-main-title {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+  animation: v5Reveal 0.4s ease-out;
+}
+
+.v5-sub-title {
+  color: #bfe0ff;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+  animation: v5Reveal 0.6s ease-out;
+}
+
+.v5-highlight-badge {
+  color: #ffd35c;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 3px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+  animation: v5Reveal 0.8s ease-out;
+}
+
+.v5-vo-line {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 6px;
+  line-height: 1.35;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 4px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes v5Reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .badge-mode.classic {
@@ -1095,9 +1341,98 @@ input:focus, select:focus, textarea:focus {
   font-family: var(--font-mono);
   font-size: 12px;
   padding: 14px;
-  border-radius: 9px;
+  border-radius: 99px;
   max-height: 260px;
   overflow-y: auto;
   line-height: 1.65;
   border: 1px solid var(--line);
+}
+
+/* Video Format Pills (Sinema, YouTube, vb.) */
+.format-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+
+.format-pill {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card-sub);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.format-pill:hover {
+  border-color: var(--acc);
+  background: var(--card);
+}
+
+.format-pill.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.32));
+  border-color: var(--acc);
+  color: var(--acc);
+  box-shadow: 0 0 12px var(--acc-glow);
+}
+
+/* Sinema ve YouTube Ekran Özelleştirmeleri */
+.cinema-letterbox {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(253, 224, 71, 0.35);
+}
+
+.cinema-badge {
+  background: linear-gradient(90deg, #fde047, #f59e0b) !important;
+  color: #000 !important;
+  font-weight: 800 !important;
+}
+
+.cinema-title {
+  font-family: Georgia, 'Times New Roman', serif !important;
+  letter-spacing: 0.04em !important;
+  text-shadow: 0 3px 20px rgba(0, 0, 0, 0.95) !important;
+}
+
+.cinema-hl {
+  background: rgba(2, 6, 23, 0.85) !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
+  font-weight: 700 !important;
+}
+
+.cinema-pb {
+  background: linear-gradient(90deg, #38bdf8, #fde047) !important;
+  box-shadow: 0 0 12px rgba(253, 224, 71, 0.8) !important;
+}
+
+.youtube-screen {
+  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.youtube-badge {
+  background: #ef4444 !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+.youtube-hl {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+
+.youtube-pb {
+  background: #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.8) !important;
 }

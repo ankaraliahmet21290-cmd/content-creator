@@ -177,8 +177,8 @@ export default function StudioPage() {
       setFormError('Lütfen ürün veya konu başlığını giriniz.');
       return;
     }
-    if (form.dur < 5 || form.dur > 120) {
-      setFormError('Süre 5 ile 120 saniye arasında olmalıdır.');
+    if (form.dur < 5 || form.dur > 300) {
+      setFormError('Süre 5 ile 300 saniye arasında olmalıdır.');
       return;
     }
     setFormError('');

@@ -35,8 +35,21 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   }
 
   const [aspectW, aspectH] = RATIOS[video.ratio] || [16, 9];
-  const w = aspectW >= aspectH ? 1920 : 1080;
-  const h = aspectW >= aspectH ? 1080 : 1920;
+  let w = 1920;
+  let h = 1080;
+  if (video.ratio === '21:9') {
+    w = 1920;
+    h = 822; // 21:9 Cinemascope (2.33:1 Widescreen)
+  } else if (video.ratio === '16:9') {
+    w = 1920;
+    h = 1080; // 16:9 Full HD (YouTube standardı)
+  } else if (video.ratio === '9:16') {
+    w = 1080;
+    h = 1920; // 9:16 Shorts / Reels
+  } else if (video.ratio === '1:1') {
+    w = 1080;
+    h = 1080; // 1:1 Kare
+  }
   canvas.width = w;
   canvas.height = h;
 
@@ -81,6 +94,9 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   const recorder = new MediaRecorder(combinedStream, { mimeType });
   const chunks: Blob[] = [];
 
+  const isCinema = video.type === 'sinema' || video.ratio === '21:9';
+  const isYouTube = video.type === 'youtube';
+
   return new Promise<void>((resolve, reject) => {
     recorder.ondataavailable = e => {
       if (e.data && e.data.size > 0) chunks.push(e.data);
@@ -100,7 +116,8 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${video.product.replace(/\s+/g, '_')}_sinematik_reklam.webm`;
+        const typeSuffix = isCinema ? 'sinema_filmi' : isYouTube ? 'youtube_video' : 'video';
+        a.download = `${video.product.replace(/\s+/g, '_')}_${typeSuffix}.webm`;
         a.click();
         URL.revokeObjectURL(url);
         resolve();
@@ -155,49 +172,63 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
               ctx.fillRect(0, 0, w, h);
             }
 
-            // 2. Sinematik Koyu Alt Kuşak (v5 Dark/Gradient Overlay)
-            const overlayGrad = ctx.createLinearGradient(0, h * 0.45, 0, h);
+            // 2. Koyu Gradyan Alt Kuşak
+            const overlayGrad = ctx.createLinearGradient(0, h * (isCinema ? 0.35 : 0.45), 0, h);
             overlayGrad.addColorStop(0, 'rgba(10, 16, 32, 0)');
             overlayGrad.addColorStop(0.35, 'rgba(10, 16, 32, 0.65)');
             overlayGrad.addColorStop(1, 'rgba(10, 16, 32, 0.95)');
             ctx.fillStyle = overlayGrad;
             ctx.fillRect(0, 0, w, h);
 
-            // 3. Üst Kurumsal Rozet (v5 Brand Badge)
+            // 3. Üst Bilgi Rozeti
             const badgeAlpha = Math.min(1, Math.max(0, (progress - 0.05) / 0.15));
             ctx.save();
             ctx.globalAlpha = badgeAlpha;
-            ctx.fillStyle = '#9fc4f5';
-            ctx.font = '600 32px "Segoe UI", system-ui, sans-serif';
+            ctx.fillStyle = isCinema ? '#fde047' : isYouTube ? '#f87171' : '#9fc4f5';
+            ctx.font = '600 28px "Segoe UI", system-ui, sans-serif';
             ctx.shadowColor = 'rgba(0,0,0,0.8)';
             ctx.shadowBlur = 8;
             ctx.shadowOffsetX = 2;
             ctx.shadowOffsetY = 3;
-            ctx.fillText(video.product.toUpperCase(), 100, 95);
+            const badgePrefix = isCinema ? '🎬 SİNEMA · ' : isYouTube ? '🔴 YOUTUBE · ' : '';
+            ctx.fillText(`${badgePrefix}${video.product.toUpperCase()}`, 80, 75);
 
-            // 4. v5 Büyük Başlık (Lead Text)
+            // 4. Ana Başlık / Replik
             const titleAlpha = Math.min(1, Math.max(0, (progress - 0.1) / 0.2));
             ctx.globalAlpha = titleAlpha;
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 56px "Segoe UI", system-ui, sans-serif';
-            ctx.fillText(sc.text, 100, h - 230);
+            ctx.font = isCinema
+              ? 'bold 48px "Georgia", "Segoe UI", serif'
+              : 'bold 52px "Segoe UI", system-ui, sans-serif';
+            const textY = isCinema ? h - 170 : h - 210;
+            ctx.fillText(sc.text, 80, textY);
 
-            // 5. v5 Mavi Alt Başlık (Subtitle)
+            // 5. Alt Başlık (Subtitle)
             if (sc.subtitle) {
               const subAlpha = Math.min(1, Math.max(0, (progress - 0.2) / 0.2));
               ctx.globalAlpha = subAlpha;
-              ctx.fillStyle = '#bfe0ff';
-              ctx.font = '500 34px "Segoe UI", system-ui, sans-serif';
-              ctx.fillText(sc.subtitle, 102, h - 165);
+              ctx.fillStyle = isCinema ? '#e2e8f0' : isYouTube ? '#fed7aa' : '#bfe0ff';
+              ctx.font = '500 30px "Segoe UI", system-ui, sans-serif';
+              ctx.fillText(sc.subtitle, 82, textY + 50);
             }
 
-            // 6. v5 Altın Vurgu Metni (Highlight / CTA)
+            // 6. Vurgu Metni (Highlight / CTA / Abone Ol)
             if (sc.highlight) {
               const hlAlpha = Math.min(1, Math.max(0, (progress - 0.3) / 0.2));
               ctx.globalAlpha = hlAlpha;
-              ctx.fillStyle = '#ffd35c';
-              ctx.font = '600 28px "Segoe UI", system-ui, sans-serif';
-              ctx.fillText(`★  ${sc.highlight}`, 102, h - 105);
+              ctx.fillStyle = isCinema ? '#38bdf8' : isYouTube ? '#ef4444' : '#ffd35c';
+              ctx.font = '600 26px "Segoe UI", system-ui, sans-serif';
+              const icon = isCinema ? '✦ ' : isYouTube ? '▶ ' : '★  ';
+              ctx.fillText(`${icon}${sc.highlight}`, 82, textY + 95);
+            }
+
+            // 7. YouTube İlerleme Çubuğu (YouTube için özel kırmızı alt çizgi)
+            if (isYouTube) {
+              const totalProgress = (idx + progress) / video.scenes.length;
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+              ctx.fillRect(0, h - 8, w, 8);
+              ctx.fillStyle = '#ef4444';
+              ctx.fillRect(0, h - 8, w * totalProgress, 8);
             }
 
             ctx.restore();

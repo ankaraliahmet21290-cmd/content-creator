@@ -91,23 +91,25 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     setEditScene(null);
   }
 
-  const maxWidthPx = aspectW > aspectH ? 640 : aspectW === aspectH ? 420 : 320;
+  const maxWidthPx = video.ratio === '21:9' ? 720 : aspectW > aspectH ? 640 : aspectW === aspectH ? 420 : 320;
   const isZoomIn = curScene?.zoomDir !== 'out';
   const zoomScale = isZoomIn ? 1.0 + (progress / 100) * 0.12 : 1.12 - (progress / 100) * 0.12;
+  const isCinema = video.type === 'sinema' || video.ratio === '21:9';
+  const isYouTube = video.type === 'youtube';
 
   return (
     <div>
       <div className="stage-wrap">
         <div>
-          {/* SİNEMATİK v5 EKRANI */}
+          {/* SİNEMATİK / YOUTUBE v5 EKRANI */}
           <div
-            className={`screen-box v5-screen ${isAi ? 'ai-cinema-screen' : ''}`}
+            className={`screen-box v5-screen ${isCinema ? 'cinema-letterbox' : ''} ${isYouTube ? 'youtube-screen' : ''}`}
             style={{
               aspectRatio: `${aspectW} / ${aspectH}`,
               width: `min(${maxWidthPx}px, 100%)`
             }}
           >
-            {/* 1. Arka Plan Sinematik Fotoğrafı (Ken Burns Canlı Zoom) */}
+            {/* 1. Arka Plan Sinematik Fotoğrafı veya AI Vektör Sanatı (Ken Burns Canlı Zoom) */}
             <div
               className="v5-photo-layer"
               style={{
@@ -116,20 +118,23 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               }}
             />
 
-            {/* 2. Sinematik Koyu Alt Kuşak (v5 Dark/Gradient Overlay) */}
-            <div className="v5-gradient-overlay" />
+            {/* 2. Sinematik Koyu Alt Kuşak (Dark / Gradient Overlay) */}
+            <div className={`v5-gradient-overlay ${isCinema ? 'cinema-overlay' : ''}`} />
 
-            {/* 3. Üst Kurumsal Rozet */}
+            {/* 3. Üst Rozet */}
             <div className="v5-top-badge">
-              <span className="v5-brand-title">{video.product.toUpperCase()}</span>
+              <span className={`v5-brand-title ${isCinema ? 'cinema-badge' : isYouTube ? 'youtube-badge' : ''}`}>
+                {isCinema ? '🎬 ' : isYouTube ? '🔴 ' : ''}
+                {video.product.toUpperCase()}
+              </span>
               <span className="v5-scene-tag">
                 {curScene?.role} · {curIndex + 1}/{scenes.length}
               </span>
             </div>
 
-            {/* 4. Alt v5 Tipografi Grubu (Başlık, Alt Başlık, Vurgu) */}
+            {/* 4. Alt Tipografi Grubu (Başlık, Alt Başlık, Vurgu) */}
             <div className="v5-content-group">
-              <div className="v5-main-title" key={`title-${curIndex}`}>
+              <div className={`v5-main-title ${isCinema ? 'cinema-title' : ''}`} key={`title-${curIndex}`}>
                 {curScene?.text}
               </div>
               {curScene?.subtitle && (
@@ -138,8 +143,9 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                 </div>
               )}
               {curScene?.highlight && (
-                <div className="v5-highlight-badge" key={`hl-${curIndex}`}>
-                  ★ {curScene.highlight}
+                <div className={`v5-highlight-badge ${isCinema ? 'cinema-hl' : isYouTube ? 'youtube-hl' : ''}`} key={`hl-${curIndex}`}>
+                  {isCinema ? '✦ ' : isYouTube ? '▶ ' : '★ '}
+                  {curScene.highlight}
                 </div>
               )}
               <div className="v5-vo-line">
@@ -149,7 +155,10 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
 
             {/* İlerleme Çubuğu */}
             <div className="pb-track">
-              <div className="pb-fill" style={{ width: `${progress}%` }} />
+              <div
+                className={`pb-fill ${isYouTube ? 'youtube-pb' : isCinema ? 'cinema-pb' : ''}`}
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
 

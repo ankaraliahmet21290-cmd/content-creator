@@ -17,9 +17,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!brief.dur || brief.dur < 5 || brief.dur > 120) {
+    if (!brief.dur || brief.dur < 5 || brief.dur > 300) {
       return NextResponse.json(
-        { error: 'Süre 5 ile 120 saniye arasında olmalıdır.' },
+        { error: 'Süre 5 ile 300 saniye arasında olmalıdır.' },
         { status: 400 }
       );
     }

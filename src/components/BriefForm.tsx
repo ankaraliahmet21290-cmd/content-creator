@@ -67,12 +67,83 @@ export function BriefForm({
         ))}
       </div>
 
+      {/* Hızlı Yapım Türü Seçici */}
+      <label style={{ marginTop: 12 }}>
+        🎬 Video & Yapım Türü
+        <span className="label-hint">(Sinema, YouTube veya Sosyal Medya)</span>
+      </label>
+      <div className="format-pills">
+        <button
+          type="button"
+          className={`format-pill ${form.type === 'sinema' ? 'active' : ''}`}
+          onClick={() => {
+            onUpdateField('type', 'sinema');
+            onUpdateField('ratio', '21:9');
+            onUpdateField('tone', 'Sinematik & Dramatik');
+            onUpdateField('platform', 'Sinema & Film Festivali (21:9 / 16:9)');
+            if (form.dur < 30) onUpdateField('dur', 45);
+          }}
+        >
+          🎬 Sinema Filmi & Fragman
+        </button>
+        <button
+          type="button"
+          className={`format-pill ${form.type === 'youtube' ? 'active' : ''}`}
+          onClick={() => {
+            onUpdateField('type', 'youtube');
+            onUpdateField('ratio', '16:9');
+            onUpdateField('tone', 'YouTube Dinamik & Sürükleyici');
+            onUpdateField('platform', 'YouTube (Yatay 16:9)');
+            if (form.dur < 30) onUpdateField('dur', 60);
+          }}
+        >
+          🔴 YouTube Videosu (16:9)
+        </button>
+        <button
+          type="button"
+          className={`format-pill ${form.type === 'reklam' || form.type === 'tanitim' ? 'active' : ''}`}
+          onClick={() => {
+            onUpdateField('type', 'reklam');
+            onUpdateField('ratio', '16:9');
+            onUpdateField('tone', 'Enerjik');
+            onUpdateField('platform', 'YouTube (Yatay 16:9)');
+          }}
+        >
+          📢 Ticari Reklam & Tanıtım
+        </button>
+        <button
+          type="button"
+          className={`format-pill ${form.type === 'sosyal' ? 'active' : ''}`}
+          onClick={() => {
+            onUpdateField('type', 'sosyal');
+            onUpdateField('ratio', '9:16');
+            onUpdateField('tone', 'Samimi');
+            onUpdateField('platform', 'Instagram Reels');
+            if (form.dur > 60) onUpdateField('dur', 30);
+          }}
+        >
+          📱 Shorts & Reels (9:16)
+        </button>
+      </div>
+
       {/* 1. ALAN: Ürün veya Marka Adı */}
-      <label htmlFor="input-product">Ürün, Marka veya Konu Adı *</label>
+      <label htmlFor="input-product" style={{ marginTop: 12 }}>
+        {form.type === 'sinema'
+          ? 'Film, Fragman veya Eser Adı *'
+          : form.type === 'youtube'
+          ? 'YouTube Video Başlığı veya Konusu *'
+          : 'Ürün, Marka veya Konu Adı *'}
+      </label>
       <input
         id="input-product"
         value={form.product}
-        placeholder="Örn. Korkmaz Gayrimenkul Lüks Rezidans veya Artisan Kahve"
+        placeholder={
+          form.type === 'sinema'
+            ? 'Örn: 2088: Son Şafak (The Last Dawn) veya Zamanın Ötesi'
+            : form.type === 'youtube'
+            ? 'Örn: Yapay Zekâ Sinema Sektörünü Nasıl Değiştiriyor? veya 2026 AI Donanımları'
+            : 'Örn: Korkmaz Gayrimenkul Lüks Rezidans veya Artisan Kahve'
+        }
         onChange={e => onUpdateField('product', e.target.value)}
       />
 
@@ -80,13 +151,29 @@ export function BriefForm({
       {isAi ? (
         <div className="ai-instructions-box" style={{ marginTop: 12 }}>
           <label htmlFor="ai-instructions" style={{ fontSize: 13.5 }}>
-            ✨ Reklam Talimatı & Senaryo Özeti
-            <span className="label-hint">(Hedef kitle, öne çıkanlar, ton veya CTA)</span>
+            {form.type === 'sinema'
+              ? '✨ Film Hikâyesi, Karakterler & Sahne Notları'
+              : form.type === 'youtube'
+              ? '✨ YouTube Video Talimatı & İşlenecek Konular'
+              : '✨ Reklam Talimatı & Senaryo Özeti'}
+            <span className="label-hint">
+              {form.type === 'sinema'
+                ? '(Atmosfer, karakter replikleri, gerilim, kamera hareketleri)'
+                : form.type === 'youtube'
+                ? '(Retention kancası, ana argümanlar, B-roll, abone olma çağrısı)'
+                : '(Hedef kitle, öne çıkanlar, ton veya CTA)'}
+            </span>
           </label>
           <textarea
             id="ai-instructions"
             value={form.customInstructions || ''}
-            placeholder="Örn: Genç aileleri ve yatırımcıları hedefle. Deniz manzarası, akıllı ev konforu ve %20 peşinat indirimini vurgula. Reklam çok enerjik olsun, sonunda hemen arayın desin..."
+            placeholder={
+              form.type === 'sinema'
+                ? 'Örn: 2088 yılında yapay zekanın kontrolündeki bir distopyada geçen bilim kurgu gerilim filmi. Baş karakter dedektif Kaan, karanlık neon ışıklı sokaklar, fütüristik araçlar ve insanlığın kaderini belirleyecek son şifre. Müzikal yükseliş, sinematik kamera açıları ve vizyon tarihi çağrısı...'
+                : form.type === 'youtube'
+                ? 'Örn: Yapay zekanın sinema sektörünü nasıl kökten değiştirdiğini anlatan sürükleyici bir YouTube belgeseli. İzleyiciyi ilk 5 saniyede ekrana kitleyen bir kanca, Hollywood\'dan örnekler, B-roll önerileri ve sonunda kanala abone olma & yorum yapma çağrısı...'
+                : 'Örn: Genç aileleri ve yatırımcıları hedefle. Deniz manzarası, akıllı ev konforu ve %20 peşinat indirimini vurgula. Reklam çok enerjik olsun, sonunda hemen arayın desin...'
+            }
             rows={5}
             onChange={e => onUpdateField('customInstructions', e.target.value)}
           />
@@ -192,7 +279,7 @@ export function BriefForm({
             id="input-dur"
             type="number"
             min={5}
-            max={120}
+            max={300}
             value={form.dur}
             onChange={e => onUpdateField('dur', +e.target.value)}
           />
@@ -206,7 +293,13 @@ export function BriefForm({
           >
             {Object.keys(RATIOS).map(r => (
               <option key={r} value={r}>
-                {r === '9:16' ? 'Dikey (9:16 Reels/TikTok)' : r === '16:9' ? 'Yatay (16:9 YouTube)' : 'Kare (1:1 Post)'}
+                {r === '21:9'
+                  ? 'Sinematik Geniş (21:9 Cinemascope)'
+                  : r === '16:9'
+                  ? 'Yatay Standart (16:9 YouTube)'
+                  : r === '9:16'
+                  ? 'Dikey (9:16 Reels / Shorts)'
+                  : 'Kare (1:1 Post)'}
               </option>
             ))}
           </select>
@@ -252,8 +345,8 @@ export function BriefForm({
         style={{ marginTop: 18 }}
       >
         {isProducing
-          ? (isAi ? '⏳ Gemini AI Reklamı Oluşturuyor...' : '⏳ Video Oluşturuluyor...')
-          : (isAi ? '✨ Tek Tıkla AI Reklamı Üret' : '⚡ Klasik Video Üret')}
+          ? (isAi ? '⏳ Gemini AI Video & Film Üretiyor...' : '⏳ Video Oluşturuluyor...')
+          : (isAi ? '✨ Tek Tıkla AI Video & Film Üret' : '⚡ Klasik Video Üret')}
       </button>
     </section>
   );

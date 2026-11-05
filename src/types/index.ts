@@ -1,6 +1,13 @@
-export type VideoType = 'reklam' | 'tanitim' | 'sosyal' | 'egitim' | 'kurumsal';
+export type VideoType =
+  | 'sinema'
+  | 'youtube'
+  | 'reklam'
+  | 'tanitim'
+  | 'sosyal'
+  | 'egitim'
+  | 'kurumsal';
 
-export type AspectRatio = '9:16' | '1:1' | '16:9';
+export type AspectRatio = '21:9' | '16:9' | '9:16' | '1:1';
 
 export type VoiceGender = 'female' | 'male';
 

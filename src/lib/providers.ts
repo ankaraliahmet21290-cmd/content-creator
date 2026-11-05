@@ -1,5 +1,5 @@
 import { BriefForm, ProviderConfig, Scene, VideoItem } from '@/types';
-import { GRADIENTS, SOP_ROLES } from './constants';
+import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, YOUTUBE_ROLES } from './constants';
 
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -33,15 +33,40 @@ export function getSavedProviderConfig(): ProviderConfig {
 }
 
 export function buildScenesFromSOP(b: BriefForm): Scene[] {
-  const n = Math.max(3, Math.min(8, Math.round(b.dur / 5.5)));
-  const roles = n === 8
-    ? SOP_ROLES
-    : [SOP_ROLES[0], ...SOP_ROLES.slice(1, 7).slice(0, n - 2), SOP_ROLES[7]];
+  const isCinema = b.type === 'sinema';
+  const isYouTube = b.type === 'youtube';
+
+  const baseRoles = isCinema ? CINEMA_ROLES : isYouTube ? YOUTUBE_ROLES : SOP_ROLES;
+  const divisor = isCinema ? 7.5 : isYouTube ? 8.0 : 5.5;
+  const n = Math.max(3, Math.min(8, Math.round(b.dur / divisor)));
+
+  const roles =
+    n === baseRoles.length
+      ? baseRoles
+      : [baseRoles[0], ...baseRoles.slice(1, -1).slice(0, Math.max(1, n - 2)), baseRoles[baseRoles.length - 1]];
 
   const p = b.product;
-  const a = b.audience || 'değerli izleyiciler';
+  const a = b.audience || (isCinema ? 'sinemaseverler' : isYouTube ? 'değerli takipçiler' : 'değerli izleyiciler');
   const pts = (b.points || '').split('\n').map(s => s.trim()).filter(Boolean);
   let ptIndex = 0;
+
+  const cinemaMap: Record<string, { screen: string; vo: string }> = {
+    'Açılış & Atmosfer': { screen: p, vo: `Karanlığın ortasında, her şeyin başladığı o an.` },
+    'Karakter Tanıtımı': { screen: `${p}: Karakter`, vo: `Kaderin seçtiği bir kahraman, geri dönüşü olmayan bir yola adım atıyor.` },
+    'Tetikleyici Olay': { screen: 'Beklenmeyen Kırılma', vo: `Bütün dengeleri altüst edecek gizemli gerçek açığa çıkıyor.` },
+    'Yükselen Gerilim': { screen: 'Büyük Yüzleşme', vo: `Zaman daralıyor, her saniye kritik bir karara gebe.` },
+    'Zirve Noktası (Climax)': { screen: 'Kaçınılmaz Doruk Noktası', vo: `Artık hiçbir şey eskisi gibi olmayacak.` },
+    'Final & Vizyon Çağrısı': { screen: b.cta || 'Pek Yakında Sinemalarda', vo: b.cta || 'Soluksuz bir sinematik deneyime hazır olun.' }
+  };
+
+  const youtubeMap: Record<string, { screen: string; vo: string }> = {
+    'YouTube Kancası': { screen: `${p}?`, vo: `Bunu muhtemelen hiç duymadınız: ${p} hakkında bilmeniz gereken şok gerçek!` },
+    'Giriş & Konu Özeti': { screen: `Derinlemesine: ${p}`, vo: `Bugün bu konuyu en ince ayrıntısına kadar mercek altına alıyoruz.` },
+    'Bölüm 1: Arka Plan': { screen: '1. Olayın Perde Arkası', vo: `Gelin sürecin nasıl başladığına ve kritik dönüm noktalarına bakalım.` },
+    'Bölüm 2: Derinlemesine Detay': { screen: '2. En Can Alıcı Nokta', vo: `İşte herkesin gözden kaçırdığı en kritik analiz tam da bu.` },
+    'Çarpıcı Açıklama': { screen: 'Ezber Bozan Gerçek', vo: `Tüm bu veriler birleştiğinde ortaya inanılmaz bir tablo çıkıyor.` },
+    'Özet & Abone Ol Çağrısı': { screen: b.cta || 'Kanala Abone Olmayı Unutmayın!', vo: b.cta || 'Videoyu beğendiyseniz abone olup bildirimleri açmayı ve yorumunuzu paylaşmayı unutmayın!' }
+  };
 
   const templates: Record<string, Record<string, { screen: string; vo: string }> | { screen: string; vo: string }> = {
     Kanca: {
@@ -59,33 +84,40 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     Çağrı: { screen: b.cta || 'Hemen Bilgi Alın', vo: b.cta || 'Geç kalmadan hemen bizimle iletişime geçin.' }
   };
 
-  // SOP Bölüm 6 Kuralı: Kanca ilk 3 saniyede izleyiciyi yakalamalıdır
-  const hookSec = b.dur <= 15 ? 2.5 : 3.0;
+  const hookSec = b.dur <= 15 ? 2.5 : isCinema ? 4.0 : 3.0;
   const remainingSec = +((b.dur - hookSec) / (n - 1)).toFixed(1);
 
   return roles.map((r, i) => {
-    const roleEntry = templates[r];
     let screenText = p;
     let voText = p;
 
-    if (roleEntry) {
-      if (typeof roleEntry === 'object' && b.type in roleEntry) {
-        const typeMatch = (roleEntry as Record<string, { screen: string; vo: string }>)[b.type];
-        screenText = typeMatch.screen;
-        voText = typeMatch.vo;
-      } else if ('screen' in roleEntry && 'vo' in roleEntry) {
-        screenText = (roleEntry as { screen: string; vo: string }).screen;
-        voText = (roleEntry as { screen: string; vo: string }).vo;
+    if (isCinema && cinemaMap[r]) {
+      screenText = cinemaMap[r].screen;
+      voText = cinemaMap[r].vo;
+    } else if (isYouTube && youtubeMap[r]) {
+      screenText = youtubeMap[r].screen;
+      voText = youtubeMap[r].vo;
+    } else {
+      const roleEntry = templates[r];
+      if (roleEntry) {
+        if (typeof roleEntry === 'object' && b.type in roleEntry) {
+          const typeMatch = (roleEntry as Record<string, { screen: string; vo: string }>)[b.type];
+          screenText = typeMatch.screen;
+          voText = typeMatch.vo;
+        } else if ('screen' in roleEntry && 'vo' in roleEntry) {
+          screenText = (roleEntry as { screen: string; vo: string }).screen;
+          voText = (roleEntry as { screen: string; vo: string }).vo;
+        }
       }
     }
 
-    if (r === 'Özellik') {
+    if (r === 'Özellik' || r.includes('Detay')) {
       if (pts[ptIndex]) {
         screenText = pts[ptIndex];
-        voText = `${screenText} ile hayatınızı kolaylaştırın.`;
+        voText = `${screenText} ile ilgili tüm detaylar.`;
         ptIndex++;
       }
-    } else if (r === 'Çağrı' && b.cta) {
+    } else if ((r === 'Çağrı' || r.includes('Çağrısı')) && b.cta) {
       screenText = b.cta;
       voText = b.cta;
     }

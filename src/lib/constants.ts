@@ -1,16 +1,23 @@
 import { BriefForm, Preset, VideoType } from '@/types';
 
 export const TYPES: Record<VideoType, string> = {
-  reklam: 'Reklam Filmi',
-  tanitim: 'Ürün & Portföy Tanıtımı',
-  sosyal: 'Sosyal Medya (Reels/Shorts)',
-  egitim: 'Eğitim & İpuçları',
-  kurumsal: 'Kurumsal Hikaye'
+  sinema: '🎬 Sinema Filmi & Fragman',
+  youtube: '🔴 YouTube Video & Belgesel',
+  reklam: '📢 Reklam Filmi',
+  tanitim: '🏢 Ürün & Portföy Tanıtımı',
+  sosyal: '📱 Sosyal Medya (Reels/Shorts)',
+  egitim: '🎓 Eğitim & İpuçları',
+  kurumsal: '💼 Kurumsal Hikaye'
 };
 
 export const TONES = [
+  'Sinematik & Dramatik',
+  'Epik & Bilim Kurgu / Aksiyon',
+  'Belgesel & Merak Uyandırıcı',
+  'YouTube Dinamik & Sürükleyici',
+  'Gizemli & Gerilim',
+  'Storytelling & Samimi',
   'Enerjik',
-  'Samimi',
   'Profesyonel',
   'Prestijli & Lüks',
   'Eğlenceli',
@@ -18,18 +25,20 @@ export const TONES = [
 ];
 
 export const RATIOS: Record<string, [number, number]> = {
-  '9:16': [9, 16],
-  '1:1': [1, 1],
-  '16:9': [16, 9]
+  '21:9': [21, 9], // Sinematik Ultra Geniş (Cinemascope)
+  '16:9': [16, 9], // YouTube Yatay / TV
+  '9:16': [9, 16], // Dikey (Reels / Shorts / TikTok)
+  '1:1': [1, 1]    // Kare (Post)
 };
 
 export const PLATFORMS = [
+  'YouTube (Yatay 16:9)',
+  'Sinema & Film Festivali (21:9 / 16:9)',
+  'YouTube Shorts (9:16)',
   'Instagram Reels',
   'TikTok',
-  'YouTube Shorts',
-  'YouTube Yatay',
-  'LinkedIn',
-  'Web Sitesi'
+  'Web Sitesi & Portföy',
+  'LinkedIn'
 ];
 
 export const LANGUAGES = [
@@ -61,7 +70,93 @@ export const SOP_ROLES = [
   'Çağrı'
 ];
 
+export const CINEMA_ROLES = [
+  'Açılış & Atmosfer',
+  'Karakter Tanıtımı',
+  'Tetikleyici Olay',
+  'Yükselen Gerilim',
+  'Zirve Noktası (Climax)',
+  'Final & Vizyon Çağrısı'
+];
+
+export const YOUTUBE_ROLES = [
+  'YouTube Kancası',
+  'Giriş & Konu Özeti',
+  'Bölüm 1: Arka Plan',
+  'Bölüm 2: Derinlemesine Detay',
+  'Çarpıcı Açıklama',
+  'Özet & Abone Ol Çağrısı'
+];
+
 export const PRESETS: Preset[] = [
+  {
+    name: '🎬 Sinema: 2088 Son Şafak',
+    data: {
+      type: 'sinema',
+      product: '2088: Son Şafak (The Last Dawn)',
+      audience: 'Bilim kurgu, distopya ve sinemaseverler',
+      points: 'Güneşin doğmadığı siberpunk mega kentte son insan direnişi\nYapay zekanın kontrolündeki gökdelenler ve karanlık yağmurlu sokaklar\nİnsanlığın kaderini belirleyecek son şifre',
+      cta: 'Çok Yakında Sinemalarda ve IMAX Salonlarında.',
+      tone: 'Sinematik & Dramatik',
+      dur: 45,
+      ratio: '21:9',
+      platform: 'Sinema & Film Festivali (21:9 / 16:9)',
+      lang: 'tr-TR',
+      voiceGender: 'male',
+      customInstructions: 'Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karakter: Dedektif Kaan. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.'
+    }
+  },
+  {
+    name: '🔴 YouTube: Yapay Zekâ Devrimi',
+    data: {
+      type: 'youtube',
+      product: 'Yapay Zekâ Sinema Sektörünü Nasıl Değiştiriyor?',
+      audience: 'Teknoloji meraklıları ve YouTube izleyicileri',
+      points: 'Hollywood senaryolarından kamera arkası VFX üretimine AI devrimi\nTek bir yaratıcının sıfır bütçeyle gişe rekoru kırabilecek film çekebilmesi\nGelecekte yönetmenlerin ve sinemanın rolü ne olacak?',
+      cta: 'Videoyu beğendiyseniz abone olmayı ve yorumlarda düşüncelerinizi paylaşmayı unutmayın!',
+      tone: 'Belgesel & Merak Uyandırıcı',
+      dur: 60,
+      ratio: '16:9',
+      platform: 'YouTube (Yatay 16:9)',
+      lang: 'tr-TR',
+      voiceGender: 'female',
+      customInstructions: 'İzleyiciyi ilk 5 saniyede ekrana kitleyen merak uyandırıcı bir YouTube video kancası ile başla. B-roll çekim önerileri, derinlemesine analiz ve sonunda YouTube abone ol & yorum yap çağrısı yap.'
+    }
+  },
+  {
+    name: '🍿 Kısa Film: Zamanın Ötesi',
+    data: {
+      type: 'sinema',
+      product: 'Zamanın Ötesi - Kısa Film',
+      audience: 'Gizem ve bağımsız sinema tutkunları',
+      points: 'Antik bir saat kulesinde gizlenmiş paralel evren geçidi\nGeçmişi değiştirmeye çalışan yalnız bir saat ustası\nHer saniye başka bir gerçekliği siliyor',
+      cta: 'Festival prömiyeri bu Cuma yayında.',
+      tone: 'Gizemli & Gerilim',
+      dur: 35,
+      ratio: '21:9',
+      platform: 'Sinema & Film Festivali (21:9 / 16:9)',
+      lang: 'tr-TR',
+      voiceGender: 'male',
+      customInstructions: 'Gerilim ve gizem dolu bir kısa film fragmanı. Saat kulesi çarkları, loş ışıklar, tik tak sesleri ve zamanın kırılması.'
+    }
+  },
+  {
+    name: '💻 YouTube: Teknoloji İncelemesi',
+    data: {
+      type: 'youtube',
+      product: '2026 Yeni Nesil AI Donanımları',
+      audience: 'Teknoloji tutkunları ve yazılımcılar',
+      points: 'Yapay zekayı doğrudan cihazda yerel çalıştıran çipler\nPerformans testleri ve günlük hayata yansımaları\nFiyat-performans karşılaştırması ve tavsiyeler',
+      cta: 'Sizce bu teknolojiye değer mi? Yorumlarda buluşalım ve kanala abone olun!',
+      tone: 'YouTube Dinamik & Sürükleyici',
+      dur: 45,
+      ratio: '16:9',
+      platform: 'YouTube (Yatay 16:9)',
+      lang: 'tr-TR',
+      voiceGender: 'female',
+      customInstructions: 'Dinamik bir YouTube tech inceleme videosu kurgula. Çarpıcı ürün karşılaştırması, hızlı geçişler ve abone olma çağrısı.'
+    }
+  },
   {
     name: '🏢 Gayrimenkul / Lüks Emlak',
     data: {
@@ -88,7 +183,7 @@ export const PRESETS: Preset[] = [
       tone: 'Enerjik',
       dur: 20,
       ratio: '16:9',
-      platform: 'YouTube Yatay',
+      platform: 'YouTube (Yatay 16:9)',
       lang: 'tr-TR'
     }
   },

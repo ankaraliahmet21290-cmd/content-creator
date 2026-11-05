@@ -6,54 +6,103 @@ export function evaluateQC(video: VideoItem): QCResult | null {
   const hookScene = scenes[0];
   const lastScene = scenes[scenes.length - 1];
 
-  // 1. Kanca ilk 3-3.5 sn'de var mı? (SOP Bölüm 6 Kuralı)
-  const hookPass = Boolean(hookScene && hookScene.role === 'Kanca' && hookScene.sec <= 3.5);
+  const isCinema = video.type === 'sinema';
+  const isYouTube = video.type === 'youtube';
 
-  // 2. CTA net ve son sahnede mi?
-  const ctaKeywords = ['ara', 'dene', 'al', 'indirin', 'tıklayın', 'katılın', 'fırsat', 'başlayın'];
-  const hasKeyword = ctaKeywords.some(k => (lastScene?.text || '').toLowerCase().includes(k) || (lastScene?.vo || '').toLowerCase().includes(k));
-  const ctaPass = Boolean(lastScene && (lastScene.role === 'Çağrı' || hasKeyword));
+  // 1. Kanca / Açılış Kontrolü
+  let hookPass = false;
+  let hookTitle = 'Kanca (Hook) ilk saniyelerde var';
+  if (isCinema) {
+    hookTitle = 'Sinematik Açılış & Atmosfer sahnesi kuruldu';
+    hookPass = Boolean(
+      hookScene &&
+      (hookScene.role.includes('Açılış') || hookScene.role === 'Kanca' || hookScene.sec <= 6.0)
+    );
+  } else if (isYouTube) {
+    hookTitle = 'YouTube Retention Kancası ilk 5 sn içinde';
+    hookPass = Boolean(
+      hookScene &&
+      (hookScene.role.includes('Kanca') || hookScene.role.includes('Giriş') || hookScene.sec <= 5.0)
+    );
+  } else {
+    hookPass = Boolean(hookScene && hookScene.role === 'Kanca' && hookScene.sec <= 3.5);
+  }
 
-  // 3. Altyazı taşması kontrolü (max 65 karakter)
+  // 2. Kapanış / CTA / Vizyon Çağrısı
+  let ctaPass = false;
+  let ctaTitle = 'CTA son sahnede net ve anlaşılır';
+  const lastTextVo = ((lastScene?.text || '') + ' ' + (lastScene?.vo || '')).toLowerCase();
+
+  if (isCinema) {
+    ctaTitle = 'Dramatik Final & Vizyon Müjdesi mevcut';
+    const cinemaKeywords = ['sinema', 'vizyon', 'bilet', 'izle', 'fragman', 'yakında', 'film', 'imax', 'salon'];
+    const hasCinemaWord = cinemaKeywords.some(k => lastTextVo.includes(k));
+    ctaPass = Boolean(
+      lastScene &&
+      (lastScene.role.includes('Final') || lastScene.role.includes('Vizyon') || lastScene.role === 'Çağrı' || hasCinemaWord)
+    );
+  } else if (isYouTube) {
+    ctaTitle = 'YouTube Abone Ol & Beğen çağrısı yapıldı';
+    const ytKeywords = ['abone', 'beğen', 'yorum', 'takip', 'katıl', 'video', 'izle', 'paylaş', 'bildirim'];
+    const hasYtWord = ytKeywords.some(k => lastTextVo.includes(k));
+    ctaPass = Boolean(
+      lastScene &&
+      (lastScene.role.includes('Abone') || lastScene.role.includes('Çağrı') || hasYtWord)
+    );
+  } else {
+    const ctaKeywords = ['ara', 'dene', 'al', 'indirin', 'tıklayın', 'katılın', 'fırsat', 'başlayın'];
+    const hasKeyword = ctaKeywords.some(k => lastTextVo.includes(k));
+    ctaPass = Boolean(lastScene && (lastScene.role === 'Çağrı' || hasKeyword));
+  }
+
+  // 3. Altyazı taşması kontrolü (Sinema için 75, YouTube ve Sosyal için 65 karakter)
+  const maxLimit = isCinema ? 75 : 65;
   const maxChars = Math.max(...scenes.map(s => s.text.length));
-  const subPass = maxChars <= 65;
+  const subPass = maxChars <= maxLimit;
 
-  // 4. Süre uyumluluğu (Brief süresi ile toplam sahne süresi +- %10)
+  // 4. Süre uyumluluğu (Brief süresi ile toplam sahne süresi +- %10-12)
   const totalSec = scenes.reduce((acc, s) => acc + s.sec, 0);
   const durDiff = Math.abs(totalSec - video.dur);
-  const durPass = durDiff <= Math.max(2, video.dur * 0.1);
+  const durPass = durDiff <= Math.max(3, video.dur * 0.12);
 
-  // 5. Marka/ürün adı doğru geçiyor mu?
+  // 5. Başlık/konu adı kurguda geçiyor mu?
   const prodSnippet = (video.product || '').toLowerCase().slice(0, 5);
-  const brandMention = prodSnippet.length > 0 && scenes.some(
-    s => s.text.toLowerCase().includes(prodSnippet) || s.vo.toLowerCase().includes(prodSnippet)
-  );
+  const brandMention =
+    prodSnippet.length > 0 &&
+    scenes.some(
+      s =>
+        s.text.toLowerCase().includes(prodSnippet) ||
+        s.vo.toLowerCase().includes(prodSnippet) ||
+        (s.subtitle && s.subtitle.toLowerCase().includes(prodSnippet))
+    );
+
+  const nameTitle = isCinema ? 'Film adı kurguda vurgulandı' : isYouTube ? 'Video konusu kurguda işlendi' : 'Marka/Ürün adı kurguda geçiyor';
 
   const checks = [
     {
-      title: 'Kanca (Hook) ilk saniyelerde var',
+      title: hookTitle,
       pass: hookPass,
-      detail: `Kanca süresi: ${hookScene?.sec || 0} sn`
+      detail: `Süre: ${hookScene?.sec || 0} sn · Rol: ${hookScene?.role || '-'}`
     },
     {
-      title: 'CTA son sahnede net ve anlaşılır',
+      title: ctaTitle,
       pass: ctaPass,
       detail: `Son sahne rolü: ${lastScene?.role || '-'}`
     },
     {
       title: 'Altyazı ekrandan taşmıyor',
       pass: subPass,
-      detail: `En uzun satır: ${maxChars} karakter`
+      detail: `En uzun satır: ${maxChars} karakter (Sınır: ${maxLimit})`
     },
     {
-      title: 'Süre brief ile uyumlu (±%10)',
+      title: 'Süre brief ile uyumlu',
       pass: durPass,
       detail: `Planlanan: ${video.dur}s, Gerçek: ${totalSec.toFixed(1)}s`
     },
     {
-      title: 'Marka/Ürün adı kurguda geçiyor',
+      title: nameTitle,
       pass: brandMention,
-      detail: `İçerik: "${video.product.slice(0, 18)}..."`
+      detail: `İçerik: "${video.product.slice(0, 22)}..."`
     }
   ];
 
