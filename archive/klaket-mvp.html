@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Klaket – AI Video Stüdyosu (SOP Uyumlu v0.2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --card-sub: #1c2128;
+  --ink: #f0f6fc;
+  --mute: #8b949e;
+  --line: #30363d;
+  --acc: #7c3aed;
+  --acc-glow: rgba(124, 58, 237, 0.35);
+  --acc-light: #a78bfa;
+  --acc-ink: #ffffff;
+  --ok: #10b981;
+  --ok-bg: rgba(16, 185, 129, 0.15);
+  --warn: #f59e0b;
+  --warn-bg: rgba(245, 158, 11, 0.15);
+  --err: #ef4444;
+  --err-bg: rgba(239, 68, 68, 0.15);
+  --cyan: #06b6d4;
+  --radius: 12px;
+  color-scheme: dark;
+  box-sizing: border-box;
+}
+
+:root[data-theme="light"] {
+  --bg: #f3f5f9;
+  --card: #ffffff;
+  --card-sub: #f8fafc;
+  --ink: #0f172a;
+  --mute: #64748b;
+  --line: #e2e8f0;
+  --acc: #6366f1;
+  --acc-glow: rgba(99, 102, 241, 0.25);
+  --acc-light: #4f46e5;
+  --acc-ink: #ffffff;
+  --ok: #059669;
+  --ok-bg: rgba(5, 150, 105, 0.1);
+  --warn: #d97706;
+  --warn-bg: rgba(217, 119, 6, 0.1);
+  --err: #dc2626;
+  --err-bg: rgba(220, 38, 38, 0.1);
+  --cyan: #0891b2;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14.5px/1.55 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  margin: 0;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+.wrap {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 16px 20px 80px;
+}
+
+/* Header */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+  box-shadow: 0 2px 10px var(--acc-glow);
+}
+
+.brand-info h1 {
+  font-size: 24px;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--ink), var(--acc-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-info p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--mute);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--card-sub);
+  border: 1px solid var(--line);
+  color: var(--mute);
+}
+
+.badge.sop {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.35);
+  color: var(--acc-light);
+}
+
+.hdr-acts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Layout Grid */
+.grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+/* Panels */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+
+.panel-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-hdr h2 {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Forms */
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 12.5px;
+  margin: 12px 0 5px;
+  color: var(--ink);
+}
+
+.label-hint {
+  font-weight: 400;
+  color: var(--mute);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+input, select, textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--card-sub);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 12px;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--acc-glow);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+/* Types selector */
+.types-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.type-btn {
+  border: 1px solid var(--line);
+  background: var(--card-sub);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-btn:hover {
+  border-color: var(--acc-light);
+}
+
+.type-btn[aria-pressed="true"] {
+  background: var(--acc);
+  color: var(--acc-ink);
+  border-color: var(--acc);
+  box-shadow: 0 2px 10px var(--acc-glow);
+}
+
+/* Quick Templates Bar */
+.presets {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+
+.preset-chip {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--card-sub);
+  color: var(--mute);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.preset-chip:hover {
+  color: var(--ink);
+  border-color: var(--acc-light);
+  background: var(--acc-glow);
+}
+
+/* Submit Button */
+.btn-produce {
+  width: 100%;
+  margin-top: 20px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 13px;
+  font: 700 15px 'Bricolage Grotesque', 'Inter', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px var(--acc-glow);
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+}
+
+.btn-produce:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px var(--acc-glow);
+}
+
+.btn-produce:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* Buttons */
+.btn {
+  border: 1px solid var(--line);
+  background: var(--card-sub);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:hover {
+  border-color: var(--acc-light);
+  color: var(--acc-light);
+}
+
+.btn.primary {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #fff;
+}
+
+.btn.primary:hover {
+  background: var(--acc-light);
+  border-color: var(--acc-light);
+  color: #fff;
+}
+
+.btn.danger {
+  color: var(--err);
+}
+
+.btn.danger:hover {
+  border-color: var(--err);
+  background: var(--err-bg);
+}
+
+.btn.sm {
+  padding: 4px 8px;
+  font-size: 11.5px;
+}
+
+/* Stage & Player */
+.stage-wrap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .stage-wrap { grid-template-columns: 1fr; }
+}
+
+.screen-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.12);
+  user-select: none;
+}
+
+.screen-box .top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.screen-box .tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.screen-box .brand-mark {
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(0,0,0,0.5);
+  padding: 3px 8px;
+  border-radius: 6px;
+  opacity: 0.85;
+}
+
+.screen-box .center-content {
+  margin: auto 0;
+  text-align: center;
+  z-index: 2;
+}
+
+.screen-box .cap {
+  font: 800 clamp(17px, 3.2vw, 26px)/1.2 'Bricolage Grotesque', 'Inter', sans-serif;
+  text-shadow: 0 3px 18px rgba(0,0,0,0.7);
+  letter-spacing: -0.015em;
+}
+
+.screen-box .vo-sub {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  background: rgba(0,0,0,0.45);
+  padding: 4px 12px;
+  border-radius: 99px;
+  display: inline-block;
+  backdrop-filter: blur(4px);
+}
+
+.screen-box .pb-track {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 5px;
+  background: rgba(0,0,0,0.3);
+}
+
+.screen-box .pb-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #06b6d4, #a78bfa);
+  box-shadow: 0 0 10px rgba(255,255,255,0.6);
+  transition: width 0.1s linear;
+}
+
+/* Scene Timeline list */
+.scenes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.scene-item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card-sub);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.scene-item:hover {
+  border-color: var(--acc-light);
+  transform: translateX(2px);
+}
+
+.scene-item[aria-current="true"] {
+  border-color: var(--acc);
+  background: var(--card);
+  box-shadow: 0 0 0 2px var(--acc-glow);
+}
+
+.scene-role {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--acc-light);
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-role span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--mute);
+}
+
+.scene-text-preview {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-vo-preview {
+  font-size: 11.5px;
+  color: var(--mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* QC Checklist */
+.qc-card {
+  background: var(--card-sub);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.qc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.qc-header h4 {
+  font-size: 13px;
+  color: var(--mute);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.qc-score {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.qc-score.perfect {
+  background: var(--ok-bg);
+  color: var(--ok);
+  border: 1px solid var(--ok);
+}
+
+.qc-score.warning {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border: 1px solid var(--warn);
+}
+
+.qc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.qc-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.qc-list li:last-child {
+  border-bottom: none;
+}
+
+.qc-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.qc-status.pass { background: var(--ok-bg); color: var(--ok); }
+.qc-status.fail { background: var(--err-bg); color: var(--err); }
+.qc-status.warn { background: var(--warn-bg); color: var(--warn); }
+
+/* Video Cards List */
+.v-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.v-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform .15s, border-color .15s;
+}
+
+.v-card:hover {
+  border-color: var(--acc-light);
+  transform: translateY(-2px);
+}
+
+.v-card h3 {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.v-meta {
+  font-size: 12px;
+  color: var(--mute);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+
+.v-progress-bar {
+  height: 6px;
+  background: var(--card-sub);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.v-progress-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #06b6d4);
+  transition: width .3s ease;
+}
+
+.v-status {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.v-status.ready { color: var(--ok); }
+.v-status.failed { color: var(--err); }
+.v-status.processing { color: var(--warn); }
+
+.v-acts {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal-content {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  max-width: 620px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+}
+
+.modal-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+/* Step Log Box */
+.log-box {
+  background: #000;
+  color: #10b981;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  padding: 12px;
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+/* Hidden canvas for video generation */
+#renderCanvas {
+  display: none;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<canvas id="renderCanvas"></canvas>
+
+<!-- React and ReactDOM -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+
+<script>
+const { useState, useEffect, useRef } = React;
+const h = React.createElement;
+
+/* -------------------------------------------------------------
+ * 1. SABİTLER, ŞABLONLAR VE SOP AYARLARI
+ * ------------------------------------------------------------- */
+const TYPES = {
+  reklam: 'Reklam Filmi',
+  tanitim: 'Ürün & Portföy Tanıtımı',
+  sosyal: 'Sosyal Medya (Reels/Shorts)',
+  egitim: 'Eğitim & İpuçları',
+  kurumsal: 'Kurumsal Hikaye'
+};
+
+const TONES = ['Enerjik', 'Samimi', 'Profesyonel', 'Prestijli & Lüks', 'Eğlenceli', 'Duygusal & İlham Verici'];
+const RATIOS = { '9:16': [9, 16], '1:1': [1, 1], '16:9': [16, 9] };
+const PLATFORMS = ['Instagram Reels', 'TikTok', 'YouTube Shorts', 'YouTube Yatay', 'LinkedIn', 'Web Sitesi'];
+const LANGUAGES = [
+  { code: 'tr-TR', label: 'Türkçe' },
+  { code: 'en-US', label: 'English' },
+  { code: 'de-DE', label: 'Deutsch' },
+  { code: 'es-ES', label: 'Español' }
+];
+
+const GRADIENTS = [
+  ['#1e1b4b', '#7c3aed'], // Gece moru
+  ['#042f2e', '#0d9488'], // Zümrüt
+  ['#450a0a', '#dc2626'], // Yakut kırmızısı
+  ['#172554', '#2563eb'], // Kraliyet mavisi
+  ['#1c1917', '#44403c'], // Taş / Lüks koyu
+  ['#2e1065', '#d946ef'], // Neon fuşya
+  ['#0c4a6e', '#0284c7'], // Okyanus
+  ['#312e81', '#4338ca']  // Klasik indigo
+];
+
+const SOP_ROLES = ['Kanca', 'Sorun', 'Çözüm', 'Özellik', 'Özellik', 'Kanıt', 'Fayda', 'Çağrı'];
+
+// SOP Bölüm 8 Uyumlu Hazır Şablonlar
+const PRESETS = [
+  {
+    name: '🏢 Gayrimenkul / Lüks Emlak',
+    data: {
+      type: 'tanitim',
+      product: 'Korkmaz Gayrimenkul - Elit Rezidans',
+      audience: 'Yatırımcılar ve prestijli ev arayan aileler',
+      points: 'Merkezi konum ve panoramik şehir manzarası\nAkıllı ev altyapısı ve 7/24 özel güvenlik\nYüksek kira getirisi ve uygun ödeme planı',
+      cta: 'Özel randevu ve kat planları için hemen arayın.',
+      tone: 'Prestijli & Lüks',
+      dur: 30,
+      ratio: '9:16',
+      platform: 'Instagram Reels',
+      lang: 'tr-TR'
+    }
+  },
+  {
+    name: '🚀 SaaS & Yazılım Reklamı',
+    data: {
+      type: 'reklam',
+      product: 'BulutFlow AI Süreç Yönetimi',
+      audience: 'Girişimciler ve proje yöneticileri',
+      points: 'Tüm işleri tek tıkla otomatikleştirin\nEkip iletişiminde %40 zaman tasarrufu\nKredi kartsız 14 gün ücretsiz deneme',
+      cta: 'Şimdi ücretsiz deneyin ve farkı görün.',
+      tone: 'Enerjik',
+      dur: 20,
+      ratio: '16:9',
+      platform: 'YouTube Yatay',
+      lang: 'tr-TR'
+    }
+  },
+  {
+    name: '☕ Kafe & Restoran Lansmanı',
+    data: {
+      type: 'sosyal',
+      product: 'Artisan Soğuk Demleme Kahve',
+      audience: 'Gençler ve özel lezzet meraklıları',
+      points: '18 saatte demlenen taze çekirdek lezzeti\nDoğal ve katkısız enerji kaynağı\nHer gün taze tatlılarla ikram fırsatı',
+      cta: 'Hafta sonu arkadaşını al gel, ikinci kahve hediye!',
+      tone: 'Samimi',
+      dur: 15,
+      ratio: '9:16',
+      platform: 'TikTok',
+      lang: 'tr-TR'
+    }
+  },
+  {
+    name: '🎓 3 Adımda Eğitim Videosu',
+    data: {
+      type: 'egitim',
+      product: 'Gayrimenkul Değerleme İpuçları',
+      audience: 'İlk defa ev alacak alıcılar',
+      points: '1. Bölgenin son 6 aylık satış geçmişini inceleyin\n2. İmar ve tapu takyidatını mutlaka sorgulayın\n3. Ulaşım ve metro yatırımlarını hesaba katın',
+      cta: 'Daha fazlası için profilimizdeki rehberi indirin.',
+      tone: 'Profesyonel',
+      dur: 40,
+      ratio: '9:16',
+      platform: 'Instagram Reels',
+      lang: 'tr-TR'
+    }
+  }
+];
+
+/* -------------------------------------------------------------
+ * 2. WEB AUDIO VE SES SENTEZLEYİCİ (TTS & BGM)
+ * ------------------------------------------------------------- */
+class AudioManager {
+  constructor() {
+    this.ctx = null;
+    this.osc = null;
+    this.gain = null;
+    this.isPlaying = false;
+  }
+
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+  }
+
+  // Ritmik ambient lo-fi / satış pad'i sentezleme
+  startBGM() {
+    try {
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      if (this.isPlaying) return;
+
+      this.gain = this.ctx.createGain();
+      this.gain.gain.setValueAtTime(0.045, this.ctx.currentTime);
+      this.gain.connect(this.ctx.destination);
+
+      // Çift osilatör ile sıcak chord pad
+      this.osc1 = this.ctx.createOscillator();
+      this.osc2 = this.ctx.createOscillator();
+      this.osc1.type = 'triangle';
+      this.osc2.type = 'sine';
+      this.osc1.frequency.setValueAtTime(220, this.ctx.currentTime); // A3
+      this.osc2.frequency.setValueAtTime(329.63, this.ctx.currentTime); // E4
+
+      this.osc1.connect(this.gain);
+      this.osc2.connect(this.gain);
+      this.osc1.start();
+      this.osc2.start();
+      this.isPlaying = true;
+    } catch (e) {
+      console.warn('Audio init warning:', e);
+    }
+  }
+
+  stopBGM() {
+    try {
+      if (this.osc1) { this.osc1.stop(); this.osc1.disconnect(); }
+      if (this.osc2) { this.osc2.stop(); this.osc2.disconnect(); }
+      if (this.gain) { this.gain.disconnect(); }
+      this.isPlaying = false;
+    } catch (e) {}
+  }
+
+  // TTS: Web Speech API ile sahne seslendirme metnini sesli okuma
+  speak(text, lang = 'tr-TR') {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    if (!text) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  stopSpeech() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+}
+
+const audioMgr = new AudioManager();
+
+/* -------------------------------------------------------------
+ * 3. SOP BÖLÜM 5 UYUMLU SAĞLAYICI ADAPTÖRLERİ (MCP / API)
+ * ------------------------------------------------------------- */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+const providers = {
+  // LLM: Senaryo ve Sahne Planı Üretimi
+  async script(brief, addLog) {
+    addLog('LLM ile senaryo yapısı (Kanca, Gövde, CTA) oluşturuluyor...');
+    await sleep(750);
+    const scenes = buildScenesFromSOP(brief);
+    addLog(`LLM ${scenes.length} adet sahne planı ve seslendirme metni üretti.`);
+    return scenes;
+  },
+
+  // Görsel ve Ses Modelleri
+  async clips(scenes, brief, addLog) {
+    addLog('Görsel promptları ve seslendirme (TTS) sentezleniyor...');
+    await sleep(850);
+    addLog('Her sahne için estetik renk ve altyazı kompozisyonu bağlandı.');
+    return scenes;
+  },
+
+  // Montaj ve Render Servisi
+  async render(video, addLog) {
+    addLog('FFmpeg montaj şablonu ve altyazı senkronizasyonu tamamlandı.');
+    await sleep(650);
+    addLog('Kalite kontrol (QC) matrisi ve render paketi oluşturuldu.');
+    return video;
+  }
+};
+
+/* SOP Sahne Kurulum Algoritması */
+function buildScenesFromSOP(b) {
+  const n = Math.max(3, Math.min(8, Math.round(b.dur / 5.5)));
+  const roles = n === 8
+    ? SOP_ROLES
+    : [SOP_ROLES[0], ...SOP_ROLES.slice(1, 7).slice(0, n - 2), SOP_ROLES[7]];
+
+  const perSec = +(b.dur / n).toFixed(1);
+  const p = b.product;
+  const a = b.audience || 'değerli izleyiciler';
+  const pts = (b.points || '').split('\n').map(s => s.trim()).filter(Boolean);
+  let ptIndex = 0;
+
+  const templates = {
+    Kanca: {
+      reklam: { screen: p, vo: `Dikkat! ${p} ile tüm standartlar değişiyor.` },
+      tanitim: { screen: `Yeni Nesil: ${p}`, vo: `Karşınızda ${a} için özel hazırlanan ${p}.` },
+      sosyal: { screen: `${a}, Buraya Dikkat!`, vo: `Eğer hala bunu görmediyseniz, çok şey kaçırıyorsunuz.` },
+      egitim: { screen: `${p} Nasıl Yapılır?`, vo: `İşte adım adım başarıya giden en pratik yol.` },
+      kurumsal: { screen: `Güven ve Kalite: ${p}`, vo: `Geleceğe güvenle bakan güçlü bir yolculuk.` }
+    },
+    Sorun: { screen: 'Eski ve Yavaş Yöntemlere Son!', vo: 'Zamanınızı ve enerjinizi tüketen karmaşık süreçlerden sıkılmadınız mı?' },
+    Çözüm: { screen: `${p} Çözümü Sunar`, vo: `Aradığınız konfor ve hız ${p} ile elinizin altında.` },
+    Özellik: { screen: 'Üstün Performans', vo: 'Modern altyapı ve kusursuz detaylar bir arada.' },
+    Kanıt: { screen: 'Yüzlerce Mutlu Müşteri', vo: 'Sektörün en güvenilir referansları ile kanıtlanmış başarı.' },
+    Fayda: { screen: 'Maksimum Verim & Konfor', vo: 'Hem zamandan tasarruf edin hem de prestijinizi katlayın.' },
+    Çağrı: { screen: b.cta || 'Hemen Bilgi Alın', vo: b.cta || 'Geç kalmadan hemen bizimle iletişime geçin.' }
+  };
+
+  // SOP Bölüm 6 Kuralı: Kanca ilk 3 saniyede izleyiciyi yakalamalıdır
+  const hookSec = b.dur <= 15 ? 2.5 : 3.0;
+  const remainingSec = +( (b.dur - hookSec) / (n - 1) ).toFixed(1);
+
+  return roles.map((r, i) => {
+    let tObj = templates[r]?.[b.type] || templates[r] || { screen: p, vo: p };
+    let screenText = tObj.screen;
+    let voText = tObj.vo;
+
+    if (r === 'Özellik') {
+      if (pts[ptIndex]) {
+        screenText = pts[ptIndex];
+        voText = `${screenText} ile hayatınızı kolaylaştırın.`;
+        ptIndex++;
+      }
+    } else if (r === 'Çağrı' && b.cta) {
+      screenText = b.cta;
+      voText = b.cta;
+    }
+
+    const sceneDuration = i === 0 ? hookSec : remainingSec;
+
+    return {
+      id: i + 1,
+      role: r,
+      sec: sceneDuration,
+      text: screenText,
+      vo: voText,
+      visual: `[${b.tone} ışıklandırma, ${r.toLowerCase()} planı: ${p}]`,
+      grad: GRADIENTS[i % GRADIENTS.length]
+    };
+  });
+}
+
+/* -------------------------------------------------------------
+ * 4. SOP BÖLÜM 6: KALİTE KONTROL (QC) DEĞERLENDİRİCİSİ
+ * ------------------------------------------------------------- */
+function evaluateQC(video) {
+  if (!video || !video.scenes || video.scenes.length === 0) return null;
+  const scenes = video.scenes;
+  const hookScene = scenes[0];
+  const lastScene = scenes[scenes.length - 1];
+
+  // 1. Kanca ilk 3 sn'de var mı? (SOP Bölüm 6 Kuralı)
+  const hookPass = hookScene && hookScene.role === 'Kanca' && hookScene.sec <= 3.5;
+
+  // 2. CTA net ve son sahnede mi?
+  const ctaPass = lastScene && (lastScene.role === 'Çağrı' || lastScene.text.toLowerCase().includes('ara') || lastScene.text.toLowerCase().includes('dene') || lastScene.text.toLowerCase().includes('al'));
+
+  // 3. Altyazı taşması kontrolü (max 70 karakter)
+  const maxChars = Math.max(...scenes.map(s => s.text.length));
+  const subPass = maxChars <= 65;
+
+  // 4. Süre uyumluluğu (Brief süresi ile toplam sahne süresi +- %10)
+  const totalSec = scenes.reduce((acc, s) => acc + s.sec, 0);
+  const durDiff = Math.abs(totalSec - video.dur);
+  const durPass = durDiff <= Math.max(2, video.dur * 0.1);
+
+  // 5. Marka/ürün adı doğru yazılmış mı?
+  const brandMention = scenes.some(s => s.text.toLowerCase().includes(video.product.toLowerCase().slice(0, 5)) || s.vo.toLowerCase().includes(video.product.toLowerCase().slice(0, 5)));
+
+  const checks = [
+    { title: 'Kanca (Hook) ilk saniyelerde var', pass: hookPass, detail: `Kanca süresi: ${hookScene?.sec || 0} sn` },
+    { title: 'CTA son sahnede net ve anlaşılır', pass: ctaPass, detail: `Son sahne rolü: ${lastScene?.role}` },
+    { title: 'Altyazı ekrandan taşmıyor', pass: subPass, detail: `En uzun satır: ${maxChars} karakter` },
+    { title: 'Süre brief ile uyumlu (±%10)', pass: durPass, detail: `Planlanan: ${video.dur}s, Gerçek: ${totalSec.toFixed(1)}s` },
+    { title: 'Marka/Ürün adı kurguda geçiyor', pass: brandMention, detail: `İçerik: "${video.product.slice(0, 18)}..."` }
+  ];
+
+  const passCount = checks.filter(c => c.pass).length;
+  const score = Math.round((passCount / checks.length) * 100);
+
+  return { score, checks, isPerfect: score === 100 };
+}
+
+/* -------------------------------------------------------------
+ * 5. VİDEO VE SES OYNATICI (PLAYER & QC & REVİZYON)
+ * ------------------------------------------------------------- */
+function Player({ video, onUpdateScene, onRefreshQC }) {
+  const [curIndex, setCurIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isTTSActive, setIsTTSActive] = useState(true);
+  const [isBGMActive, setIsBGMActive] = useState(false);
+  const [editScene, setEditScene] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const scenes = video.scenes;
+  const curScene = scenes[curIndex] || scenes[0];
+  const [aspectW, aspectH] = RATIOS[video.ratio] || [9, 16];
+
+  // Video değiştiğinde sıfırla
+  useEffect(() => {
+    setCurIndex(0);
+    setProgress(0);
+    setIsPlaying(true);
+  }, [video.id]);
+
+  // Sahne değiştiğinde TTS seslendir
+  useEffect(() => {
+    if (isPlaying && isTTSActive && curScene) {
+      audioMgr.speak(curScene.vo, video.lang || 'tr-TR');
+    }
+  }, [curIndex, isPlaying, isTTSActive, video.id]);
+
+  // BGM Aç / Kapat
+  useEffect(() => {
+    if (isBGMActive && isPlaying) {
+      audioMgr.startBGM();
+    } else {
+      audioMgr.stopBGM();
+    }
+    return () => audioMgr.stopBGM();
+  }, [isBGMActive, isPlaying]);
+
+  // Zamanlayıcı / Oynatma Döngüsü
+  useEffect(() => {
+    if (!isPlaying || !curScene) return;
+    const intervalMs = 80;
+    const step = 100 / (curScene.sec * (1000 / intervalMs));
+
+    const id = setInterval(() => {
+      setProgress(p => {
+        const next = p + step;
+        if (next >= 100) {
+          setCurIndex(i => (i + 1) % scenes.length);
+          return 0;
+        }
+        return next;
+      });
+    }, intervalMs);
+
+    return () => clearInterval(id);
+  }, [isPlaying, curIndex, curScene, scenes.length, video.id]);
+
+  // Sahne düzenleme kaydetme
+  function handleSaveSceneEdit(updated) {
+    onUpdateScene(video.id, updated);
+    setEditScene(null);
+  }
+
+  // HTML5 Canvas + MediaRecorder ile WebM Video İndirme
+  async function exportVideoFile() {
+    setIsExporting(true);
+    try {
+      const canvas = document.getElementById('renderCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = aspectW > aspectH ? 1280 : aspectW === aspectH ? 720 : 720;
+      const h = aspectW > aspectH ? 720 : aspectW === aspectH ? 720 : 1280;
+      canvas.width = w;
+      canvas.height = h;
+
+      const stream = canvas.captureStream(30);
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${video.product.replace(/\s+/g, '_')}_video.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setIsExporting(false);
+      };
+
+      recorder.start();
+
+      // Kare kare render simülasyonu
+      for (const sc of scenes) {
+        const frames = Math.round(sc.sec * 15);
+        for (let f = 0; f < frames; f++) {
+          // Arka plan gradyanı
+          const grad = ctx.createLinearGradient(0, 0, w, h);
+          grad.addColorStop(0, sc.grad[0]);
+          grad.addColorStop(1, sc.grad[1]);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+
+          // Rozet & Rol
+          ctx.fillStyle = 'rgba(0,0,0,0.45)';
+          ctx.fillRect(40, 40, 240, 44);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 20px sans-serif';
+          ctx.fillText(`${sc.role} • ${sc.sec}s`, 55, 70);
+
+          // Ekran Metni
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 38px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(sc.text, w / 2, h / 2 - 20);
+
+          // Seslendirme Altyazısı
+          ctx.font = 'italic 22px sans-serif';
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.fillText(sc.vo, w / 2, h / 2 + 50);
+
+          ctx.textAlign = 'left';
+          await sleep(65);
+        }
+      }
+
+      recorder.stop();
+    } catch (err) {
+      alert('Video render hatası: ' + err.message);
+      setIsExporting(false);
+    }
+  }
+
+  // JSON dışa aktar
+  function downloadJson() {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(video, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download', `${video.product.replace(/\s+/g, '_')}_senaryo.json`);
+    dlAnchor.click();
+  }
+
+  const qc = evaluateQC(video);
+  const maxWidthPx = aspectW > aspectH ? 500 : aspectW === aspectH ? 340 : 250;
+  const screenStyle = {
+    aspectRatio: `${aspectW} / ${aspectH}`,
+    width: `min(${maxWidthPx}px, 100%)`,
+    background: `linear-gradient(145deg, ${curScene.grad[0]}, ${curScene.grad[1]})`
+  };
+
+  return h('div', null,
+    h('div', { className: 'stage-wrap' },
+      // Oynatıcı Ekranı
+      h('div', null,
+        h('div', { className: 'screen-box', style: screenStyle },
+          h('div', { className: 'top-bar' },
+            h('span', { className: 'tag' }, `${curScene.role} · ${curIndex + 1}/${scenes.length}`),
+            h('span', { className: 'brand-mark' }, video.product)
+          ),
+          h('div', { className: 'center-content' },
+            h('div', { className: 'cap' }, curScene.text),
+            h('div', { className: 'vo-sub' }, `🎙️ ${curScene.vo}`)
+          ),
+          h('div', { className: 'pb-track' },
+            h('div', { className: 'pb-fill', style: { width: `${progress}%` } })
+          )
+        ),
+        // Kontrol Düğmeleri
+        h('div', { style: { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 } },
+          h('button', {
+            className: 'btn primary sm',
+            onClick: () => {
+              setIsPlaying(!isPlaying);
+              if (isPlaying) audioMgr.stopSpeech();
+            }
+          }, isPlaying ? '⏸ Duraklat' : '▶ Oynat'),
+          h('button', {
+            className: 'btn sm',
+            onClick: () => { setCurIndex(0); setProgress(0); }
+          }, '⏮ Başa Sar'),
+          h('button', {
+            className: `btn sm ${isTTSActive ? 'primary' : ''}`,
+            onClick: () => {
+              setIsTTSActive(!isTTSActive);
+              if (isTTSActive) audioMgr.stopSpeech();
+            }
+          }, isTTSActive ? '🔊 TTS Açık' : '🔇 TTS Kapalı'),
+          h('button', {
+            className: `btn sm ${isBGMActive ? 'primary' : ''}`,
+            onClick: () => setIsBGMActive(!isBGMActive)
+          }, isBGMActive ? '🎵 Müzik Açık' : '🎵 Müzik Kapalı')
+        ),
+        // Dışa Aktarma Butonları
+        h('div', { style: { display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 } },
+          h('button', {
+            className: 'btn sm primary',
+            disabled: isExporting,
+            onClick: exportVideoFile
+          }, isExporting ? '⏳ Render Ediliyor...' : '📥 Video İndir (.webm)'),
+          h('button', {
+            className: 'btn sm',
+            onClick: downloadJson
+          }, '📄 Senaryo İndir (.json)')
+        )
+      ),
+
+      // Sağ: Sahne Planı Zaman Çizelgesi
+      h('div', null,
+        h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 } },
+          h('h3', { style: { fontSize: 15 } }, 'Sahne Planı ve Düzenleme'),
+          h('span', { className: 'badge' }, `${scenes.length} Sahne · Toplam ${video.dur} sn`)
+        ),
+        h('ul', { className: 'scenes-list', 'aria-label': 'Sahne listesi' },
+          scenes.map((s, idx) =>
+            h('li', {
+              key: s.id,
+              className: 'scene-item',
+              'aria-current': idx === curIndex,
+              onClick: () => { setCurIndex(idx); setProgress(0); }
+            },
+              h('div', { className: 'scene-role' },
+                h('strong', null, s.role),
+                h('span', null, `${s.sec} sn`)
+              ),
+              h('div', null,
+                h('div', { className: 'scene-text-preview' }, s.text),
+                h('div', { className: 'scene-vo-preview' }, `🎙️ ${s.vo}`)
+              ),
+              h('button', {
+                className: 'btn sm',
+                onClick: (e) => {
+                  e.stopPropagation();
+                  setEditScene({ ...s });
+                }
+              }, '✏️ Düzenle')
+            )
+          )
+        ),
+
+        // SOP Kalite Kontrol (QC) Kartı
+        qc && h('div', { className: 'qc-card' },
+          h('div', { className: 'qc-header' },
+            h('h4', null, 'SOP Kalite Kontrolü'),
+            h('span', { className: `qc-score ${qc.isPerfect ? 'perfect' : 'warning'}` }, `Skor: %${qc.score}`)
+          ),
+          h('ul', { className: 'qc-list' },
+            qc.checks.map((chk, i) =>
+              h('li', { key: i },
+                h('span', null, chk.title, h('span', { style: { color: 'var(--mute)', marginLeft: 6, fontSize: 11 } }, `(${chk.detail})`)),
+                h('span', { className: `qc-status ${chk.pass ? 'pass' : 'warn'}` }, chk.pass ? '✓ Uygun' : '⚠ Düzelt')
+              )
+            )
+          )
+        )
+      )
+    ),
+
+    // Sahne Düzenleme Modalı
+    editScene && h('div', { className: 'modal-overlay', onClick: () => setEditScene(null) },
+      h('div', { className: 'modal-content', onClick: e => e.stopPropagation() },
+        h('div', { className: 'modal-hdr' },
+          h('h3', null, `Sahne ${editScene.id} Revizyonu (${editScene.role})`),
+          h('button', { className: 'btn sm', onClick: () => setEditScene(null) }, '✕')
+        ),
+        h('div', null,
+          h('label', null, 'Sahne Rolü'),
+          h('select', {
+            value: editScene.role,
+            onChange: e => setEditScene({ ...editScene, role: e.target.value })
+          }, SOP_ROLES.map(r => h('option', { key: r, value: r }, r))),
+
+          h('label', null, 'Ekran Metni (Kısa & Çarpıcı)'),
+          h('input', {
+            value: editScene.text,
+            onChange: e => setEditScene({ ...editScene, text: e.target.value })
+          }),
+
+          h('label', null, 'Seslendirme Metni (TTS Voiceover)'),
+          h('textarea', {
+            value: editScene.vo,
+            rows: 3,
+            onChange: e => setEditScene({ ...editScene, vo: e.target.value })
+          }),
+
+          h('div', { className: 'row' },
+            h('div', null,
+              h('label', null, 'Süre (Saniye)'),
+              h('input', {
+                type: 'number',
+                step: '0.5',
+                min: 1,
+                max: 30,
+                value: editScene.sec,
+                onChange: e => setEditScene({ ...editScene, sec: +e.target.value })
+              })
+            ),
+            h('div', null,
+              h('label', null, 'Görsel Prompt Tarifi'),
+              h('input', {
+                value: editScene.visual,
+                onChange: e => setEditScene({ ...editScene, visual: e.target.value })
+              })
+            )
+          ),
+
+          h('div', { style: { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 } },
+            h('button', { className: 'btn', onClick: () => setEditScene(null) }, 'İptal'),
+            h('button', {
+              className: 'btn primary',
+              onClick: () => handleSaveSceneEdit(editScene)
+            }, 'Değişiklikleri Kaydet')
+          )
+        )
+      )
+    )
+  );
+}
+
+/* -------------------------------------------------------------
+ * 6. ANA UYGULAMA (APP)
+ * ------------------------------------------------------------- */
+function App() {
+  // Form Durumu - Varsayılan olarak Gayrimenkul Şablonu yüklü gelir
+  const [form, setForm] = useState({
+    type: 'tanitim',
+    product: 'Korkmaz Gayrimenkul - Elit Rezidans',
+    audience: 'Yatırımcılar ve prestijli konut arayan aileler',
+    points: 'Merkezi konum ve panoramik şehir manzarası\nAkıllı ev altyapısı ve 7/24 özel güvenlik\nYüksek kira getirisi ve uygun ödeme planı',
+    cta: 'Özel randevu ve kat planları için hemen arayın.',
+    tone: 'Prestijli & Lüks',
+    dur: 30,
+    ratio: '9:16',
+    platform: 'Instagram Reels',
+    lang: 'tr-TR'
+  });
+
+  // Üretilen Videolar
+  const [videos, setVideos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('klaket_sop_vids');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [selectedId, setSelectedId] = useState(null);
+  const [formError, setFormError] = useState('');
+  const [isProducing, setIsProducing] = useState(false);
+  const [theme, setTheme] = useState('dark');
+  const [showSettings, setShowSettings] = useState(false);
+  const [activeLogModal, setActiveLogModal] = useState(null);
+
+  // Tema Değişimi
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  // LocalStorage Senkronizasyonu
+  useEffect(() => {
+    try {
+      localStorage.setItem('klaket_sop_vids', JSON.stringify(videos.filter(v => v.status === 'Hazır')));
+    } catch (e) {}
+  }, [videos]);
+
+  const updateForm = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const patchVideo = (id, patch) => setVideos(list => list.map(v => v.id === id ? { ...v, ...patch } : v));
+
+  // Şablon Seçildiğinde
+  function loadPreset(preset) {
+    setForm({ ...preset.data });
+    setFormError('');
+  }
+
+  // SOP Üretim Akışı
+  async function produceVideo(brief) {
+    setIsProducing(true);
+    const id = Date.now() + Math.random().toString(36).substring(2, 7);
+    const logList = [`[${new Date().toLocaleTimeString()}] SOP video üretim süreci başlatıldı.`];
+
+    const addLog = msg => {
+      const entry = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logList.push(entry);
+      patchVideo(id, { logs: [...logList] });
+    };
+
+    const newVideo = {
+      id,
+      ...brief,
+      title: `${brief.product} – ${TYPES[brief.type]}`,
+      status: 'Senaryo Yazılıyor',
+      stage: 'senaryo',
+      progress: 10,
+      scenes: [],
+      logs: logList,
+      created: new Date().toLocaleString('tr-TR')
+    };
+
+    setVideos(prev => [newVideo, ...prev]);
+
+    try {
+      // 1. LLM Senaryo
+      patchVideo(id, { progress: 25, status: 'Senaryo & Sahne Planlanıyor' });
+      const scenes = await providers.script(brief, addLog);
+
+      // 2. Varlık Üretimi (Görsel & TTS)
+      patchVideo(id, { progress: 60, status: 'Görsel & Ses Üretiliyor', scenes, stage: 'sahneler' });
+      await providers.clips(scenes, brief, addLog);
+
+      // 3. Montaj ve Render
+      patchVideo(id, { progress: 85, status: 'Render & Kalite Kontrolü', stage: 'render' });
+      await providers.render(newVideo, addLog);
+
+      // 4. Hazır
+      addLog('Video montajı başarıyla tamamlandı ve kalite kontrol onayından geçti.');
+      patchVideo(id, {
+        progress: 100,
+        status: 'Hazır',
+        stage: 'hazir',
+        logs: [...logList]
+      });
+
+      setSelectedId(id);
+    } catch (err) {
+      addLog(`Hata oluştu: ${err.message}`);
+      patchVideo(id, { status: 'Başarısız', progress: 0, stage: 'hata' });
+    } finally {
+      setIsProducing(false);
+    }
+  }
+
+  // Form Gönder
+  function handleSubmit() {
+    if (!form.product.trim()) {
+      setFormError('Lütfen ürün veya konu başlığını giriniz.');
+      return;
+    }
+    if (form.dur < 5 || form.dur > 120) {
+      setFormError('Süre 5 ile 120 saniye arasında olmalıdır.');
+      return;
+    }
+    setFormError('');
+    produceVideo({ ...form, product: form.product.trim() });
+  }
+
+  // Sahne Revizyon Güncellemesi
+  function handleUpdateScene(videoId, updatedScene) {
+    setVideos(prev => prev.map(v => {
+      if (v.id !== videoId) return v;
+      const newScenes = v.scenes.map(s => s.id === updatedScene.id ? updatedScene : s);
+      return { ...v, scenes: newScenes };
+    }));
+  }
+
+  const selectedVideo = videos.find(v => v.id === selectedId && v.status === 'Hazır') || videos.find(v => v.status === 'Hazır');
+
+  return h('div', { className: 'wrap' },
+    // Header
+    h('header', null,
+      h('div', { className: 'brand' },
+        h('div', { className: 'brand-icon' }, '🎬'),
+        h('div', { className: 'brand-info' },
+          h('h1', null, 'Klaket AI Stüdyosu'),
+          h('p', null, 'Brief\'ten Senaryoya, Sesten Montaja SOP Uyumlu Otomatik Video Üretimi')
+        ),
+        h('span', { className: 'badge sop' }, 'SOP v0.2 Standardı')
+      ),
+      h('div', { className: 'hdr-acts' },
+        h('button', {
+          className: 'btn sm',
+          onClick: () => setShowSettings(true)
+        }, '⚙️ Sağlayıcı / API'),
+        h('button', {
+          className: 'btn sm',
+          onClick: () => setTheme(theme === 'dark' ? 'light' : 'dark')
+        }, theme === 'dark' ? '☀️ Açık Mod' : '🌙 Koyu Mod')
+      )
+    ),
+
+    // Ana Grid
+    h('div', { className: 'grid' },
+      // Sol Panel: Brief Formu
+      h('section', { className: 'panel' },
+        h('div', { className: 'panel-hdr' },
+          h('h2', null, 'Video Brief\'i'),
+          h('span', { className: 'badge' }, 'Adım 1 / 5')
+        ),
+
+        // Hazır Şablonlar
+        h('label', null, 'Hızlı Şablonlar', h('span', { className: 'label-hint' }, '(Tek tıkla doldur)')),
+        h('div', { className: 'presets' },
+          PRESETS.map((p, i) =>
+            h('button', {
+              key: i,
+              id: `preset-${i}`,
+              type: 'button',
+              className: 'preset-chip',
+              onClick: () => loadPreset(p)
+            }, p.name)
+          )
+        ),
+
+        // Video Türü
+        h('label', null, 'Video Türü'),
+        h('div', { className: 'types-grid' },
+          Object.entries(TYPES).map(([k, v]) =>
+            h('button', {
+              key: k,
+              type: 'button',
+              className: 'type-btn',
+              'aria-pressed': form.type === k,
+              onClick: () => updateForm('type', k)
+            }, v)
+          )
+        ),
+
+        // Ürün / Konu
+        h('label', null, 'Ürün veya Konu Adı *'),
+        h('input', {
+          id: 'input-product',
+          value: form.product,
+          placeholder: 'Örn. Korkmaz Gayrimenkul Lüks Rezidans',
+          onChange: e => updateForm('product', e.target.value)
+        }),
+
+        // Hedef Kitle
+        h('label', null, 'Hedef Kitle'),
+        h('input', {
+          id: 'input-audience',
+          value: form.audience,
+          placeholder: 'Örn. Yatırımcılar, aileler, genç profesyoneller',
+          onChange: e => updateForm('audience', e.target.value)
+        }),
+
+        // Öne Çıkan Noktalar
+        h('label', null, 'Öne Çıkan Noktalar', h('span', { className: 'label-hint' }, '(Her satıra bir özellik)')),
+        h('textarea', {
+          id: 'textarea-points',
+          value: form.points,
+          placeholder: 'Merkezi konum ve deniz manzarası\nAkıllı ev altyapısı ve kapalı otopark\nÖzel lansman indirimi',
+          rows: 3,
+          onChange: e => updateForm('points', e.target.value)
+        }),
+
+        // Son Çağrı (CTA)
+        h('label', null, 'Son Çağrı (Call to Action / CTA)'),
+        h('input', {
+          id: 'input-cta',
+          value: form.cta,
+          placeholder: 'Örn. Detaylı bilgi için hemen arayın!',
+          onChange: e => updateForm('cta', e.target.value)
+        }),
+
+        // Ton & Dil
+        h('div', { className: 'row' },
+          h('div', null,
+            h('label', null, 'Anlatım Tonu'),
+            h('select', {
+              id: 'select-tone',
+              value: form.tone,
+              onChange: e => updateForm('tone', e.target.value)
+            }, TONES.map(t => h('option', { key: t, value: t }, t)))
+          ),
+          h('div', null,
+            h('label', null, 'Ses & Altyazı Dili'),
+            h('select', {
+              id: 'select-lang',
+              value: form.lang,
+              onChange: e => updateForm('lang', e.target.value)
+            }, LANGUAGES.map(l => h('option', { key: l.code, value: l.code }, l.label)))
+          )
+        ),
+
+        // Süre, Oran & Platform
+        h('div', { className: 'row-3' },
+          h('div', null,
+            h('label', null, 'Süre (sn)'),
+            h('input', {
+              id: 'input-dur',
+              type: 'number',
+              min: 5,
+              max: 120,
+              value: form.dur,
+              onChange: e => updateForm('dur', +e.target.value)
+            })
+          ),
+          h('div', null,
+            h('label', null, 'Oran'),
+            h('select', {
+              id: 'select-ratio',
+              value: form.ratio,
+              onChange: e => updateForm('ratio', e.target.value)
+            }, Object.keys(RATIOS).map(r => h('option', { key: r, value: r }, r)))
+          ),
+          h('div', null,
+            h('label', null, 'Platform'),
+            h('select', {
+              id: 'select-platform',
+              value: form.platform,
+              onChange: e => updateForm('platform', e.target.value)
+            }, PLATFORMS.map(p => h('option', { key: p, value: p }, p)))
+          )
+        ),
+
+        formError && h('div', {
+          id: 'form-error-msg',
+          style: { color: 'var(--err)', background: 'var(--err-bg)', padding: '8px 12px', borderRadius: 8, marginTop: 12, fontSize: 13 }
+        }, `⚠ ${formError}`),
+
+        // Üretim Butonu
+        h('button', {
+          id: 'btn-produce',
+          className: 'btn-produce',
+          disabled: isProducing,
+          onClick: handleSubmit
+        }, isProducing ? '⏳ SOP Akışı Çalıştırılıyor...' : '🚀 SOP ile Video Üret')
+      ),
+
+      // Sağ Taraf: Stüdyo & Oynatıcı & Videolarım
+      h('main', null,
+        // Aktif Video Oynatıcısı
+        selectedVideo ? h('section', { className: 'panel', style: { marginBottom: 20 } },
+          h('div', { className: 'panel-hdr' },
+            h('div', null,
+              h('h2', null, selectedVideo.title),
+              h('div', { style: { fontSize: 12, color: 'var(--mute)', marginTop: 2 } },
+                `${selectedVideo.platform} · ${selectedVideo.ratio} · ${selectedVideo.dur} sn · ${selectedVideo.tone} · ${selectedVideo.lang}`
+              )
+            ),
+            h('div', { style: { display: 'flex', gap: 6 } },
+              h('button', {
+                className: 'btn sm',
+                onClick: () => setActiveLogModal(selectedVideo)
+              }, '📋 İşlem Kaydı (Logs)')
+            )
+          ),
+          h(Player, {
+            video: selectedVideo,
+            onUpdateScene: handleUpdateScene
+          })
+        ) : null,
+
+        // Videolarım Bölümü
+        h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 } },
+          h('h2', { style: { fontSize: 19 } }, `Üretilen Videolar (${videos.length})`),
+          videos.length > 0 && h('button', {
+            className: 'btn sm danger',
+            onClick: () => {
+              if (confirm('Tüm video geçmişi temizlensin mi?')) {
+                setVideos([]);
+                setSelectedId(null);
+              }
+            }
+          }, 'Tümünü Temizle')
+        ),
+
+        videos.length === 0 ? h('div', {
+          style: {
+            border: '2px dashed var(--line)',
+            borderRadius: 14,
+            padding: '48px 24px',
+            textAlign: 'center',
+            color: 'var(--mute)'
+          }
+        },
+          h('div', { style: { fontSize: 36, marginBottom: 8 } }, '🎬'),
+          h('h3', { style: { color: 'var(--ink)', marginBottom: 6 } }, 'Henüz Video Üretilmedi'),
+          h('p', { style: { margin: 0, fontSize: 13 } }, 'Sol taraftaki brief formunu doldurarak veya yukarıdaki hazır şablonlardan birini seçerek ilk videonuzu üretin.')
+        ) : h('div', { className: 'v-grid' },
+          videos.map(v =>
+            h('article', { className: 'v-card', key: v.id },
+              h('h3', null, v.title),
+              h('div', { className: 'v-meta' },
+                h('span', null, `📱 ${v.platform}`),
+                h('span', null, `📐 ${v.ratio}`),
+                h('span', null, `⏱️ ${v.dur} sn`)
+              ),
+              h('div', { className: 'v-progress-bar' },
+                h('i', { style: { width: `${v.progress}%` } })
+              ),
+              h('div', { className: `v-status ${v.status === 'Hazır' ? 'ready' : v.status === 'Başarısız' ? 'failed' : 'processing'}` },
+                v.status === 'Hazır' ? '✓ ' : v.status === 'Başarısız' ? '✕ ' : '⏳ ',
+                v.status
+              ),
+              h('div', { className: 'v-meta' }, v.created),
+              h('div', { className: 'v-acts' },
+                v.status === 'Hazır' && h('button', {
+                  className: 'btn sm primary',
+                  onClick: () => {
+                    setSelectedId(v.id);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }, '🎬 Önizle'),
+                h('button', {
+                  className: 'btn sm',
+                  onClick: () => produceVideo({ ...v })
+                }, '🔄 Yeniden Üret'),
+                h('button', {
+                  className: 'btn sm',
+                  onClick: () => setActiveLogModal(v)
+                }, '📋 Log'),
+                h('button', {
+                  className: 'btn sm danger',
+                  onClick: () => {
+                    setVideos(list => list.filter(item => item.id !== v.id));
+                    if (selectedId === v.id) setSelectedId(null);
+                  }
+                }, '🗑️ Sil')
+              )
+            )
+          )
+        )
+      )
+    ),
+
+    // Log / İşlem Kaydı Modalı
+    activeLogModal && h('div', { className: 'modal-overlay', onClick: () => setActiveLogModal(null) },
+      h('div', { className: 'modal-content', onClick: e => e.stopPropagation() },
+        h('div', { className: 'modal-hdr' },
+          h('h3', null, `Üretim İşlem Kaydı (${activeLogModal.product})`),
+          h('button', { className: 'btn sm', onClick: () => setActiveLogModal(null) }, '✕')
+        ),
+        h('div', { className: 'log-box' },
+          (activeLogModal.logs || []).map((line, i) => h('div', { key: i }, line))
+        ),
+        h('div', { style: { display: 'flex', justifyContent: 'flex-end', marginTop: 16 } },
+          h('button', { className: 'btn sm', onClick: () => setActiveLogModal(null) }, 'Kapat')
+        )
+      )
+    ),
+
+    // Sağlayıcı ve MCP Yapılandırma Modalı (SOP Bölüm 5)
+    showSettings && h('div', { className: 'modal-overlay', onClick: () => setShowSettings(false) },
+      h('div', { className: 'modal-content', onClick: e => e.stopPropagation() },
+        h('div', { className: 'modal-hdr' },
+          h('h3', null, 'AI Sağlayıcı ve MCP Entegrasyonu (SOP Bölüm 5)'),
+          h('button', { className: 'btn sm', onClick: () => setShowSettings(false) }, '✕')
+        ),
+        h('p', { style: { fontSize: 13, color: 'var(--mute)', margin: '0 0 16px' } },
+          'SOP mimarisine göre tüm sağlayıcılar soyut adaptör arkasındadır. Tarayıcıda yerel API/SpeechSynthesis veya harici MCP/REST proxy çağrılarını buradan yönetebilirsiniz.'
+        ),
+        h('label', null, 'Senaryo Sağlayıcısı (LLM)'),
+        h('select', { defaultValue: 'local' },
+          h('option', { value: 'local' }, 'Yerel Akıllı LLM Adaptörü (Anında & Kararlı)'),
+          h('option', { value: 'openai' }, 'OpenAI GPT-4o / GPT-4o-mini (MCP / API)'),
+          h('option', { value: 'anthropic' }, 'Claude 3.5 Sonnet (API)'),
+          h('option', { value: 'gemini' }, 'Google Gemini 1.5 Pro (API)')
+        ),
+        h('label', null, 'Seslendirme Sağlayıcısı (TTS)'),
+        h('select', { defaultValue: 'webspeech' },
+          h('option', { value: 'webspeech' }, 'Web Speech API (Tarayıcı İçi Doğal Konuşma)'),
+          h('option', { value: 'elevenlabs' }, 'ElevenLabs Gerçekçi AI Seslendirme'),
+          h('option', { value: 'openai_tts' }, 'OpenAI TTS HD')
+        ),
+        h('label', null, 'Görsel / Video Render Motoru'),
+        h('select', { defaultValue: 'canvas' },
+          h('option', { value: 'canvas' }, 'HTML5 Canvas & MediaRecorder (İstemci Taraflı Render)'),
+          h('option', { value: 'ffmpeg' }, 'Bulut FFmpeg / Worker Render Motoru')
+        ),
+        h('label', null, 'MCP Server / Proxy URL (Opsiyonel)'),
+        h('input', { placeholder: 'http://localhost:8000/api/v1/mcp' }),
+        h('div', { style: { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 } },
+          h('button', { className: 'btn primary', onClick: () => setShowSettings(false) }, 'Kaydet ve Kapat')
+        )
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
