@@ -43,23 +43,27 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
       if (isCinema && curIndex > 0) {
         audioMgr.playTransitionSFX();
       }
+      const sceneVoice =
+        curScene.voiceGender ||
+        (isCinema ? (curIndex % 2 === 1 ? 'female' : 'male') : (video.voiceGender || 'female'));
+
       audioMgr.speak(
         curScene.vo,
         video.lang || 'tr-TR',
         curScene.audioUrl,
-        video.voiceGender || 'female'
+        sceneVoice
       );
     }
   }, [curIndex, isPlaying, isTTSActive, curScene, video.lang, video.voiceGender, video.id, isCinema]);
 
   useEffect(() => {
     if (isBGMActive && isPlaying) {
-      audioMgr.startBGM(video.type);
+      audioMgr.startBGM(video.type, video.bgMusic);
     } else {
       audioMgr.stopBGM();
     }
     return () => audioMgr.stopBGM();
-  }, [isBGMActive, isPlaying, video.type]);
+  }, [isBGMActive, isPlaying, video.type, video.bgMusic]);
 
   useEffect(() => {
     if (!isPlaying || !curScene) return;
@@ -137,6 +141,21 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               </span>
               <span className="v5-scene-tag">
                 {curScene?.role} · {curIndex + 1}/{scenes.length}
+                {curScene?.speaker && (
+                  <span style={{ marginLeft: 6, color: '#a78bfa', fontWeight: 600 }}>
+                    🎭 {curScene.speaker} ({curScene.voiceGender === 'female' ? 'Kadın' : 'Erkek'})
+                  </span>
+                )}
+                {curScene?.audioUrl && (
+                  <span style={{ marginLeft: 6, color: '#38bdf8', fontWeight: 600 }} title="Gerçek Gemini 24kHz Stüdyo Seslendirmesi">
+                    🎙️ AI Ses
+                  </span>
+                )}
+                {curScene?.imageUrl?.includes('ai_scene_') && (
+                  <span style={{ marginLeft: 6, color: '#fde047', fontWeight: 600 }} title="Flux AI Fotogerçekçi Film Sahnesi">
+                    🎬 AI Sahne
+                  </span>
+                )}
               </span>
             </div>
 
@@ -157,7 +176,8 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                 </div>
               )}
               <div className="v5-vo-line">
-                🎙️ {curScene?.vo}
+                🎙️ {curScene?.speaker ? <strong style={{ color: '#fde047' }}>[{curScene.speaker}]: </strong> : null}
+                {curScene?.vo}
               </div>
             </div>
 

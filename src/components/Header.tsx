@@ -14,13 +14,13 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
   const getSubDesc = () => {
     switch (mode) {
       case 'sinema':
-        return '🎬 Sinema Modu: 21:9 Cinemascope Geniş Ekran, 3-Perde Dramatik Kurgu & Hollywood Fragman Anlatımı';
+        return '🎬 AI Sinema Modu: Flux AI Fotogerçekçi 35mm Film Sahneleri & Gemini 24kHz Hollywood Fragman Seslendirmesi';
       case 'belgesel':
-        return '🎙️ Belgesel Modu: 16:9 / 21:9 Geniş Ekran, BBC & National Geographic Araştırma Kurgusu & Usta Anlatıcı Sesi';
+        return '🎙️ AI Belgesel Modu: Fotogerçekçi Belgesel Kareleri & Gemini 24kHz Usta Anlatıcı Seslendirmesi';
       case 'youtube':
-        return '🔴 YouTube Modu: 16:9 Full HD, İlk 5 Sn Kancası, Retention Akışı & Abone Ol Çağrısı';
+        return '🔴 AI YouTube Modu: 16:9 Full HD, Gerçekçi Stüdyo Sahneleri & Dinamik AI Anlatımı';
       case 'reklam':
-        return '📢 AI Reklam Modu: Gemini 3.6 / 2.5 Flash ile TV & Sosyal Medya Ticari Tanıtım Kurgusu';
+        return '📢 AI Reklam Modu: Fotogerçekçi Ticari Sahneler & Gemini 24kHz TV Reklam Seslendirmesi';
       case 'classic':
       default:
         return '⚡ Klasik Mod: Standart SOP Şablonları & Web Speech Yerel Seslendirme';

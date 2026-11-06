@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 import { BriefForm, Scene } from '@/types';
 import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES } from './constants';
 import { buildScenesFromSOP } from './providers';
@@ -21,12 +24,10 @@ export function resolveApiKey(customKey?: string): string {
   return key;
 }
 
-
 /**
- * Raw 16-bit mono PCM (24000 Hz) verisini standart WAV Buffer -> Base64 Data URL formatına dönüştürür.
+ * Raw 16-bit mono PCM (24000 Hz) verisini standart WAV Buffer formatına dönüştürür.
  */
-function pcm16ToWavDataUrl(pcmBase64: string, sampleRate = 24000): string {
-  const pcmBuffer = Buffer.from(pcmBase64, 'base64');
+export function pcm16ToWavBuffer(pcmBuffer: Buffer, sampleRate = 24000): Buffer {
   const numChannels = 1;
   const bitsPerSample = 16;
   const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
@@ -49,12 +50,23 @@ function pcm16ToWavDataUrl(pcmBase64: string, sampleRate = 24000): string {
   wavBuffer.writeUInt32LE(dataSize, 40);
   pcmBuffer.copy(wavBuffer, 44);
 
+  return wavBuffer;
+}
+
+/**
+ * Raw 16-bit mono PCM (24000 Hz) verisini standart WAV Buffer -> Base64 Data URL formatına dönüştürür.
+ */
+function pcm16ToWavDataUrl(pcmBase64: string, sampleRate = 24000): string {
+  const pcmBuffer = Buffer.from(pcmBase64, 'base64');
+  const wavBuffer = pcm16ToWavBuffer(pcmBuffer, sampleRate);
   return `data:audio/wav;base64,${wavBuffer.toString('base64')}`;
 }
 
 interface RawGeminiScene {
   role?: string;
   sec?: number;
+  speaker?: string;
+  voiceGender?: 'female' | 'male';
   text?: string;
   subtitle?: string;
   highlight?: string;
@@ -289,27 +301,50 @@ ${brief.cta ? `- Vizyon / Çıkış Çağrısı: "${brief.cta}"` : ''}
 - Toplam Süre: ${brief.dur} saniye
 - En-Boy Oranı: ${brief.ratio} (Sinematik Format)
 - Dil: ${brief.lang || 'tr-TR'}
+${brief.character?.enabled ? `
+TUTARLI BAŞROL KARAKTER TASARIMI (Consistent Character - Adım 3 & 8):
+- Karakter Adı: "${brief.character.name}"
+- Cinsiyet: ${brief.character.gender === 'female' ? 'Kadın' : 'Erkek'}
+- Yaş Grubu & Rol: ${brief.character.ageGroup} / ${brief.character.roleArchetype}
+- Fiziksel Görünüm: "${brief.character.appearance}"
+- Kostüm & Giysi: "${brief.character.clothing}"
+- Karakter Tutarlılık Promptu (Consistency Seed): "${brief.character.consistencyPrompt}"
+MUTLAK KARAKTER KURALLARI:
+1. Hikâyenin ve diyalogların merkezinde "${brief.character.name}" yer almalıdır. Karakterin repliklerinde "speaker": "${brief.character.name}", "voiceGender": "${brief.character.gender}" atanmalıdır.
+2. Karakterin yer aldığı sahnelerin "visual" açıklamasına mutlaka "[Consistent Character: ${brief.character.consistencyPrompt}]" ifadesini ve sahnedeki eylemini dahil et.
+` : ''}
 
 MUTLAK YÖNETMEN VE SENARYO KURALI:
-Kullanıcının talimatında belirttiği tüm karakterler, olay örgüsü, mekanlar, nesneler ve replikler senaryonun omurgasıdır. Asla jenerik kalıplar kullanma; doğrudan kullanıcının vizyonunu beyaz perdeye aktar.
+1. KULLANICI HAZIR BİR SENARYO VEYA DİYALOGLAR VERMİŞSE: Kullanıcının talimatında sahne dökümü, karakter replikleri veya bir senaryo metni varsa HİKÂYEYİ VE REPLİKLERİ ASLA DEĞİŞTİRME. Kullanıcının yazdığı diyalogları, karakter isimlerini ve olay sırasını birebir sahnelere yerleştir.
+2. Replikleri söyleyen karakterlerin cinsiyetine göre "voiceGender" ("female" veya "male") değerini ata.
+3. Kullanıcının talimatında belirttiği tüm karakterler, olay örgüsü, mekanlar, nesneler ve replikler senaryonun omurgasıdır. Asla jenerik kalıplar kullanma; doğrudan kullanıcının vizyonunu beyaz perdeye aktar.
 
 SİNEMA YAPIM KURALLARI:
 1. Sahne Rolleri: ${JSON.stringify(roles)}.
 2. 1. sahne ("${roles[0]}") süresi ${hookSec}s, diğer ${n - 1} sahnenin her birinin süresi ${remainingSec}s olmalıdır.
-3. Her sahne için sinematik tipografi ve replik tasarımı:
+3. ÇOKLU KARAKTER VE OYUNCU KADROSU (KADIN & ERKEK DİYALOGLARI):
+   - Filmde tek bir anlatıcı yerine hikayeye göre birden fazla kadın ve erkek karakter konuşabilir!
+   - Her sahne için repliği söyleyen karakteri ("speaker") ve karakterin ses cinsiyetini ("voiceGender": "female" veya "male") belirle.
+   - Örnek karakterler: "Dış Ses / Anlatıcı" (male), "Ajan Leyla" (female), "Kaptan Deniz" (male), "Dr. Selin" (female), "Karanlık Karakter" (male) vb.
+   - Sahneler arasında kadın ve erkek karakterlerin konuşmaları dengeli ve dramatik diyalog akışına uygun olsun.
+4. Her sahne için sinematik tipografi ve replik tasarımı:
+   - "speaker": Sahnedeki konuşmacı karakter adı ve unvanı (örn: "Ajan Leyla", "Dış Ses Anlatıcı", "Komutan Demir")
+   - "voiceGender": Karakterin ses cinsiyeti ("female" veya "male")
    - "text": Sahne Başlığı / Çarpıcı Sinematik Replik (Büyük harf, vurucu, max 50 karakter)
-   - "subtitle": Sahne Açıklaması / Karakter Diyalog Notu (max 65 karakter)
+   - "subtitle": Sahne Açıklaması veya Karakter Diyalog Notu (örn: "Ajan Leyla: 'Zaman daralıyor!'", max 65 karakter)
    - "highlight": Film Adı / Vizyon Müjdesi (örn: "ÇOK YAKINDA SİNEMALARDA", max 60 karakter)
-4. "vo": Sinema fragmanı seslendirme sanatçısı tonunda (tok, derin, dramatik ve büyüleyici) profesyonel Türkçe seslendirme metni.
-5. "visual": Sinematik kamera açısı, lens ve ışık yönergesi (örn: "Anamorphic 35mm lens, yağmurlu neon sokaklar, alçak açı silüet ve sis", "Dolly zoom ve dramatik gün batımı ışığı").
-6. "grad": Sahnenin dramatik atmosferine uygun 2 adet koyu/kontrastlı sinematik HEX renk kodu (örn: ["#020617", "#1e1b4b"] veya ["#180808", "#450a0a"]).
-7. "zoomDir": Kamera hareket yönü ("in" veya "out").
+5. "vo": O karakterin seslendireceği dramatik ve etkileyici Türkçe diyalog / monolog metni.
+6. "visual": Sinematik kamera açısı, lens ve ışık yönergesi (örn: "Anamorphic 35mm lens, yağmurlu neon sokaklar, alçak açı silüet ve sis", "Dolly zoom ve dramatik gün batımı ışığı").
+7. "grad": Sahnenin dramatik atmosferine uygun 2 adet koyu/kontrastlı sinematik HEX renk kodu (örn: ["#020617", "#1e1b4b"] veya ["#180808", "#450a0a"]).
+8. "zoomDir": Kamera hareket yönü ("in" veya "out").
 
 Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
 [
   {
     "role": "${roles[0]}",
     "sec": ${hookSec},
+    "speaker": "Dış Ses Anlatıcı",
+    "voiceGender": "male",
     "text": "SİNEMATİK ÇARPICI CÜMLE",
     "subtitle": "Karanlık bir gelecekte tek bir umut...",
     "highlight": "${brief.product.toUpperCase()}",
@@ -489,6 +524,15 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
     // Gerçek yüksek çözünürlüklü sinematik / YouTube / emlak sahne görselini ata
     const imageUrl = getScenePhoto(brief.type, expectedRole, visual, i, brief.product);
 
+    // Sinemada çoklu kadın ve erkek karakter kadrosu
+    const speaker = (raw.speaker || (isCinema ? (i % 2 === 0 ? 'Dış Ses / Anlatıcı' : 'Başrol Karakter') : '')).trim();
+    const voiceGender: 'female' | 'male' =
+      raw.voiceGender === 'female' || raw.voiceGender === 'male'
+        ? raw.voiceGender
+        : isCinema
+        ? (i % 2 === 1 ? 'female' : 'male')
+        : (brief.voiceGender || 'female');
+
     return {
       id: i + 1,
       role: expectedRole,
@@ -500,7 +544,9 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
       visual,
       grad,
       imageUrl,
-      zoomDir
+      zoomDir,
+      speaker: speaker || undefined,
+      voiceGender
     };
   });
 }
@@ -508,56 +554,165 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
 const TTS_MODELS = [
   'gemini-2.5-flash-preview-tts',
   'gemini-3.8-flash-tts',
+  'gemini-3.1-flash-tts-preview',
   'gemini-3.8-flash-lite-tts'
 ];
 
+function getCharacterSeed(charPrompt: string): number {
+  let hash = 0;
+  for (let i = 0; i < charPrompt.length; i++) {
+    hash = (hash << 5) - hash + charPrompt.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % 700000;
+}
+
 /**
- * Gemini TTS seslendirmesi üretir (Kadın: Kore, Erkek: Puck)
+ * Flux AI ile gerçekçi film sahneleri, belgesel kareleri ve yüksek çözünürlüklü yapım görselleri üretir.
+ * Karakter tutarlılığı (Consistent Character) desteği sunar.
+ */
+export async function generateSceneImageAI(
+  visualPrompt: string,
+  ratio: string = '21:9',
+  role: string = 'Sahne',
+  briefType: string = 'sinema',
+  index: number = 0,
+  productTitle: string = '',
+  characterPrompt?: string
+): Promise<string> {
+  let width = 1280;
+  let height = 548; // 21:9 Cinemascope
+  if (ratio === '16:9') {
+    width = 1280;
+    height = 720;
+  } else if (ratio === '9:16') {
+    width = 720;
+    height = 1280;
+  } else if (ratio === '1:1') {
+    width = 800;
+    height = 800;
+  }
+
+  const cleanPrompt = (visualPrompt || `${productTitle} ${role}`).trim();
+  const charPrefix = characterPrompt ? `${characterPrompt.trim()}, ` : '';
+
+  // Sinematik film sahnesi prompt mühendisliği (Hollywood 35mm film stili, anamorfik lens, gerçekçi ışıklandırma)
+  let enhancedPrompt = '';
+  if (briefType === 'sinema') {
+    enhancedPrompt = `${charPrefix}${cleanPrompt}, award-winning cinematic 35mm film still, shot on Arri Alexa LF with Panavision anamorphic primes, 21:9 cinemascope, cinematic volumetric rim lighting, subtle film grain, color graded in DaVinci Resolve, photorealistic movie scene, 8k resolution, hyperdetailed, master cinematography`;
+  } else if (briefType === 'belgesel') {
+    enhancedPrompt = `${charPrefix}${cleanPrompt}, National Geographic and BBC Earth documentary film still, shot on Hasselblad, natural sunlight, organic textures, photorealistic documentary cinematography, 8k resolution, atmospheric depth`;
+  } else if (briefType === 'youtube') {
+    enhancedPrompt = `${charPrefix}${cleanPrompt}, high production value YouTube 4K video frame, studio lighting, crisp focus, vibrant colors, cinematic b-roll, 8k`;
+  } else {
+    enhancedPrompt = `${charPrefix}${cleanPrompt}, luxury commercial television advertisement still, cinematic lighting, 8k, photorealistic, premium studio production aesthetic`;
+  }
+
+  const encoded = encodeURIComponent(enhancedPrompt);
+  const baseSeed = characterPrompt ? getCharacterSeed(characterPrompt) : Math.floor(Math.random() * 900000);
+  const seed = characterPrompt ? baseSeed + (index * 13) : Math.floor(Math.random() * 999999);
+  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux`;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const res = await fetch(pollinationsUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const arrayBuffer = await res.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      if (buffer.length > 5000) {
+        const hash = crypto.createHash('md5').update(buffer).digest('hex').slice(0, 10);
+        const filename = `ai_scene_${Date.now()}_${index}_${hash}.jpg`;
+        const dir = path.join(process.cwd(), 'public', 'generated_assets');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        const savePath = path.join(dir, filename);
+        fs.writeFileSync(savePath, buffer);
+        return `/api/assets/${filename}`;
+      }
+    }
+  } catch {
+    // network timeout fallback
+  }
+
+  // Güvenilir fallback: Seçkin HD sinema ve stüdyo film arşivi
+  return getScenePhoto(briefType, role, cleanPrompt, index, productTitle);
+}
+
+/**
+ * Gemini TTS seslendirmesi üretir (Erkek: Puck - derin tok fragman sesi, Kadın: Kore - akıcı anlatıcı sesi)
+ * Oluşturulan 24kHz stüdyo kalitesindeki ses dosyasını /api/assets üzerinden servis eder.
  */
 async function generateSceneTTS(
   text: string,
   sceneIndex: number,
   apiKey: string,
-  voiceGender: 'female' | 'male' = 'female'
+  voiceGender: 'female' | 'male' = 'female',
+  type: string = 'sinema'
 ): Promise<string | undefined> {
   if (!text || !text.trim()) return undefined;
 
-  const model = TTS_MODELS[sceneIndex % TTS_MODELS.length];
-  const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const cleanText = text.trim();
   const voiceName = voiceGender === 'male' ? 'Puck' : 'Kore';
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: text.trim() }] }],
-        generationConfig: {
-          responseModalities: ['AUDIO'],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: {
-                voiceName
+  for (const model of TTS_MODELS) {
+    const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: cleanText }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName
+                }
               }
             }
           }
+        })
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const json = await res.json();
+        const inlineData = json?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+        if (inlineData?.data) {
+          const pcmBuffer = Buffer.from(inlineData.data, 'base64');
+          const wavBuffer = pcm16ToWavBuffer(pcmBuffer, 24000);
+
+          try {
+            const dir = path.join(process.cwd(), 'public', 'generated_assets');
+            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+            const hash = crypto.createHash('md5').update(wavBuffer).digest('hex').slice(0, 8);
+            const filename = `tts_${Date.now()}_${sceneIndex}_${hash}.wav`;
+            const savePath = path.join(dir, filename);
+            fs.writeFileSync(savePath, wavBuffer);
+            return `/api/assets/${filename}`;
+          } catch {
+            return `data:audio/wav;base64,${wavBuffer.toString('base64')}`;
+          }
         }
-      })
-    });
-
-    if (!res.ok) return undefined;
-    const json = await res.json();
-    const inlineData = json?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-    if (!inlineData?.data) return undefined;
-
-    return pcm16ToWavDataUrl(inlineData.data, 24000);
-  } catch {
-    return undefined;
+      }
+    } catch {
+      // Bir sonraki TTS modelini dene
+    }
   }
+
+  return undefined;
 }
 
 /**
- * Sahnelerin seslendirmelerini ve sinematik varlıklarını bağlar
+ * Sahnelerin hem gerçekçi AI film sahnelerini (Flux AI) hem de stüdyo seslendirmelerini (Gemini TTS) sentezler
  */
 export async function synthesizeClipsWithGemini(
   scenes: Scene[],
@@ -566,23 +721,53 @@ export async function synthesizeClipsWithGemini(
 ): Promise<{ scenes: Scene[]; ttsCount: number; imgCount: number }> {
   const apiKey = resolveApiKey(customApiKey);
   let ttsCount = 0;
+  let imgCount = 0;
 
   const updatedScenes = await Promise.all(
     scenes.map(async (scene, idx) => {
-      const audioUrl = await generateSceneTTS(scene.vo, idx, apiKey, brief.voiceGender || 'female');
-      if (audioUrl) ttsCount++;
+      // 1. Gerçek Gemini 24kHz AI Stüdyo Seslendirmesi (Sinemada karaktere göre Kadın / Erkek)
+      const sceneVoiceGender: 'female' | 'male' =
+        scene.voiceGender ||
+        (brief.type === 'sinema' ? (idx % 2 === 1 ? 'female' : 'male') : (brief.voiceGender || 'female'));
 
-      const imageUrl =
-        scene.imageUrl ||
-        getScenePhoto(brief.type, scene.role, scene.visual, idx, brief.product);
+      const audioPromise = generateSceneTTS(
+        scene.vo,
+        idx,
+        apiKey,
+        sceneVoiceGender,
+        brief.type
+      );
+
+      // 2. Gerçekçi AI Film Sahnesi Görseli (Eğer manuel yüklenmemişse AI ile sinematik kare üret)
+      const isAlreadyAiGenerated =
+        scene.imageUrl &&
+        (scene.imageUrl.startsWith('/api/assets/ai_scene_') || scene.imageUrl.startsWith('/generated_assets/ai_scene_'));
+
+      const charPrompt = brief.character?.enabled ? brief.character.consistencyPrompt : undefined;
+      const imagePromise = isAlreadyAiGenerated
+        ? Promise.resolve(scene.imageUrl)
+        : generateSceneImageAI(
+            scene.visual || scene.text,
+            brief.ratio || '21:9',
+            scene.role,
+            brief.type,
+            idx,
+            brief.product,
+            charPrompt
+          );
+
+      const [audioUrl, imageUrl] = await Promise.all([audioPromise, imagePromise]);
+
+      if (audioUrl) ttsCount++;
+      if (imageUrl) imgCount++;
 
       return {
         ...scene,
-        imageUrl,
+        imageUrl: imageUrl || scene.imageUrl,
         audioUrl: audioUrl || scene.audioUrl
       };
     })
   );
 
-  return { scenes: updatedScenes, ttsCount, imgCount: updatedScenes.length };
+  return { scenes: updatedScenes, ttsCount, imgCount };
 }

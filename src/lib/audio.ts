@@ -12,12 +12,25 @@ export class AudioManager {
   public isPlaying: boolean = false;
   public isBGMEnabled: boolean = true;
 
-  // Fon müziğini yapım türüne uygun olarak başlat (Sinema, Belgesel, YouTube, Reklam)
-  public startBGM(type: string = 'sinema'): void {
+  // Fon müziğini yapım türüne veya seçilen parçaya uygun olarak başlat
+  public startBGM(type: string = 'sinema', customTrack?: string): void {
     if (typeof window === 'undefined') return;
+    if (customTrack === 'none') {
+      this.stopBGM();
+      return;
+    }
+
     try {
       let targetTrack = '/sales-music.wav';
-      if (type === 'sinema' || type === 'belgesel') {
+      if (customTrack === 'cinema_epic') {
+        targetTrack = '/audio_assets/cinema_epic_trailer.wav';
+      } else if (customTrack === 'youtube_lofi') {
+        targetTrack = '/audio_assets/youtube_upbeat_lofi.wav';
+      } else if (customTrack === 'sales_corporate') {
+        targetTrack = '/sales-music.wav';
+      } else if (customTrack && customTrack.startsWith('/')) {
+        targetTrack = customTrack;
+      } else if (type === 'sinema' || type === 'belgesel') {
         targetTrack = '/audio_assets/cinema_epic_trailer.wav';
       } else if (type === 'youtube') {
         targetTrack = '/audio_assets/youtube_upbeat_lofi.wav';

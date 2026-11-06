@@ -56,6 +56,39 @@ export function SceneEditModal({ scene, onClose, onSave }: SceneEditModalProps) 
             onChange={e => setData({ ...data, text: e.target.value })}
           />
 
+          <div className="row">
+            <div>
+              <label htmlFor="scene-speaker-input">Konuşmacı / Karakter Adı</label>
+              <input
+                id="scene-speaker-input"
+                value={data.speaker || ''}
+                onChange={e => setData({ ...data, speaker: e.target.value })}
+                placeholder="örn: Dış Ses Anlatıcı, Ajan Melis, Komutan Kaan"
+              />
+            </div>
+            <div>
+              <label>Karakter Ses Türü</label>
+              <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+                <button
+                  type="button"
+                  className={`btn sm ${data.voiceGender === 'male' || !data.voiceGender ? 'primary' : ''}`}
+                  onClick={() => setData({ ...data, voiceGender: 'male' })}
+                  style={{ flex: 1 }}
+                >
+                  👨 Erkek (Puck)
+                </button>
+                <button
+                  type="button"
+                  className={`btn sm ${data.voiceGender === 'female' ? 'primary' : ''}`}
+                  onClick={() => setData({ ...data, voiceGender: 'female' })}
+                  style={{ flex: 1 }}
+                >
+                  👩 Kadın (Kore)
+                </button>
+              </div>
+            </div>
+          </div>
+
           <label htmlFor="scene-vo-textarea">Seslendirme Metni (TTS Voiceover)</label>
           <textarea
             id="scene-vo-textarea"

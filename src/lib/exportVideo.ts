@@ -70,14 +70,23 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   const audioCtx = AudioCtx ? new AudioCtx() : null;
   const audioDest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
 
-  // Fon müziği: Sinema & Belgesel için Epic Trailer, YouTube için Upbeat Lo-Fi, diğerleri için Satış Müziği
+  // Fon müziği miksajı: Kullanıcının seçtiği veya türe özel parça
   let bgmSource: AudioBufferSourceNode | null = null;
-  if (audioCtx && audioDest) {
-    const bgmTrackPath = isCinema || isDocumentary
-      ? '/audio_assets/cinema_epic_trailer.wav'
-      : isYouTube
-      ? '/audio_assets/youtube_upbeat_lofi.wav'
-      : '/sales-music.wav';
+  if (audioCtx && audioDest && video.bgMusic !== 'none') {
+    let bgmTrackPath = '/sales-music.wav';
+    if (video.bgMusic === 'cinema_epic') {
+      bgmTrackPath = '/audio_assets/cinema_epic_trailer.wav';
+    } else if (video.bgMusic === 'youtube_lofi') {
+      bgmTrackPath = '/audio_assets/youtube_upbeat_lofi.wav';
+    } else if (video.bgMusic === 'sales_corporate') {
+      bgmTrackPath = '/sales-music.wav';
+    } else if (video.bgMusic && video.bgMusic.startsWith('/')) {
+      bgmTrackPath = video.bgMusic;
+    } else if (isCinema || isDocumentary) {
+      bgmTrackPath = '/audio_assets/cinema_epic_trailer.wav';
+    } else if (isYouTube) {
+      bgmTrackPath = '/audio_assets/youtube_upbeat_lofi.wav';
+    }
 
     const bgmBuffer = await loadAudioBuffer(audioCtx, bgmTrackPath);
     if (bgmBuffer) {

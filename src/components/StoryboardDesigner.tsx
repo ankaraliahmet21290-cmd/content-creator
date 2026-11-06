@@ -37,7 +37,8 @@ export function StoryboardDesigner({
           prompt: sc.visual || `${video.product} ${sc.role} ${sc.text}`,
           ratio: video.ratio || '21:9',
           role: sc.role,
-          type: video.type
+          type: video.type,
+          characterPrompt: video.character?.enabled ? video.character.consistencyPrompt : undefined
         })
       });
       const data = await res.json();
@@ -56,9 +57,7 @@ export function StoryboardDesigner({
   const generateAllAiImages = async () => {
     setIsBatchGenerating(true);
     try {
-      for (let i = 0; i < scenes.length; i++) {
-        await generateAiImageForScene(i);
-      }
+      await Promise.all(scenes.map((_, i) => generateAiImageForScene(i)));
     } finally {
       setIsBatchGenerating(false);
     }
@@ -179,6 +178,16 @@ export function StoryboardDesigner({
             <span className="badge" style={{ background: 'var(--acc-glow)', color: 'var(--acc-light)' }}>
               {scenes.length} Sahne · Toplam {totalDuration.toFixed(1)} sn (Hedef: {video.dur} sn)
             </span>
+            {video.character?.enabled && (
+              <span className="badge" style={{ background: 'rgba(217, 70, 239, 0.15)', color: '#d946ef', border: '1px solid rgba(217, 70, 239, 0.3)' }}>
+                🎭 Karakter: {video.character.name} ({video.character.roleArchetype})
+              </span>
+            )}
+            {video.bgMusic && video.bgMusic !== 'none' && (
+              <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                🎵 {video.bgMusic === 'cinema_epic' ? 'Epik Sinema' : video.bgMusic === 'youtube_lofi' ? 'Lo-Fi Beats' : 'Kurumsal Fon'}
+              </span>
+            )}
           </div>
           <h2 style={{ fontSize: 20, margin: 0 }}>
             {video.product} – Sahne Tasarım & Storyboard Masası
@@ -401,6 +410,47 @@ export function StoryboardDesigner({
                 placeholder="Ekranda görünecek çarpıcı başlık veya replik"
                 style={{ width: '100%', fontSize: 13, padding: '7px 10px', borderRadius: 6 }}
               />
+            </div>
+
+            {/* Konuşmacı Karakter & Seslendirme Cinsiyeti (Kadın / Erkek) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: 8, alignItems: 'center' }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--mute)', display: 'block', marginBottom: 3 }}>
+                  🎭 KONUŞMACI KARAKTER
+                </label>
+                <input
+                  type="text"
+                  value={scene.speaker || ''}
+                  onChange={e => updateScene(idx, { speaker: e.target.value })}
+                  placeholder={idx % 2 === 0 ? 'örn: Dış Ses Anlatıcı' : 'örn: Başrol Karakter'}
+                  style={{ width: '100%', fontSize: 12, padding: '5px 8px', borderRadius: 6 }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--mute)', display: 'block', marginBottom: 3 }}>
+                  SES CİNSİYETİ
+                </label>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <button
+                    type="button"
+                    className={`btn sm ${scene.voiceGender === 'male' || (!scene.voiceGender && idx % 2 === 0) ? 'primary' : ''}`}
+                    onClick={() => updateScene(idx, { voiceGender: 'male' })}
+                    style={{ flex: 1, padding: '4px 6px', fontSize: 11 }}
+                    title="Puck - Tok Erkek Sesi"
+                  >
+                    👨 Erkek
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn sm ${scene.voiceGender === 'female' || (!scene.voiceGender && idx % 2 === 1) ? 'primary' : ''}`}
+                    onClick={() => updateScene(idx, { voiceGender: 'female' })}
+                    style={{ flex: 1, padding: '4px 6px', fontSize: 11 }}
+                    title="Kore - Doğal Kadın Sesi"
+                  >
+                    👩 Kadın
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Seslendirme Metni (VO) */}

@@ -186,6 +186,13 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     const imageUrl = getScenePhoto(b.type, r, visualContext, i, p);
     const zoomDir: 'in' | 'out' = i % 2 === 0 ? 'in' : 'out';
 
+    const speaker = isCinema
+      ? (i % 2 === 0 ? 'Dış Ses Anlatıcı' : 'Başrol Karakter')
+      : undefined;
+    const voiceGender: 'female' | 'male' = isCinema
+      ? (i % 2 === 1 ? 'female' : 'male')
+      : (b.voiceGender || 'female');
+
     return {
       id: i + 1,
       role: r,
@@ -197,7 +204,9 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
       visual,
       grad: GRADIENTS[i % GRADIENTS.length],
       imageUrl,
-      zoomDir
+      zoomDir,
+      speaker,
+      voiceGender
     };
   });
 }
@@ -263,7 +272,7 @@ export const providers = {
     const isYouTube = brief.type === 'youtube';
     const logTag = isCinema ? '[Sinema Modu]' : isDocumentary ? '[Belgesel Modu]' : isYouTube ? '[YouTube Modu]' : '[AI Modu]';
 
-    addLog(`${logTag} 24kHz seslendirme (Voiceover) ve görsel varlıklar sentezleniyor...`);
+    addLog(`${logTag} Gemini 24kHz stüdyo seslendirmesi (Puck/Kore) ve Flux AI gerçekçi film sahneleri sentezleniyor...`);
     try {
       const res = await fetch('/api/clips', {
         method: 'POST',
@@ -277,16 +286,16 @@ export const providers = {
 
       const data = await res.json();
       if (!res.ok || !data.scenes) {
-        throw new Error(data.error || 'Gemini TTS yanıtı alınamadı.');
+        throw new Error(data.error || 'Yapay zekâ sahne sentezi yanıtı alınamadı.');
       }
 
       addLog(
-        `${logTag} Stüdyo kalitesinde seslendirme ve sinematik görsel katmanları bağlandı.`
+        `${logTag} Başarılı: ${data.ttsCount ?? scenes.length} sahne için stüdyo kalitesinde gerçek seslendirme ve fotogerçekçi sinema sahneleri bağlandı.`
       );
       return data.scenes;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      addLog(`Gemini TTS uyarısı (${msg}) — Tarayıcı yerel seslendirmesi aktif edildi.`);
+      addLog(`AI Varlık sentezi uyarısı (${msg}) — Standart varlık havuzu ve tarayıcı seslendirmesi aktif edildi.`);
       return scenes;
     }
   },

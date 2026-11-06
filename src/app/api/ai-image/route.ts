@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     const ratio: string = body.ratio || '21:9';
     const role: string = body.role || 'Sahne';
     const briefType: string = body.type || 'sinema';
+    const characterPrompt: string = body.characterPrompt || '';
 
     if (!rawPrompt.trim()) {
       return NextResponse.json({ error: 'Görsel promptu boş olamaz.' }, { status: 400 });
@@ -25,12 +26,31 @@ export async function POST(request: Request) {
     } else if (ratio === '9:16') {
       width = 720;
       height = 1280;
+    } else if (ratio === '1:1') {
+      width = 800;
+      height = 800;
     }
 
-    // Prompt zenginleştirme (Hollywood film stili, anamorfik lens, gerçekçi ışık)
-    const enhancedPrompt = `${rawPrompt.trim()}, 21:9 cinemascope, anamorphic film still, cinematic lighting, 8k, photorealistic, unreal engine 5 render, hyperdetailed`;
+    const charPrefix = characterPrompt.trim() ? `${characterPrompt.trim()}, ` : '';
+
+    // Prompt zenginleştirme (Hollywood film stili, 35mm anamorfik lens, gerçekçi ışık)
+    let enhancedPrompt = `${charPrefix}${rawPrompt.trim()}, award-winning cinematic 35mm film still, shot on Arri Alexa LF with Panavision anamorphic primes, 21:9 cinemascope, cinematic volumetric rim lighting, subtle film grain, color graded in DaVinci Resolve, photorealistic movie scene, 8k resolution, hyperdetailed, master cinematography`;
+    if (briefType === 'belgesel') {
+      enhancedPrompt = `${charPrefix}${rawPrompt.trim()}, National Geographic and BBC Earth documentary film still, shot on Hasselblad, natural sunlight, organic textures, photorealistic documentary cinematography, 8k resolution, atmospheric depth`;
+    } else if (briefType === 'youtube') {
+      enhancedPrompt = `${charPrefix}${rawPrompt.trim()}, high production value YouTube 4K video frame, studio lighting, crisp focus, vibrant colors, cinematic b-roll, 8k`;
+    }
+
     const encoded = encodeURIComponent(enhancedPrompt);
-    const seed = Math.floor(Math.random() * 999999);
+    let seed = Math.floor(Math.random() * 999999);
+    if (characterPrompt.trim()) {
+      let hash = 0;
+      for (let i = 0; i < characterPrompt.length; i++) {
+        hash = (hash << 5) - hash + characterPrompt.charCodeAt(i);
+        hash |= 0;
+      }
+      seed = Math.abs(hash) % 700000 + Math.floor(Math.random() * 50);
+    }
     const pollinationsUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux`;
 
     try {
@@ -46,13 +66,15 @@ export async function POST(request: Request) {
         if (buffer.length > 5000) {
           const hash = crypto.createHash('md5').update(buffer).digest('hex').slice(0, 10);
           const filename = `ai_scene_${Date.now()}_${hash}.jpg`;
-          const savePath = path.join(process.cwd(), 'public', 'generated_assets', filename);
+          const dir = path.join(process.cwd(), 'public', 'generated_assets');
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          const savePath = path.join(dir, filename);
           fs.writeFileSync(savePath, buffer);
 
           return NextResponse.json({
             success: true,
             provider: 'flux-pollinations',
-            imageUrl: `/generated_assets/${filename}`
+            imageUrl: `/api/assets/${filename}`
           });
         }
       }

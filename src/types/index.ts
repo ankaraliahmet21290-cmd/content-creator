@@ -12,6 +12,17 @@ export type AspectRatio = '21:9' | '16:9' | '9:16' | '1:1';
 
 export type VoiceGender = 'female' | 'male';
 
+export interface CharacterProfile {
+  enabled: boolean;
+  name: string;
+  gender: 'male' | 'female';
+  ageGroup: string;
+  roleArchetype: string;
+  appearance: string;
+  clothing: string;
+  consistencyPrompt: string;
+}
+
 export interface BriefForm {
   type: VideoType;
   product: string;
@@ -25,6 +36,8 @@ export interface BriefForm {
   lang: string;
   voiceGender?: VoiceGender;
   customInstructions?: string;
+  bgMusic?: string;
+  character?: CharacterProfile;
 }
 
 export interface Scene {
@@ -40,6 +53,10 @@ export interface Scene {
   imageUrl?: string;
   audioUrl?: string;
   zoomDir?: 'in' | 'out';
+  speaker?: string;
+  voiceGender?: VoiceGender;
+  characterTag?: string;
+  characterConsistent?: boolean;
 }
 
 export type VideoStatus =

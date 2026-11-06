@@ -1,4 +1,84 @@
-import { BriefForm, Preset, VideoType } from '@/types';
+import { BriefForm, Preset, VideoType, CharacterProfile } from '@/types';
+
+export const BG_MUSIC_OPTIONS = [
+  {
+    id: 'cinema_epic',
+    label: '🎬 Epik Sinema & Orkestral Fragman',
+    path: '/audio_assets/cinema_epic_trailer.wav',
+    desc: 'Dramatik yaylılar, yükselen gerilim ve sub-bass vuruşları'
+  },
+  {
+    id: 'youtube_lofi',
+    label: '🎧 Modern Upbeat & Lo-Fi Beats',
+    path: '/audio_assets/youtube_upbeat_lofi.wav',
+    desc: 'YouTube, belgesel ve vloglar için sürükleyici akustik/ritmik ton'
+  },
+  {
+    id: 'sales_corporate',
+    label: '💼 Dinamik Satış & Kurumsal Fon',
+    path: '/sales-music.wav',
+    desc: 'Ürün tanıtımı, reklam ve enerjik marka duyurusu'
+  },
+  {
+    id: 'none',
+    label: '🔇 Müziksiz (Sadece Diyalog & Seslendirme)',
+    path: '',
+    desc: 'Arka plan müziği olmadan sadece saf seslendirme'
+  }
+];
+
+export const CHARACTER_PRESETS: CharacterProfile[] = [
+  {
+    enabled: true,
+    name: 'Dedektif Kaan',
+    gender: 'male',
+    ageGroup: '30-45 Yetişkin',
+    roleArchetype: 'Dedektif & Siber Ajan',
+    appearance: 'keskin yüz hatları, kısa siyah saçlar, hafif kirli sakal, kararlı ve odaklanmış bakışlar',
+    clothing: 'koyu gri su geçirmez trençkot, yüksek yakalı siyah balıkçı kazak, taktiksel deri eldivenler',
+    consistencyPrompt: '35 years old Turkish detective man named Kaan, sharp facial features, short neat black hair, light stubble beard, focused intense eyes, wearing dark grey waterproof trenchcoat and black turtleneck sweater, highly detailed cinematic facial features, photorealistic character consistency'
+  },
+  {
+    enabled: true,
+    name: 'Dr. Aylin Demir',
+    gender: 'female',
+    ageGroup: '30-45 Yetişkin',
+    roleArchetype: 'Baş Bilim İnsanı',
+    appearance: 'topuz yapılmış kumral saçlar, zeki ve derin bakışlı ela gözler, minimalist fütüristik ince gözlük',
+    clothing: 'yüksek teknolojili beyaz laboratuvar ceketi, lacivert kumaş pantolon, yakasında dijital kimlik rozeti',
+    consistencyPrompt: '33 years old Turkish female lead scientist named Aylin, stylish hazel eyes, hair tied in elegant bun, minimal futuristic thin glasses, wearing high-tech white lab coat, clean smart expression, photorealistic character consistency'
+  },
+  {
+    enabled: true,
+    name: 'Mert Aksoy',
+    gender: 'male',
+    ageGroup: '20-29 Genç',
+    roleArchetype: 'Genç Girişimci & Teknoloji Lideri',
+    appearance: 'modern dalgalı saçlar, enerjik ve karizmatik tebessüm, atletik yapı',
+    clothing: 'antrasit bomber ceket, beyaz premium tişört, akıllı saat',
+    consistencyPrompt: '28 years old modern Turkish young entrepreneur man named Mert, wavy dark hair, confident charismatic expression, wearing charcoal bomber jacket and clean white t-shirt, cinematic key lighting, consistent face'
+  },
+  {
+    enabled: true,
+    name: 'Selim Usta',
+    gender: 'male',
+    ageGroup: '45+ Olgun',
+    roleArchetype: 'Bilge Rehber & Usta',
+    appearance: 'kırlaşmış saç ve sakal, hayat tecrübesi dolu sıcak bakışlar, kırışık bilge yüz',
+    clothing: 'toprak tonlarında yelek, keten gömlek, boynunda deri kordonlu saat',
+    consistencyPrompt: '52 years old wise Turkish mentor man named Selim, greying hair and beard, warm empathetic eyes, thoughtful expression, wearing earth-toned vest and linen shirt, highly detailed skin texture, consistent cinematic face'
+  },
+  {
+    enabled: true,
+    name: 'Leyla Kaya',
+    gender: 'female',
+    ageGroup: '25-35 Genç/Yetişkin',
+    roleArchetype: 'Gizemli Ajan & Kaşif',
+    appearance: 'omuz hizasında dalgalı koyu kahve saçlar, delici yeşil gözler, kendinden emin duruş',
+    clothing: 'siyah taktiksel deri mont, kargo pantolon, fütüristik kulaklık',
+    consistencyPrompt: '30 years old Turkish female secret operative named Leyla, wavy shoulder-length dark brown hair, piercing green eyes, athletic confident posture, wearing black tactical leather jacket and cargo pants, cinematic rim light'
+  }
+];
 
 export const TYPES: Record<VideoType, string> = {
   sinema: '🎬 Sinema Filmi & Fragman',
@@ -213,7 +293,8 @@ export const PRESETS: Preset[] = [
       dur: 30,
       ratio: '9:16',
       platform: 'Instagram Reels',
-      lang: 'tr-TR'
+      lang: 'tr-TR',
+      bgMusic: 'sales_corporate'
     }
   },
   {
@@ -228,7 +309,8 @@ export const PRESETS: Preset[] = [
       dur: 20,
       ratio: '16:9',
       platform: 'YouTube (Yatay 16:9)',
-      lang: 'tr-TR'
+      lang: 'tr-TR',
+      bgMusic: 'sales_corporate'
     }
   },
   {
@@ -243,7 +325,8 @@ export const PRESETS: Preset[] = [
       dur: 15,
       ratio: '9:16',
       platform: 'TikTok',
-      lang: 'tr-TR'
+      lang: 'tr-TR',
+      bgMusic: 'sales_corporate'
     }
   },
   {
@@ -258,7 +341,8 @@ export const PRESETS: Preset[] = [
       dur: 40,
       ratio: '9:16',
       platform: 'Instagram Reels',
-      lang: 'tr-TR'
+      lang: 'tr-TR',
+      bgMusic: 'sales_corporate'
     }
   }
 ];
@@ -275,5 +359,7 @@ export const INITIAL_FORM: BriefForm = {
   platform: 'Sinema & Film Festivali (21:9 / 16:9)',
   lang: 'tr-TR',
   voiceGender: 'male',
-  customInstructions: 'Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karakter: Dedektif Kaan. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.'
+  customInstructions: 'Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karakter: Dedektif Kaan. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.',
+  bgMusic: 'cinema_epic',
+  character: CHARACTER_PRESETS[0]
 };
