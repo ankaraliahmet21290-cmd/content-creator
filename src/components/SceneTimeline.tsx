@@ -32,20 +32,11 @@ export function SceneTimeline({
             className="scene-item"
             aria-current={idx === currentIndex}
             onClick={() => onSelectScene(idx)}
-            style={{ display: 'grid', gridTemplateColumns: '52px 85px 1fr auto', gap: 12, alignItems: 'center' }}
           >
             <div
+              className="scene-thumb"
               style={{
-                width: 52,
-                height: 34,
-                borderRadius: 6,
-                overflow: 'hidden',
-                backgroundColor: '#0f172a',
-                backgroundImage: s.imageUrl ? `url("${s.imageUrl}")` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                border: '1px solid var(--line)',
-                flexShrink: 0
+                backgroundImage: s.imageUrl ? `url("${s.imageUrl}")` : undefined
               }}
               title={s.role}
             />
@@ -53,13 +44,13 @@ export function SceneTimeline({
               <strong>{s.role}</strong>
               <span>{s.sec} sn</span>
             </div>
-            <div>
+            <div className="scene-content-preview">
               <div className="scene-text-preview">{s.text}</div>
               <div className="scene-vo-preview">🎙️ {s.vo}</div>
             </div>
             <button
               type="button"
-              className="btn sm"
+              className="btn sm scene-edit-btn"
               onClick={e => {
                 e.stopPropagation();
                 onEditScene(s);

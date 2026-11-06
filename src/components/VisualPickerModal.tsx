@@ -93,13 +93,13 @@ export function VisualPickerModal({
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="modal-ai-box-row" style={{ display: 'flex', gap: 8 }}>
             <input
               type="text"
               value={aiPrompt}
               onChange={e => setAiPrompt(e.target.value)}
               placeholder="Yapay zekâ görsel promptu (örn: siberpunk yağmurlu sokak, dedektif, neon ışıklar)..."
-              style={{ flex: 1, padding: '7px 12px', fontSize: 12.5 }}
+              style={{ flex: 1, padding: '7px 12px', fontSize: 13 }}
             />
             <button
               type="button"
@@ -114,8 +114,8 @@ export function VisualPickerModal({
         </div>
 
         {/* Filtre ve Arama Çubuğu */}
-        <div style={{ display: 'flex', gap: 10, margin: '14px 0 10px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 6 }}>
+        <div className="modal-filter-bar">
+          <div className="modal-pill-tabs">
             <button
               type="button"
               className={`btn sm ${filter === 'all' ? 'primary' : ''}`}
@@ -154,21 +154,21 @@ export function VisualPickerModal({
           </div>
           <input
             type="text"
-            placeholder="Kare ara (örn: siber, uzay, dedektif, patlama)..."
+            placeholder="Kare ara (örn: siber, uzay, patlama)..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ flex: 1, minWidth: 200, padding: '6px 12px', fontSize: 13, borderRadius: 8 }}
+            className="modal-search-input"
           />
         </div>
 
         {/* Özel URL Girişi */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <div className="modal-url-row" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <input
             type="text"
             placeholder="Veya harici bir görsel linki yapıştırın (https://...)"
             value={customUrl}
             onChange={e => setCustomUrl(e.target.value)}
-            style={{ flex: 1, padding: '7px 12px', fontSize: 12 }}
+            style={{ flex: 1, padding: '7px 12px', fontSize: 13 }}
           />
           <button
             type="button"
@@ -186,16 +186,7 @@ export function VisualPickerModal({
         </div>
 
         {/* Görsel Galerisi Grid */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-            gap: 12,
-            paddingRight: 4
-          }}
-        >
+        <div className="visual-picker-grid">
           {filteredAssets.map(asset => {
             const isSelected = currentUrl === asset.url;
             return (

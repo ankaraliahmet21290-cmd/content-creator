@@ -78,19 +78,51 @@ h1, h2, h3, h4, h5 {
 }
 
 /* Header */
-header {
+.app-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 16px 24px;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  margin-bottom: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  margin-bottom: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
+}
+
+.header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hdr-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-toggle-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.mode-toggle-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.mode-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  border-radius: 8px;
 }
 
 .brand {
@@ -111,6 +143,7 @@ header {
   font-size: 22px;
   box-shadow: 0 4px 14px var(--acc-glow);
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .brand-icon:hover {
@@ -118,7 +151,7 @@ header {
 }
 
 .brand-info h1 {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1.15;
   background: linear-gradient(135deg, var(--ink), var(--acc-light));
   -webkit-background-clip: text;
@@ -127,7 +160,7 @@ header {
 
 .brand-info p {
   margin: 2px 0 0;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--mute);
 }
 
@@ -1214,15 +1247,31 @@ input:focus, select:focus, textarea:focus {
 
 .scene-item {
   display: grid;
-  grid-template-columns: 85px 1fr auto;
+  grid-template-columns: 52px 85px 1fr auto;
   gap: 12px;
   align-items: center;
-  padding: 11px 15px;
+  padding: 10px 14px;
   border-radius: 11px;
   border: 1px solid var(--line);
   background: var(--card-sub);
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.scene-thumb {
+  width: 52px;
+  height: 34px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #0f172a;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.scene-content-preview {
+  min-width: 0;
 }
 
 .scene-item:hover {
@@ -1600,4 +1649,444 @@ input:focus, select:focus, textarea:focus {
 .documentary-pb {
   background: linear-gradient(90deg, #059669, #34d399) !important;
   box-shadow: 0 0 12px rgba(52, 211, 153, 0.8) !important;
+}
+
+/* ============================================================
+   MOBİL VE TABLET UYUMLULUK SİSTEMİ (MOBILE RESPONSIVE SYSTEM)
+   ============================================================ */
+
+/* Mobil Sekme Çubuğu (Masaüstünde Gizli) */
+.mobile-tabs {
+  display: none;
+}
+
+/* Boş Sahne / Oynatıcı Kartı */
+.stage-empty-card {
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  padding: 44px 20px;
+  text-align: center;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* Storyboard Responsive Eylemler & Grid */
+.storyboard-action-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.storyboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+
+/* Görsel Seçici Modal Responsive Elemanları */
+.modal-pill-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.modal-pill-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.modal-pill-tabs .btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.modal-filter-bar {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.modal-search-input {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.visual-picker-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  gap: 10px;
+  padding-right: 2px;
+  min-height: 220px;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+/* 1. TABLET VE KÜÇÜK EKRANLAR (max-width: 900px) */
+@media (max-width: 900px) {
+  .mobile-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 6px;
+    margin-bottom: 16px;
+    position: sticky;
+    top: 10px;
+    z-index: 60;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .mobile-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--mute);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-tab-btn:hover {
+    color: var(--ink);
+    background: var(--card-sub);
+  }
+
+  .mobile-tab-btn.active {
+    background: var(--acc);
+    color: #ffffff;
+    box-shadow: 0 2px 10px var(--acc-glow);
+  }
+
+  .mobile-tab-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+    box-shadow: 0 0 6px #10b981;
+    animation: pulseDot 1.5s infinite;
+  }
+
+  .mobile-tab-count {
+    background: rgba(255, 255, 255, 0.22);
+    padding: 1px 6px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* 2. AKILLI TELEFONLAR (max-width: 768px) */
+@media (max-width: 768px) {
+  html, body {
+    font-size: 14px;
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    padding: 10px 10px 80px;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Mobil Safari input odaklanma otomatik zoom engelleyici */
+  input, select, textarea {
+    font-size: 16px !important;
+    padding: 11px 12px;
+    border-radius: 9px;
+  }
+
+  .app-header {
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+  }
+
+  .header-top-row {
+    gap: 8px;
+  }
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+
+  .brand-info h1 {
+    font-size: 18px;
+  }
+
+  .brand-desc {
+    display: none !important;
+  }
+
+  .brand-badge {
+    font-size: 10.5px;
+    padding: 3px 8px;
+  }
+
+  .panel {
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+
+  .panel-hdr {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .panel-hdr h2 {
+    font-size: 17px;
+  }
+
+  /* Form Satırları Tek Sütun */
+  .row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .row-3 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .gender-toggle-group {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .gender-btn {
+    padding: 11px 14px;
+    font-size: 13.5px;
+  }
+
+  .format-pills {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .format-pill {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* Büyük Butonlar */
+  .btn-produce {
+    font-size: 14px;
+    padding: 13px 14px;
+    border-radius: 10px;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 12.5px;
+  }
+
+  .btn.sm {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* Player & Sahne Ekrani */
+  .screen-box {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .v5-brand-title {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+
+  .v5-scene-tag {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+  }
+
+  .v5-main-title {
+    font-size: 16px !important;
+    line-height: 1.25 !important;
+  }
+
+  .v5-sub-title {
+    font-size: 12px !important;
+  }
+
+  .v5-vo-line {
+    font-size: 11.5px !important;
+    padding: 5px 8px !important;
+  }
+
+  /* Sahne Listesi Mobil Düzeni */
+  .scenes-list {
+    max-height: 380px;
+  }
+
+  .scene-item {
+    grid-template-columns: 46px 1fr auto;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .scene-thumb {
+    width: 46px;
+    height: 32px;
+  }
+
+  .scene-role {
+    font-size: 11px;
+  }
+
+  .scene-role span {
+    display: inline;
+    margin-left: 2px;
+  }
+
+  .scene-text-preview {
+    font-size: 12.5px;
+  }
+
+  .scene-vo-preview {
+    font-size: 11px;
+  }
+
+  .scene-edit-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  /* Storyboard Mobil Kartlar */
+  .storyboard-action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .storyboard-render-btn {
+    grid-column: span 2;
+    padding: 12px !important;
+    font-size: 14px !important;
+  }
+
+  .storyboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modallar Bottom Sheet Tarzı */
+  .modal-overlay {
+    padding: 8px;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    max-height: 92vh;
+    padding: 18px 14px env(safe-area-inset-bottom, 16px);
+    width: 100%;
+  }
+
+  .modal-ai-box-row {
+    flex-direction: column;
+  }
+
+  .modal-url-row {
+    flex-direction: column;
+  }
+
+  .visual-picker-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Video Kartları Galerisi */
+  .v-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .v-acts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .v-acts button {
+    justify-content: center;
+  }
+}
+
+/* 3. ÇOK DAR EKRANLAR (max-width: 440px) */
+@media (max-width: 440px) {
+  .format-pills {
+    grid-template-columns: 1fr;
+  }
+
+  .types-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hdr-btn-text {
+    display: none;
+  }
+
+  .hdr-act-btn {
+    padding: 6px 10px;
+  }
+
+  .mobile-tab-btn {
+    font-size: 12px;
+    padding: 8px 4px;
+  }
+
+  .storyboard-action-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .storyboard-render-btn {
+    grid-column: span 1;
+  }
 }

@@ -188,7 +188,7 @@ export function StoryboardDesigner({
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="storyboard-action-bar" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             type="button"
             className="btn sm"
@@ -232,7 +232,7 @@ export function StoryboardDesigner({
           </button>
           <button
             type="button"
-            className="btn primary"
+            className="btn primary storyboard-render-btn"
             onClick={() => onConfirmAndRender(scenes)}
             disabled={isRendering || scenes.length === 0}
             style={{
@@ -247,13 +247,7 @@ export function StoryboardDesigner({
       </div>
 
       {/* Storyboard Sahne Kartları Grid / Akışı */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: 16
-        }}
-      >
+      <div className="storyboard-grid">
         {scenes.map((scene, idx) => (
           <div
             key={scene.id || idx}

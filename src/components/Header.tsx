@@ -58,24 +58,45 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
   };
 
   return (
-    <header>
-      <div className="brand">
-        <div className="brand-icon" aria-hidden="true">🎬</div>
-        <div className="brand-info">
-          <h1>Klaket Stüdyosu</h1>
-          <p>{getSubDesc()}</p>
+    <header className="app-header">
+      <div className="header-top-row">
+        <div className="brand">
+          <div className="brand-icon" aria-hidden="true">🎬</div>
+          <div className="brand-info">
+            <h1>Klaket Stüdyosu</h1>
+            <p className="brand-desc">{getSubDesc()}</p>
+          </div>
+          <span className={`badge ${getBadgeClass()} brand-badge`}>
+            {getBadgeText()}
+          </span>
         </div>
-        <span className={`badge ${getBadgeClass()}`}>
-          {getBadgeText()}
-        </span>
+
+        <div className="hdr-actions">
+          <button
+            type="button"
+            className="btn sm hdr-act-btn"
+            onClick={onOpenSettings}
+            title="Sağlayıcı ve API Yapılandırması"
+          >
+            ⚙️ <span className="hdr-btn-text">Ayarlar</span>
+          </button>
+          <button
+            type="button"
+            className="btn sm hdr-act-btn"
+            onClick={onToggleTheme}
+            title="Temayı Değiştir"
+          >
+            {theme === 'light' ? '🌙' : '☀️'} <span className="hdr-btn-text">{theme === 'light' ? 'Koyu' : 'Açık'}</span>
+          </button>
+        </div>
       </div>
 
-      <div className="hdr-acts">
-        {/* Mod Değiştirici Buton Grubu */}
+      {/* Mod Değiştirici Buton Grubu */}
+      <div className="mode-toggle-wrap">
         <div className="mode-toggle-group" role="group" aria-label="Çalışma Modu">
           <button
             type="button"
-            className={`btn sm ${mode === 'sinema' ? 'primary btn-cinema-mode' : ''}`}
+            className={`btn sm mode-btn ${mode === 'sinema' ? 'primary btn-cinema-mode active-mode' : ''}`}
             onClick={() => onToggleMode('sinema')}
             title="Sinema Filmi ve Fragman Modu (21:9 Cinemascope)"
           >
@@ -83,7 +104,7 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
           </button>
           <button
             type="button"
-            className={`btn sm ${mode === 'belgesel' ? 'primary btn-documentary-mode' : ''}`}
+            className={`btn sm mode-btn ${mode === 'belgesel' ? 'primary btn-documentary-mode active-mode' : ''}`}
             onClick={() => onToggleMode('belgesel')}
             title="Sinematik Belgesel Modu (BBC / NatGeo / TRT Belgesel)"
           >
@@ -91,7 +112,7 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
           </button>
           <button
             type="button"
-            className={`btn sm ${mode === 'youtube' ? 'primary btn-youtube-mode' : ''}`}
+            className={`btn sm mode-btn ${mode === 'youtube' ? 'primary btn-youtube-mode active-mode' : ''}`}
             onClick={() => onToggleMode('youtube')}
             title="YouTube Video Modu (16:9 Full HD)"
           >
@@ -99,7 +120,7 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
           </button>
           <button
             type="button"
-            className={`btn sm ${mode === 'reklam' ? 'primary' : ''}`}
+            className={`btn sm mode-btn ${mode === 'reklam' ? 'primary active-mode' : ''}`}
             onClick={() => onToggleMode('reklam')}
             title="Ticari Reklam ve Tanıtım Modu"
           >
@@ -107,30 +128,13 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
           </button>
           <button
             type="button"
-            className={`btn sm ${mode === 'classic' ? 'primary' : ''}`}
+            className={`btn sm mode-btn ${mode === 'classic' ? 'primary active-mode' : ''}`}
             onClick={() => onToggleMode('classic')}
             title="Eski / Klasik şablon modu"
           >
             ⚡ Klasik Mod
           </button>
         </div>
-
-        <button
-          type="button"
-          className="btn sm"
-          onClick={onOpenSettings}
-          title="Sağlayıcı ve API Yapılandırması"
-        >
-          ⚙️ Ayarlar
-        </button>
-        <button
-          type="button"
-          className="btn sm"
-          onClick={onToggleTheme}
-          title="Temayı Değiştir"
-        >
-          {theme === 'light' ? '🌙 Koyu Mod' : '☀️ Beyaz Mod'}
-        </button>
       </div>
     </header>
   );

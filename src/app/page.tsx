@@ -22,6 +22,7 @@ export default function StudioPage() {
   const [theme, setTheme] = useState<'dark' | 'light'>('light');
   const [showSettings, setShowSettings] = useState(false);
   const [activeLogModal, setActiveLogModal] = useState<VideoItem | null>(null);
+  const [mobileTab, setMobileTab] = useState<'brief' | 'stage' | 'videos'>('brief');
 
   // Sayfa ilk yüklendiğinde LocalStorage'dan videoları, temayı ve modu çek
   useEffect(() => {
@@ -322,6 +323,7 @@ export default function StudioPage() {
       return;
     }
     setFormError('');
+    setMobileTab('stage');
     produceVideo({ ...form, product: form.product.trim() }, mode);
   }, [form, mode, produceVideo]);
 
@@ -336,6 +338,7 @@ export default function StudioPage() {
       return;
     }
     setFormError('');
+    setMobileTab('stage');
     produceStoryboard({ ...form, product: form.product.trim() }, mode);
   }, [form, mode, produceStoryboard]);
 
@@ -375,78 +378,152 @@ export default function StudioPage() {
         onOpenSettings={() => setShowSettings(true)}
       />
 
+      {/* Mobil Tab Çubuğu (Yalnızca Tablet / Telefonda Görünür) */}
+      <nav className="mobile-tabs" role="tablist" aria-label="Mobil Sayfa Sekmeleri">
+        <button
+          type="button"
+          className={`mobile-tab-btn ${mobileTab === 'brief' ? 'active' : ''}`}
+          onClick={() => setMobileTab('brief')}
+          role="tab"
+          aria-selected={mobileTab === 'brief'}
+        >
+          <span>✍️ Brief & Oluştur</span>
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${mobileTab === 'stage' ? 'active' : ''}`}
+          onClick={() => setMobileTab('stage')}
+          role="tab"
+          aria-selected={mobileTab === 'stage'}
+        >
+          <span>🎬 Sahne & Oynatıcı</span>
+          {(isStoryboardActive || isPlayerActive || isProducing) && (
+            <span className="mobile-tab-badge-dot" title="Aktif Video / Sahne Mevcut" />
+          )}
+        </button>
+        <button
+          type="button"
+          className={`mobile-tab-btn ${mobileTab === 'videos' ? 'active' : ''}`}
+          onClick={() => setMobileTab('videos')}
+          role="tab"
+          aria-selected={mobileTab === 'videos'}
+        >
+          <span>📁 Videolar</span>
+          {videos.length > 0 && (
+            <span className="mobile-tab-count">{videos.length}</span>
+          )}
+        </button>
+      </nav>
+
       <div className="grid">
         {/* Sol Panel: Video Brief Formu */}
-        <BriefForm
-          form={form}
-          mode={mode}
-          isProducing={isProducing}
-          formError={formError}
-          onUpdateField={updateFormField}
-          onSelectPreset={handleSelectPreset}
-          onSubmit={handleSubmit}
-          onSubmitStoryboard={handleSubmitStoryboard}
-        />
+        <div className={`col-brief ${mobileTab !== 'brief' ? 'mobile-hidden' : ''}`}>
+          <BriefForm
+            form={form}
+            mode={mode}
+            isProducing={isProducing}
+            formError={formError}
+            onUpdateField={updateFormField}
+            onSelectPreset={handleSelectPreset}
+            onSubmit={handleSubmit}
+            onSubmitStoryboard={handleSubmitStoryboard}
+          />
+        </div>
 
         {/* Sağ Panel: Aktif Video Oynatıcısı, Storyboard Tasarımcısı & Video Listesi */}
-        <main>
-          {isStoryboardActive && activeVideo ? (
-            <StoryboardDesigner
-              video={activeVideo}
-              onUpdateScenes={s => handleUpdateStoryboardScenes(activeVideo.id, s)}
-              onConfirmAndRender={s => finalizeStoryboardRender(activeVideo.id, s)}
-              onCancel={() => setSelectedId(null)}
-              isRendering={isProducing}
-            />
-          ) : isPlayerActive && activeVideo ? (
-            <section className="panel" style={{ marginBottom: 20 }}>
-              <div className="panel-hdr">
-                <div>
-                  <h2>{activeVideo.title}</h2>
-                  <div style={{ fontSize: 12, color: 'var(--mute)', marginTop: 2 }}>
-                    {`${activeVideo.platform} · ${activeVideo.ratio} · ${activeVideo.dur} sn · ${activeVideo.tone} · ${activeVideo.lang}`}
+        <main className="col-main">
+          {/* Sahne / Storyboard / Oynatıcı Alanı */}
+          <div className={`stage-wrapper ${mobileTab !== 'stage' ? 'mobile-hidden' : ''}`}>
+            {isStoryboardActive && activeVideo ? (
+              <StoryboardDesigner
+                video={activeVideo}
+                onUpdateScenes={s => handleUpdateStoryboardScenes(activeVideo.id, s)}
+                onConfirmAndRender={s => finalizeStoryboardRender(activeVideo.id, s)}
+                onCancel={() => setSelectedId(null)}
+                isRendering={isProducing}
+              />
+            ) : isPlayerActive && activeVideo ? (
+              <section className="panel" style={{ marginBottom: 20 }}>
+                <div className="panel-hdr">
+                  <div>
+                    <h2>{activeVideo.title}</h2>
+                    <div style={{ fontSize: 12, color: 'var(--mute)', marginTop: 2 }}>
+                      {`${activeVideo.platform} · ${activeVideo.ratio} · ${activeVideo.dur} sn · ${activeVideo.tone} · ${activeVideo.lang}`}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      className="btn sm"
+                      onClick={() => setActiveLogModal(activeVideo)}
+                    >
+                      📋 İşlem Kaydı (Logs)
+                    </button>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
+
+                <Player
+                  video={activeVideo}
+                  onUpdateScene={handleUpdateScene}
+                />
+              </section>
+            ) : (
+              <div className="stage-empty-card">
+                <div style={{ fontSize: 44, marginBottom: 10 }}>🎬</div>
+                <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Şu Anda Aktif Sahne veya Oynatıcı Yok</h3>
+                <p style={{ margin: '0 0 16px', fontSize: 13.5, color: 'var(--mute)', maxWidth: 400 }}>
+                  Yeni bir sinema filmi, belgesel veya YouTube videosu üretmek için brief formunu doldurun veya kayıtlı videolardan birini seçin.
+                </p>
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    className="btn sm"
-                    onClick={() => setActiveLogModal(activeVideo)}
+                    className="btn primary"
+                    onClick={() => setMobileTab('brief')}
                   >
-                    📋 İşlem Kaydı (Logs)
+                    ✍️ Brief Formuna Git
                   </button>
+                  {videos.length > 0 && (
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => setMobileTab('videos')}
+                    >
+                      📁 Kayıtlı Videoları Gör ({videos.length})
+                    </button>
+                  )}
                 </div>
               </div>
-
-              <Player
-                video={activeVideo}
-                onUpdateScene={handleUpdateScene}
-              />
-            </section>
-          ) : null}
+            )}
+          </div>
 
           {/* Üretilen Videolar Galerisi */}
-          <VideoGrid
-            videos={videos}
-            onPreview={v => {
-              setSelectedId(v.id);
-              if (typeof window !== 'undefined') {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-            }}
-            onReProduce={v => produceVideo({ ...v }, v.mode || mode)}
-            onOpenLogs={v => setActiveLogModal(v)}
-            onDelete={id => {
-              setVideos(list => list.filter(item => item.id !== id));
-              if (selectedId === id) setSelectedId(null);
-            }}
-            onClearAll={() => {
-              if (confirm('Tüm video geçmişi temizlensin mi?')) {
-                setVideos([]);
-                setSelectedId(null);
-              }
-            }}
-          />
+          <div className={`videos-wrapper ${mobileTab !== 'videos' ? 'mobile-hidden' : ''}`}>
+            <VideoGrid
+              videos={videos}
+              onPreview={v => {
+                setSelectedId(v.id);
+                setMobileTab('stage');
+                if (typeof window !== 'undefined') {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
+              onReProduce={v => {
+                produceVideo({ ...v }, v.mode || mode);
+                setMobileTab('stage');
+              }}
+              onOpenLogs={v => setActiveLogModal(v)}
+              onDelete={id => {
+                setVideos(list => list.filter(item => item.id !== id));
+                if (selectedId === id) setSelectedId(null);
+              }}
+              onClearAll={() => {
+                if (confirm('Tüm video geçmişi temizlensin mi?')) {
+                  setVideos([]);
+                  setSelectedId(null);
+                }
+              }}
+            />
+          </div>
         </main>
       </div>
 
