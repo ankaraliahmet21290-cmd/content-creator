@@ -402,6 +402,10 @@ Aşağıdaki brief bilgilerine göre tam ${n} sahnelik SİNEMATİK bir ticari re
 
 BRIEF VE KULLANICI TALİMATI:
 - Ürün / Marka / Konu: "${brief.product}"
+${brief.audience ? `- Hedef Kitle: "${brief.audience}"` : ''}
+${brief.points ? `- Öne Çıkan Satış Avantajları (USP) / Kilit Özellikler: "${brief.points}"` : ''}
+${brief.cta ? `- Harekete Geçirici Mesaj (CTA): "${brief.cta}"` : ''}
+- Anlatım Tonu: "${brief.tone || 'Enerjik'}"
 ${brief.customInstructions ? `- ÖZEL REKLAM TALİMATI & İSTEKLER: "${brief.customInstructions}"` : ''}
 - Toplam Süre: ${brief.dur} saniye
 - En-Boy Oranı: ${brief.ratio}

@@ -101,6 +101,11 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
     }
   }
 
+  // 15. & 20. Adım: Sinematik Sahne Geçiş Ses Efekti (Foley & SFX Impact)
+  const sfxBuffer = (audioCtx && isCinema)
+    ? await loadAudioBuffer(audioCtx, '/audio_assets/cinema_sfx_impact.wav')
+    : null;
+
   const canvasStream = canvas.captureStream(30);
   const combinedTracks: MediaStreamTrack[] = [...canvasStream.getVideoTracks()];
   if (audioDest) {
@@ -153,7 +158,18 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
           const sc = video.scenes[idx];
           const img = sceneImages[idx];
 
-          // TTS sesini mikse dahil et
+          // 15. Adım: Sahne Geçiş Ses Efektini Mikse Dahil Et
+          if (idx > 0 && sfxBuffer && audioCtx && audioDest) {
+            const sfxSrc = audioCtx.createBufferSource();
+            sfxSrc.buffer = sfxBuffer;
+            const sfxGain = audioCtx.createGain();
+            sfxGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+            sfxSrc.connect(sfxGain);
+            sfxGain.connect(audioDest);
+            sfxSrc.start();
+          }
+
+          // 12. Adım: TTS sesini mikse dahil et
           if (sc.audioUrl && audioCtx && audioDest) {
             const voBuf = await loadAudioBuffer(audioCtx, sc.audioUrl);
             if (voBuf) {
@@ -249,6 +265,45 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
               ctx.fillRect(0, h - 8, w * totalProgress, 8);
             }
 
+            // 18. Adım: Sinematik Vignette & Derinlik Katmanı
+            const vignette = ctx.createRadialGradient(w / 2, h / 2, h * 0.35, w / 2, h / 2, Math.max(w, h) * 0.65);
+            vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            vignette.addColorStop(1, 'rgba(0, 0, 0, 0.55)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, w, h);
+
+            // 19. Adım: Açılış Jeneriği (Opening Title Card)
+            if (isCinema && idx === 0 && progress < 0.22) {
+              const introAlpha = Math.sin((progress / 0.22) * Math.PI);
+              ctx.save();
+              ctx.globalAlpha = introAlpha;
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+              ctx.fillRect(0, 0, w, h);
+              ctx.fillStyle = '#ffffff';
+              ctx.textAlign = 'center';
+              ctx.font = '600 36px "Segoe UI", sans-serif';
+              ctx.shadowColor = '#38bdf8';
+              ctx.shadowBlur = 12;
+              ctx.fillText('🎬 KLAKET AI STUDIOS SUNAR', w / 2, h / 2);
+              ctx.restore();
+            }
+
+            // 19. Adım: Kapanış Jeneriği & Künye
+            if (isCinema && idx === video.scenes.length - 1 && progress > 0.6) {
+              const creditAlpha = Math.min(1, (progress - 0.6) / 0.3);
+              ctx.save();
+              ctx.globalAlpha = creditAlpha * 0.85;
+              ctx.fillStyle = '#94a3b8';
+              ctx.font = '500 22px "Segoe UI", sans-serif';
+              ctx.textAlign = 'right';
+              ctx.fillText(
+                `YÖNETMEN: AI STUDIO • ${video.character?.enabled ? `BAŞROL: ${video.character.name.toUpperCase()}` : 'KLAKET SOP'}`,
+                w - 80,
+                75
+              );
+              ctx.restore();
+            }
+
             ctx.restore();
             await sleep(30);
           }
@@ -269,4 +324,166 @@ export function downloadVideoJson(video: VideoItem): void {
   dlAnchor.setAttribute('href', dataStr);
   dlAnchor.setAttribute('download', `${video.product.replace(/\s+/g, '_')}_senaryo.json`);
   dlAnchor.click();
+}
+
+/**
+ * 23. Adım: Hollywood standardında dikey (2:3) resmi film afişi üretir ve indirir.
+ */
+export async function exportFilmPoster(video: VideoItem): Promise<void> {
+  const posterW = 1200;
+  const posterH = 1800;
+  const canvas = document.createElement('canvas');
+  canvas.width = posterW;
+  canvas.height = posterH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const heroImageSrc = video.scenes[0]?.imageUrl || video.scenes[1]?.imageUrl;
+  const heroImg = await loadImage(heroImageSrc);
+
+  if (heroImg) {
+    const scale = Math.max(posterW / heroImg.width, posterH / heroImg.height);
+    const sw = heroImg.width * scale;
+    const sh = heroImg.height * scale;
+    const sx = (posterW - sw) / 2;
+    const sy = (posterH - sh) / 2;
+    ctx.drawImage(heroImg, sx, sy, sw, sh);
+  } else {
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, posterH);
+    bgGrad.addColorStop(0, '#090d16');
+    bgGrad.addColorStop(1, '#020408');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, posterW, posterH);
+  }
+
+  // Sinematik karartma ve vignette
+  const vig = ctx.createLinearGradient(0, 0, 0, posterH);
+  vig.addColorStop(0, 'rgba(0,0,0,0.7)');
+  vig.addColorStop(0.2, 'rgba(0,0,0,0.15)');
+  vig.addColorStop(0.65, 'rgba(0,0,0,0.35)');
+  vig.addColorStop(0.85, 'rgba(0,0,0,0.92)');
+  vig.addColorStop(1, '#000000');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, posterW, posterH);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = '600 24px "Segoe UI", sans-serif';
+  ctx.fillText('KLAKET AI STUDIOS SUNAR', posterW / 2, 90);
+
+  if (video.character?.enabled) {
+    ctx.font = '700 28px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#fde047';
+    ctx.fillText(video.character.name.toUpperCase(), posterW / 2, 140);
+    ctx.font = '500 18px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(video.character.roleArchetype.toUpperCase(), posterW / 2, 175);
+  }
+
+  const tagline = video.scenes[0]?.subtitle || video.points.split('\n')[0] || 'KADERİNİ YENİDEN YAZACAK';
+  ctx.font = 'italic 600 32px "Georgia", serif';
+  ctx.fillStyle = '#e2e8f0';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)';
+  ctx.shadowBlur = 10;
+  ctx.fillText(`"${tagline.replace(/^"|"$/g, '')}"`, posterW / 2, posterH - 460);
+
+  // Devasa Film Başlığı
+  ctx.font = '900 84px "Georgia", "Segoe UI", serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = '#38bdf8';
+  ctx.shadowBlur = 24;
+  ctx.fillText(video.product.toUpperCase(), posterW / 2, posterH - 350);
+
+  ctx.shadowBlur = 0;
+  ctx.font = '700 36px "Segoe UI", sans-serif';
+  ctx.fillStyle = '#facc15';
+  ctx.fillText((video.cta || 'ÇOK YAKINDA SİNEMALARDA VE DİJİTAL PLATFORMLARDA').toUpperCase(), posterW / 2, posterH - 260);
+
+  // Hollywood Billing Block (Sinema Künyesi)
+  ctx.font = '400 15px "Segoe UI", monospace';
+  ctx.fillStyle = '#64748b';
+  const billingLine1 = 'KLAKET PICTURES PRESENTS AN ARTIFICIAL INTELLIGENCE PRODUCTION • DIRECTED BY GEMINI 2.5 FLASH';
+  const billingLine2 = `STARRING ${video.character?.enabled ? video.character.name.toUpperCase() : 'AI ENSEMBLE'} • CINEMATOGRAPHY BY FLUX AI • MUSIC BY KLAKET SOUND DESIGN`;
+  const billingLine3 = 'ORIGINAL SCREENPLAY GENERATED WITH 24-STEP SOP PIPELINE • DOLBY CINEMA • IMAX';
+  ctx.fillText(billingLine1, posterW / 2, posterH - 150);
+  ctx.fillText(billingLine2, posterW / 2, posterH - 120);
+  ctx.fillText(billingLine3, posterW / 2, posterH - 90);
+
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${video.product.replace(/\s+/g, '_')}_Resmi_Film_Afisi.jpg`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/jpeg', 0.95);
+}
+
+/**
+ * 24. Adım: YouTube, Sosyal Medya ve Dağıtım Paketini (.md) indirir.
+ */
+export function downloadDistributionPackage(video: VideoItem): void {
+  const content = `# 🎬 Dağıtım & Yayın Paketi: ${video.product}
+
+## 📋 Genel Yapım Bilgileri
+- **Film / Yapım Adı:** ${video.product}
+- **Yapım Türü:** ${video.type.toUpperCase()}
+- **En-Boy Oranı:** ${video.ratio}
+- **Toplam Süre:** ${video.dur} saniye (${video.scenes.length} Sahne)
+- **Ses Dili:** ${video.lang || 'tr-TR'}
+- **Hedef Kitle:** ${video.audience || 'Genel İzleyici'}
+- **Anlatım Tonu:** ${video.tone}
+
+---
+
+## 🎭 Oyuncu Kadrosu & Karakterler
+${video.character?.enabled ? `
+- **Başrol:** ${video.character.name} (${video.character.gender === 'female' ? 'Kadın' : 'Erkek'})
+- **Rol / Arketip:** ${video.character.roleArchetype}
+- **Görünüm & Kostüm:** ${video.character.appearance} • ${video.character.clothing}
+` : '- Çoklu AI Anlatıcı Kadrosu (Puck & Kore)'}
+
+---
+
+## 📺 YouTube Yayın Metni
+**Başlık:**
+${video.product} | Resmi Sinematik Fragman (4K)
+
+**Açıklama:**
+${video.product} çok yakında izleyiciyle buluşuyor!
+
+📌 **Konu & Özet:**
+${video.points}
+
+🎬 **Vizyon:** ${video.cta || 'Çok yakında sinemalarda ve dijital platformlarda.'}
+
+---
+
+## 📱 Sosyal Medya (Instagram Reels / TikTok / YouTube Shorts)
+**Metin / Caption:**
+🔥 ${video.product} için ilk resmi tanıtım yayında! Sizce hikayenin sonunda ne olacak? Yorumlarda buluşalım 👇
+#sinema #yapayzeka #film #fragman #${video.product.toLowerCase().replace(/[^a-z0-9]/g, '')} #klaket
+
+---
+
+## 📜 Sahne ve Replik Dökümü (Screenplay)
+${video.scenes.map(s => `### Sahne ${s.id}: ${s.role} (${s.sec}s)
+- **Konuşmacı:** ${s.speaker || (s.voiceGender === 'female' ? 'Kadın Ses' : 'Erkek Ses')}
+- **Diyalog (VO):** "${s.vo}"
+- **Altyazı:** ${s.subtitle || '-'}
+- **Görsel Yönergesi:** ${s.visual}
+`).join('\n')}
+
+---
+*Bu yapım paketi Klaket Studio 24 Adımlı Film Üretim Boru Hattı ile otomatik üretilmiştir.*
+`;
+
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${video.product.replace(/\s+/g, '_')}_Yayin_Dagitim_Paketi.md`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

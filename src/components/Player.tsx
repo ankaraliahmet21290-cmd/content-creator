@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Scene, VideoItem } from '@/types';
 import { RATIOS } from '@/lib/constants';
 import { audioMgr } from '@/lib/audio';
-import { exportVideoFile, downloadVideoJson } from '@/lib/exportVideo';
+import { exportVideoFile, downloadVideoJson, exportFilmPoster, downloadDistributionPackage } from '@/lib/exportVideo';
 import { SceneTimeline } from './SceneTimeline';
 import { SceneEditModal } from './SceneEditModal';
 
@@ -21,6 +21,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const [isBGMActive, setIsBGMActive] = useState(true);
   const [editScene, setEditScene] = useState<Scene | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isPosterLoading, setIsPosterLoading] = useState(false);
 
   const scenes = video.scenes;
   const curScene = scenes[curIndex] || scenes[0];
@@ -31,6 +32,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const isAi = video.mode !== 'classic';
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurIndex(0);
     setProgress(0);
     setIsPlaying(false);
@@ -265,6 +267,42 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               onClick={() => downloadVideoJson(video)}
             >
               📄 Senaryo İndir (.json)
+            </button>
+            <button
+              type="button"
+              className="btn sm"
+              disabled={isPosterLoading}
+              onClick={async () => {
+                setIsPosterLoading(true);
+                try {
+                  await exportFilmPoster(video);
+                } finally {
+                  setIsPosterLoading(false);
+                }
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: 600
+              }}
+              title="23. Adım: 1200x1800 Sinema Afişi (Poster) Oluştur ve İndir"
+            >
+              {isPosterLoading ? '⏳ Afiş Hazırlanıyor...' : '🖼️ 23. Adım: Film Afişi İndir'}
+            </button>
+            <button
+              type="button"
+              className="btn sm"
+              onClick={() => downloadDistributionPackage(video)}
+              style={{
+                background: 'rgba(56, 189, 248, 0.15)',
+                color: '#38bdf8',
+                border: '1px solid rgba(56, 189, 248, 0.35)',
+                fontWeight: 600
+              }}
+              title="24. Adım: YouTube, Sosyal Medya ve Festival Dağıtım Paketini İndir"
+            >
+              📢 24. Adım: Dağıtım Paketi
             </button>
           </div>
         </div>

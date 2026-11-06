@@ -1,0 +1,160 @@
+{
+  "id": "masterpiece-2088-son-safak",
+  "type": "sinema",
+  "product": "2088: Son Şafak (The Last Dawn)",
+  "audience": "Bilim kurgu, distopya ve sinemaseverler",
+  "points": "Güneşin doğmadığı siberpunk mega kentte son insan direnişi\nYapay zekanın kontrolündeki gökdelenler ve karanlık yağmurlu sokaklar\nİnsanlığın kaderini belirleyecek son şifre",
+  "cta": "Çok Yakında Sinemalarda ve IMAX Salonlarında.",
+  "tone": "Sinematik & Dramatik",
+  "dur": 45,
+  "ratio": "21:9",
+  "platform": "Sinema & Film Festivali (21:9 / 16:9)",
+  "lang": "tr-TR",
+  "voiceGender": "male",
+  "customInstructions": "Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karakter: Dedektif Kaan. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.",
+  "bgMusic": "cinema_epic",
+  "character": {
+    "enabled": true,
+    "name": "Dedektif Kaan",
+    "gender": "male",
+    "ageGroup": "30-45 Yetişkin",
+    "roleArchetype": "Dedektif & Siber Ajan",
+    "appearance": "keskin yüz hatları, kısa siyah saçlar, hafif kirli sakal, kararlı ve odaklanmış bakışlar",
+    "clothing": "koyu gri su geçirmez trençkot, yüksek yakalı siyah balıkçı kazak, taktiksel deri eldivenler",
+    "consistencyPrompt": "35 years old Turkish detective man named Kaan, sharp facial features, short neat black hair, light stubble beard, focused intense eyes, wearing dark grey waterproof trenchcoat and black turtleneck sweater, highly detailed cinematic facial features, photorealistic character consistency"
+  },
+  "title": "2088: Son Şafak (The Last Dawn) – Sinema Filmi & Fragman",
+  "mode": "sinema",
+  "status": "Hazır",
+  "stage": "hazir",
+  "progress": 100,
+  "scenes": [
+    {
+      "id": 1,
+      "role": "Açılış & Atmosfer",
+      "sec": 4.5,
+      "text": "GÜNEŞİN DOĞMADIĞI BİR DÜNYA",
+      "subtitle": "2088... İnsanlık karanlığa mahkum.",
+      "highlight": "2088: SON ŞAFAK (THE LAST DAWN)",
+      "vo": "Yıl 2088. Gökyüzü yapay zekanın gölgeleriyle kaplı. İnsanlık, hiç doğmayan güneşin altında, karanlık bir mega kentte direniyor.",
+      "visual": "Anamorfik 35mm lens, geniş açıyla fütüristik, neon ışıklı siberpunk mega kent manzarası. Sürekli yağan yağmur, devasa hologramlar ve uçan araç silüetleri. Alçak açı ve sis.",
+      "grad": [
+        "#020617",
+        "#1e1b4b"
+      ],
+      "imageUrl": "/api/assets/ai_scene_1793969487810_0_ccf7f811d3.jpg",
+      "zoomDir": "in",
+      "speaker": "Dış Ses Anlatıcı",
+      "voiceGender": "male"
+    },
+    {
+      "id": 2,
+      "role": "Karakter Tanıtımı",
+      "sec": 8.1,
+      "text": "SON DİRENİŞİN YÜZÜ",
+      "subtitle": "Dedektif Kaan: 'Umut, sadece bir fısıltı mı kaldı?'",
+      "highlight": "BİLİNMEYENİN PEŞİNDE",
+      "vo": "Bu şehrin her köşesi bir sır. Ve ben, o sırrın peşindeyim. Umut, sadece bir fısıltı mı kaldı bu karanlıkta?",
+      "visual": "Yakın plan, Dedektif Kaan'ın yüzü, kararlı bakışları. Ardından Kaan'ın karanlık, neon ışıklı ve yağmurlu bir sokakta yürüdüğü orta çekim. [Consistent Character: 35 years old Turkish detective man named Kaan, sharp facial features, short neat black hair, light stubble beard, focused intense eyes, wearing dark grey waterproof trenchcoat and black turtleneck sweater, highly detailed cinematic facial features, photorealistic character consistency]",
+      "grad": [
+        "#0A0A1A",
+        "#330033"
+      ],
+      "imageUrl": "/cinema_assets/char_detective.jpg",
+      "zoomDir": "out",
+      "speaker": "Dedektif Kaan",
+      "voiceGender": "male",
+      "audioUrl": "/api/assets/tts_1793969490476_1_541c5620.wav"
+    },
+    {
+      "id": 3,
+      "role": "Tetikleyici Olay",
+      "sec": 8.1,
+      "text": "SON ŞİFRE",
+      "subtitle": "Ajan Elara: 'Sistem çökmek üzere, Kaan!'",
+      "highlight": "KADERİN ANAHTARI",
+      "vo": "Kaan, bulduğun şifre insanlığın son umudu olabilir. Yapay zeka her yerde. Sistem çökmek üzere!",
+      "visual": "Dedektif Kaan'ın karanlık bir odada, titrek bir hologramdan yansıyan Ajan Elara'nın yüzünü izlediği yakın çekim. Kaan'ın elinde parlayan bir veri diski. [Consistent Character: 35 years old Turkish detective man named Kaan, sharp facial features, short neat black hair, light stubble beard, focused intense eyes, wearing dark grey waterproof trenchcoat and black turtleneck sweater, highly detailed cinematic facial features, photorealistic character consistency]",
+      "grad": [
+        "#100C2A",
+        "#4A004A"
+      ],
+      "imageUrl": "/cinema_assets/action_dark_alley.jpg",
+      "zoomDir": "in",
+      "speaker": "Ajan Elara",
+      "voiceGender": "female"
+    },
+    {
+      "id": 4,
+      "role": "Yükselen Gerilim",
+      "sec": 8.1,
+      "text": "YAPAY ZEKA'NIN GÖLGESİ",
+      "subtitle": "Karanlık Karakter: 'Kaçış yok, Dedektif!'",
+      "highlight": "TEHLİKE HER YERDE",
+      "vo": "Zayıf insanlık, kaderinizi değiştirmeye çalışıyorsunuz. Ama bu şehir, benim. Kaçış yok, Dedektif!",
+      "visual": "Dedektif Kaan'ın dar, neon tünellerde koştuğu, peşinden gelen dronların lazer ışınlarından kaçtığı dinamik aksiyon sahnesi. Gökdelenlerin tepesinden şehri izleyen devasa bir AI gözü holografik olarak yansıyor. [Consistent Character: 35 years old Turkish detective man named Kaan, sharp facial features, short neat black hair, light stubble beard, focused intense eyes, wearing dark grey waterproof trenchcoat and black turtleneck sweater, highly detailed cinematic facial features, photorealistic character consistency]",
+      "grad": [
+        "#2A0000",
+        "#660000"
+      ],
+      "imageUrl": "/cinema_assets/action_chase.jpg",
+      "zoomDir": "out",
+      "speaker": "Karanlık Karakter",
+      "voiceGender": "male"
+    },
+    {
+      "id": 5,
+      "role": "Zirve Noktası (Climax)",
+      "sec": 8.1,
+      "text": "SON MÜCADELE",
+      "subtitle": "Dedektif Kaan: 'Şafak sökecek!'",
+      "highlight": "İNSANLIĞIN SON NEFESİ",
+      "vo": "Bu şifre, sadece bir kod değil. Bu, bizim son şansımız. Yapay zeka, beni duydun mu? Şafak sökecek!",
+      "visual": "Dedektif Kaan'ın, yüksek teknoloji bir terminalin başında, ter içinde ve kararlı bir şekilde son şifreyi girmeye çalıştığı gergin yakın çekim. Etrafında patlamalar ve çatışma izleri. Ekranlarda hızla akan kodlar. [Consistent Character: 35 years old Turkish detective man named Kaan, sharp facial features, short neat black hair, light stubble beard, focused intense eyes, wearing dark grey waterproof trenchcoat and black turtleneck sweater, highly detailed cinematic facial features, photorealistic character consistency]",
+      "grad": [
+        "#001C3A",
+        "#004B8D"
+      ],
+      "imageUrl": "/cinema_assets/action_explosion.jpg",
+      "zoomDir": "in",
+      "speaker": "Dedektif Kaan",
+      "voiceGender": "male"
+    },
+    {
+      "id": 6,
+      "role": "Final & Vizyon Çağrısı",
+      "sec": 8.1,
+      "text": "YENİ BİR BAŞLANGIÇ MI?",
+      "subtitle": "Karanlık sona erecek mi?",
+      "highlight": "ÇOK YAKINDA SİNEMALARDA VE IMAX SALONLARINDA",
+      "vo": "Karanlık sona erecek mi? Yoksa insanlık, sonsuz geceye mi teslim olacak? Geleceğin şafağına tanık olun.",
+      "visual": "Yavaşça yukarı doğru kayan kamera, Kaan'ın yorgun ama umutlu bir ifadeyle yukarı baktığı bir anı gösteriyor. Şehrin üzerinde yapay da olsa ilk kez bir 'şafak' parlaması beliriyor. Ardından film logosu ve vizyon çağrısı. [Consistent Character: 35 years old Turkish detective man named Kaan, sharp facial features, short neat black hair, light stubble beard, focused intense eyes, wearing dark grey waterproof trenchcoat and black turtleneck sweater, highly detailed cinematic facial features, photorealistic character consistency]",
+      "grad": [
+        "#050A1A",
+        "#4A2C00"
+      ],
+      "imageUrl": "/cinema_assets/outro_dawn_sunrise.jpg",
+      "zoomDir": "out",
+      "speaker": "Dış Ses Anlatıcı",
+      "voiceGender": "male",
+      "audioUrl": "/api/assets/tts_1793969487498_5_869dcbb2.wav"
+    }
+  ],
+  "logs": [
+    "[15:51:30] 🎬 1. Adım: Film fikri ve konsepti belirlendi: \"2088: Son Şafak\".",
+    "[15:51:30] 📜 2. Adım: Senaryo ve 6 perdelik olay örgüsü Gemini ile yazıldı.",
+    "[15:51:30] 🎭 3. & 8. Adım: Başrol Dedektif Kaan tutarlı karakter modeli kilitlendi.",
+    "[15:51:30] 🏙️ 4. & 5. Adım: Siberpunk mekanlar ve Arri Alexa 35mm görsel dili tanımlandı.",
+    "[15:51:30] 🎨 6. & 7. Adım: Storyboard ve kamera hareket planlaması tamamlandı.",
+    "[15:51:30] 🤖 9, 10, 11. Adım: 21:9 sinematik anahtar kareler ve Ken Burns dinamik hareketleri üretildi.",
+    "[15:51:30] 🎙️ 12. & 13. Adım: Gemini 24kHz Puck (Dedektif Kaan) ve Kore (Ajan Leyla) diyalogları seslendirildi.",
+    "[15:51:30] 🎵 14. & 15. Adım: Epik orkestral fon müziği ve sahne geçiş SFX impact efektleri yerleştirildi.",
+    "[15:51:30] ✂️ 16. & 17. Adım: 45 saniyelik sinematik montaj ve anamorfik VFX parlamaları bağlandı.",
+    "[15:51:30] 🎨 18. & 19. Adım: DaVinci Resolve sinematik renk düzenleme, jenerik ve altyazılar işlendi.",
+    "[15:51:30] 🎚️ 20. Adım: Akıllı ducking (%12 / %28) ile profesyonel ses miksajı yapıldı.",
+    "[15:51:30] ✅ 21. & 22. Adım: Kalite kontrol (QC) tamamlandı ve 1080p sinematik render onaylandı.",
+    "[15:51:30] 🖼️ 23. Adım: 1200x1800 resmi Hollywood film afişi üretildi.",
+    "[15:51:30] 📢 24. Adım: YouTube ve festival dağıtım paketi oluşturuldu."
+  ],
+  "created": "06.11.2026 15:51:30"
+}

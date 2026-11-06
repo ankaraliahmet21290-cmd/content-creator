@@ -11,45 +11,61 @@ import { VideoGrid } from '@/components/VideoGrid';
 import { ProviderModal } from '@/components/ProviderModal';
 import { LogModal } from '@/components/LogModal';
 import { StoryboardDesigner } from '@/components/StoryboardDesigner';
+import { GuideModal } from '@/components/GuideModal';
+
+import defaultShowcase from '@/lib/showcaseVideo.json';
 
 export default function StudioPage() {
   const [form, setForm] = useState<IBriefForm>(INITIAL_FORM);
-  const [mode, setMode] = useState<AppMode>('sinema');
-  const [videos, setVideos] = useState<VideoItem[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mode, setMode] = useState<AppMode>(() => {
+    if (typeof window !== 'undefined') {
+      const savedMode = localStorage.getItem('klaket_app_mode') as AppMode | null;
+      if (savedMode) return savedMode;
+    }
+    return 'sinema';
+  });
+  const [videos, setVideos] = useState<VideoItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('klaket_sop_vids');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return defaultShowcase ? [defaultShowcase as VideoItem] : [];
+  });
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('klaket_sop_vids');
+        if (saved) {
+          const parsed = JSON.parse(saved) as VideoItem[];
+          const ready = parsed.find(v => v.status === 'Hazır');
+          if (ready) return ready.id;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return (defaultShowcase as VideoItem)?.id || null;
+  });
   const [formError, setFormError] = useState('');
   const [isProducing, setIsProducing] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>('light');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('klaket_theme') as 'dark' | 'light' | null;
+      if (savedTheme) return savedTheme;
+    }
+    return 'light';
+  });
   const [showSettings, setShowSettings] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const [activeLogModal, setActiveLogModal] = useState<VideoItem | null>(null);
   const [mobileTab, setMobileTab] = useState<'brief' | 'stage' | 'videos'>('brief');
-
-  // Sayfa ilk yüklendiğinde LocalStorage'dan videoları, temayı ve modu çek
-  useEffect(() => {
-    try {
-      const savedTheme = localStorage.getItem('klaket_theme') as 'dark' | 'light' | null;
-      if (savedTheme) {
-        setTheme(savedTheme);
-      } else {
-        setTheme('light');
-      }
-      const savedMode = localStorage.getItem('klaket_app_mode') as AppMode | null;
-      if (savedMode) {
-        setMode(savedMode);
-      } else {
-        setMode('sinema');
-      }
-      const savedVideos = localStorage.getItem('klaket_sop_vids');
-      if (savedVideos) {
-        const parsed: VideoItem[] = JSON.parse(savedVideos);
-        setVideos(parsed);
-        const firstReady = parsed.find(v => v.status === 'Hazır');
-        if (firstReady) setSelectedId(firstReady.id);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   // Tema Değişimi
   useEffect(() => {
@@ -376,6 +392,7 @@ export default function StudioPage() {
         onToggleTheme={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
         onToggleMode={handleToggleMode}
         onOpenSettings={() => setShowSettings(true)}
+        onOpenGuide={() => setShowGuide(true)}
       />
 
       {/* Mobil Tab Çubuğu (Yalnızca Tablet / Telefonda Görünür) */}
@@ -538,6 +555,11 @@ export default function StudioPage() {
       {/* Sağlayıcı & MCP Modalı */}
       {showSettings && (
         <ProviderModal onClose={() => setShowSettings(false)} />
+      )}
+
+      {/* Kullanım Kılavuzu Modalı (kullanim.md) */}
+      {showGuide && (
+        <GuideModal onClose={() => setShowGuide(false)} />
       )}
     </div>
   );

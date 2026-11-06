@@ -30,7 +30,15 @@ export const metadata: Metadata = {
   title: 'Klaket AI Video Stüdyosu – SOP Uyumlu Otomatik Video Üretim Platformu',
   description: 'Brief\'ten senaryoya, sesten montaja ve kalite kontrolüne (QC) kadar standart operasyon prosedürlerine (SOP) uyumlu yapay zeka video üretim stüdyosu.',
   keywords: ['AI Video', 'Content Creator', 'Video Üretimi', 'SOP', 'Reels', 'TikTok', 'Shorts', 'Gayrimenkul Tanıtımı'],
-  authors: [{ name: 'Klaket AI Ekibi' }]
+  authors: [{ name: 'Klaket AI Ekibi' }],
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' }
+    ],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg'
+  }
 };
 
 export default function RootLayout({

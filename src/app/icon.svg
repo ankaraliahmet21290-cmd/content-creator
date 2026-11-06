@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <!-- Arka plan koyu sinema degrade -->
+    <linearGradient id="klaketBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e1322"/>
+      <stop offset="50%" stop-color="#181336"/>
+      <stop offset="100%" stop-color="#090c15"/>
+    </linearGradient>
+
+    <!-- Neon kenar vuruşu -->
+    <linearGradient id="klaketBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#8b5cf6" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- Klaket alt gövde -->
+    <linearGradient id="boardBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#242b3d"/>
+      <stop offset="100%" stop-color="#121722"/>
+    </linearGradient>
+
+    <!-- Klaket üst kol çubukları (Zebra deseni) -->
+    <linearGradient id="stripeNeon" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+
+    <linearGradient id="stripeWhite" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+
+    <!-- AI Lens parıltısı -->
+    <radialGradient id="lensGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.6"/>
+      <stop offset="60%" stop-color="#6366f1" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- AI Play çekirdeği -->
+    <linearGradient id="playGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+
+    <!-- Halka degrade -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="35%" stop-color="#8b5cf6"/>
+      <stop offset="70%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+
+    <filter id="neonFilter" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="subtleGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <clipPath id="clapperStickClip">
+      <rect x="0" y="0" width="76" height="15" rx="3.5"/>
+    </clipPath>
+  </defs>
+
+  <!-- 1. Dış Squircle Kalkan -->
+  <rect x="5" y="5" width="118" height="118" rx="28" fill="url(#klaketBg)" stroke="url(#klaketBorder)" stroke-width="2"/>
+  
+  <path d="M 16 34 Q 64 16 112 34" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- 2. Arka Plan AI Işıltı Halesi -->
+  <circle cx="64" cy="80" r="34" fill="url(#lensGlow)"/>
+
+  <!-- 3. Klaket Alt Gövdesi -->
+  <g id="clapper-base">
+    <rect x="22" y="47" width="84" height="57" rx="8" fill="url(#boardBody)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    
+    <line x1="26" y1="58" x2="102" y2="58" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <line x1="56" y1="58" x2="56" y2="70" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <line x1="84" y1="58" x2="84" y2="70" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <text x="30" y="55" fill="rgba(255,255,255,0.35)" font-family="monospace" font-size="5" font-weight="bold" letter-spacing="1">SCENE</text>
+    <text x="60" y="55" fill="rgba(255,255,255,0.35)" font-family="monospace" font-size="5" font-weight="bold" letter-spacing="1">TAKE</text>
+    <text x="88" y="55" fill="#38bdf8" font-family="monospace" font-size="5" font-weight="bold" letter-spacing="1">AI</text>
+  </g>
+
+  <!-- 4. Klaket Açılı Üst Kolu -->
+  <g id="clapper-top" transform="rotate(-11 26 44)">
+    <rect x="24" y="29" width="80" height="15" rx="3.5" fill="#0f172a" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    
+    <g transform="translate(24, 29)" clip-path="url(#clapperStickClip)">
+      <rect x="0" y="0" width="80" height="15" fill="#111827"/>
+      <polygon points="0,0 12,0 3,15 -9,15" fill="url(#stripeNeon)"/>
+      <polygon points="16,0 28,0 19,15 7,15" fill="url(#stripeWhite)"/>
+      <polygon points="32,0 44,0 35,15 23,15" fill="url(#stripeNeon)"/>
+      <polygon points="48,0 60,0 51,15 39,15" fill="url(#stripeWhite)"/>
+      <polygon points="64,0 76,0 67,15 55,15" fill="url(#stripeNeon)"/>
+      <polygon points="80,0 92,0 83,15 71,15" fill="url(#stripeWhite)"/>
+    </g>
+
+    <line x1="26" y1="30" x2="102" y2="30" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  </g>
+
+  <!-- Klaket Sabit Alt Bant -->
+  <g id="clapper-mid">
+    <rect x="22" y="44" width="84" height="10" rx="2" fill="#0f172a" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+    <g transform="translate(22, 44)" clip-path="url(#clapperStickClip)">
+      <rect x="0" y="0" width="84" height="10" fill="#111827"/>
+      <polygon points="0,0 8,0 0,10 -8,10" fill="url(#stripeWhite)"/>
+      <polygon points="14,0 22,0 14,10 6,10" fill="url(#stripeNeon)"/>
+      <polygon points="28,0 36,0 28,10 20,10" fill="url(#stripeWhite)"/>
+      <polygon points="42,0 50,0 42,10 34,10" fill="url(#stripeNeon)"/>
+      <polygon points="56,0 64,0 56,10 48,10" fill="url(#stripeWhite)"/>
+      <polygon points="70,0 78,0 70,10 62,10" fill="url(#stripeNeon)"/>
+      <polygon points="84,0 92,0 84,10 76,10" fill="url(#stripeWhite)"/>
+    </g>
+  </g>
+
+  <!-- Menteşe Perçini -->
+  <circle cx="27" cy="46" r="4.5" fill="#334155" stroke="#94a3b8" stroke-width="1.2"/>
+  <circle cx="27" cy="46" r="2.2" fill="#e2e8f0"/>
+  <circle cx="26" cy="45" r="0.8" fill="#ffffff"/>
+
+  <!-- 5. Merkez AI Sinema Lensi & Play İkonu -->
+  <g id="ai-lens" transform="translate(64, 80)">
+    <circle cx="0" cy="0" r="18.5" fill="none" stroke="url(#ringGrad)" stroke-width="2.5" filter="url(#subtleGlow)"/>
+    <circle cx="0" cy="0" r="15" fill="#090d16" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    
+    <path d="M -11 -7 L 2 -13" stroke="rgba(139, 92, 246, 0.4)" stroke-width="1"/>
+    <path d="M 9 -10 L 14 0" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1"/>
+    <path d="M 12 6 L 2 13" stroke="rgba(236, 72, 153, 0.4)" stroke-width="1"/>
+    <path d="M -5 13 L -13 4" stroke="rgba(139, 92, 246, 0.4)" stroke-width="1"/>
+    <path d="M -14 -1 L -7 -11" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1"/>
+
+    <path d="M -10 -9 A 14 14 0 0 1 10 -9 A 12 12 0 0 0 -10 -9 Z" fill="rgba(255, 255, 255, 0.25)"/>
+
+    <path d="M -4 -7.5 C -4 -8.5 -2.8 -9.1 -2 -8.5 L 8.5 -2 C 9.3 -1.5 9.3 -0.5 8.5 0 L -2 6.5 C -2.8 7.1 -4 6.5 -4 5.5 Z" 
+          fill="url(#playGrad)" filter="url(#subtleGlow)"/>
+  </g>
+
+  <!-- 6. AI Parıltı Yıldızları -->
+  <g transform="translate(93, 38)" filter="url(#subtleGlow)">
+    <path d="M 0 -8 Q 0 0 8 0 Q 0 0 0 8 Q 0 0 -8 0 Q 0 0 0 -8 Z" fill="#38bdf8"/>
+    <circle cx="0" cy="0" r="2" fill="#ffffff"/>
+  </g>
+
+  <g transform="translate(32, 92)" filter="url(#subtleGlow)">
+    <path d="M 0 -5 Q 0 0 5 0 Q 0 0 0 5 Q 0 0 -5 0 Q 0 0 0 -5 Z" fill="#ec4899"/>
+    <circle cx="0" cy="0" r="1.2" fill="#ffffff"/>
+  </g>
+
+  <circle cx="82" cy="69" r="1.5" fill="#a78bfa" filter="url(#subtleGlow)"/>
+</svg>

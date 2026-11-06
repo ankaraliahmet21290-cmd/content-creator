@@ -1,6 +1,7 @@
 'use client';
 
 import { AppMode } from '@/types';
+import { KlaketLogo } from '@/components/KlaketLogo';
 
 interface HeaderProps {
   theme: 'dark' | 'light';
@@ -8,9 +9,10 @@ interface HeaderProps {
   onToggleTheme: () => void;
   onToggleMode: (mode: AppMode) => void;
   onOpenSettings: () => void;
+  onOpenGuide: () => void;
 }
 
-export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSettings }: HeaderProps) {
+export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSettings, onOpenGuide }: HeaderProps) {
   const getSubDesc = () => {
     switch (mode) {
       case 'sinema':
@@ -61,9 +63,12 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
     <header className="app-header">
       <div className="header-top-row">
         <div className="brand">
-          <div className="brand-icon" aria-hidden="true">🎬</div>
+          <KlaketLogo size={48} animated />
           <div className="brand-info">
-            <h1>Klaket Stüdyosu</h1>
+            <div className="brand-title-wrap">
+              <h1>Klaket AI Stüdyosu</h1>
+              <span className="brand-version-pill">SOP AI</span>
+            </div>
             <p className="brand-desc">{getSubDesc()}</p>
           </div>
           <span className={`badge ${getBadgeClass()} brand-badge`}>
@@ -72,6 +77,14 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
         </div>
 
         <div className="hdr-actions">
+          <button
+            type="button"
+            className="btn sm hdr-act-btn guide-btn"
+            onClick={onOpenGuide}
+            title="Kullanım Kılavuzu (kullanim.md)"
+          >
+            📖 <span className="hdr-btn-text">Kılavuz</span>
+          </button>
           <button
             type="button"
             className="btn sm hdr-act-btn"
