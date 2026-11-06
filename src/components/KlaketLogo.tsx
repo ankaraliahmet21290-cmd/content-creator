@@ -41,56 +41,56 @@ export function KlaketLogo({
           <defs>
             {/* Koyu Sinema Degrade */}
             <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#0c101d" />
-              <stop offset="50%" stop-color="#181335" />
-              <stop offset="100%" stop-color="#090d16" />
+              <stop offset="0%" stopColor="#0c101d" />
+              <stop offset="50%" stopColor="#181335" />
+              <stop offset="100%" stopColor="#090d16" />
             </linearGradient>
 
             {/* Neon Border */}
             <linearGradient id="logoBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#38bdf8" />
-              <stop offset="50%" stop-color="#8b5cf6" />
-              <stop offset="100%" stop-color="#ec4899" />
+              <stop offset="0%" stopColor="#38bdf8" />
+              <stop offset="50%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#ec4899" />
             </linearGradient>
 
             {/* Klaket Alt Gövdesi */}
             <linearGradient id="logoBoardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#222938" />
-              <stop offset="100%" stop-color="#111622" />
+              <stop offset="0%" stopColor="#222938" />
+              <stop offset="100%" stopColor="#111622" />
             </linearGradient>
 
             {/* Neon Şerit Degrade */}
             <linearGradient id="logoStripeNeon" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#06b6d4" />
-              <stop offset="100%" stop-color="#8b5cf6" />
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#8b5cf6" />
             </linearGradient>
 
             {/* Beyaz Şerit */}
             <linearGradient id="logoStripeWhite" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#ffffff" />
-              <stop offset="100%" stop-color="#cbd5e1" />
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#cbd5e1" />
             </linearGradient>
 
             {/* Lens AI Parıltısı */}
             <radialGradient id="logoLensGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#a855f7" stop-opacity="0.65" />
-              <stop offset="55%" stop-color="#6366f1" stop-opacity="0.25" />
-              <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+              <stop offset="0%" stopColor="#a855f7" stopOpacity="0.65" />
+              <stop offset="55%" stopColor="#6366f1" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
             </radialGradient>
 
             {/* Play Buton Degrade */}
             <linearGradient id="logoPlayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#ffffff" />
-              <stop offset="40%" stop-color="#38bdf8" />
-              <stop offset="100%" stop-color="#8b5cf6" />
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="40%" stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#8b5cf6" />
             </linearGradient>
 
             {/* Halka Degrade */}
             <linearGradient id="logoRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#06b6d4" />
-              <stop offset="35%" stop-color="#8b5cf6" />
-              <stop offset="70%" stop-color="#ec4899" />
-              <stop offset="100%" stop-color="#f59e0b" />
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="35%" stopColor="#8b5cf6" />
+              <stop offset="70%" stopColor="#ec4899" />
+              <stop offset="100%" stopColor="#f59e0b" />
             </linearGradient>
 
             <filter id="logoGlowFilter" x="-20%" y="-20%" width="140%" height="140%">
