@@ -1,5 +1,5 @@
 import { BriefForm, ProviderConfig, Scene, VideoItem, AppMode } from '@/types';
-import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES } from './constants';
+import { GRADIENTS, SOP_ROLES, CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES, SHORTS_ROLES, SPORTS_ROLES } from './constants';
 import { getScenePhoto } from './assets';
 
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -41,6 +41,10 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     /belgesel|documentary/i.test(b.customInstructions || '') ||
     /belgesel|documentary/i.test(b.product || '');
   const isYouTube = !isDocumentary && b.type === 'youtube';
+  const isSocial = !isCinema && !isDocumentary && !isYouTube && (b.type === 'sosyal' || b.ratio === '9:16' || /shorts|reels|tiktok/i.test(b.platform || ''));
+  const isSports = /maç|futbol|gol|gs|fb|bjk|ts|derbi|stadyum|şampiyon|lig|soccer|football|vs|stuttgart|stutgart|galatasaray|fenerbahçe|beşiktaş|trabzon|skor|özet|penaltı|hakem/i.test(
+    `${b.product} ${b.customInstructions || ''} ${b.points || ''}`
+  );
 
   const baseRoles = isDocumentary
     ? DOCUMENTARY_ROLES
@@ -48,8 +52,12 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     ? CINEMA_ROLES
     : isYouTube
     ? YOUTUBE_ROLES
+    : isSports
+    ? SPORTS_ROLES
+    : isSocial
+    ? SHORTS_ROLES
     : SOP_ROLES;
-  const divisor = isCinema || isDocumentary ? 7.5 : isYouTube ? 8.0 : 5.5;
+  const divisor = isCinema || isDocumentary ? 7.5 : isYouTube ? 8.0 : isSocial ? 4.5 : 5.5;
   const n = Math.max(3, Math.min(8, Math.round(b.dur / divisor)));
 
   const roles =
@@ -107,6 +115,56 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     'Özet & Abone Ol Çağrısı': { screen: b.cta || 'Kanala Abone Olmayı Unutmayın!', vo: b.cta || 'Videoyu beğendiyseniz abone olup bildirimleri açmayı ve yorumunuzu paylaşmayı unutmayın!' }
   };
 
+  const sportsMap: Record<string, { screen: string; vo: string }> = {
+    '🏟️ Başlama Düdüğü & Tribün Coşkusu': {
+      screen: `${p.toUpperCase()}: DEV MAÇ!`,
+      vo: `Ve dev maçta ilk düdük çaldı! İki takım da sahada inanılmaz bir baskı ve kazanma arzusuyla başladı!`
+    },
+    '⚡ Tehlikeli Atak & İlk Tehdit': {
+      screen: 'Kritik Atak & Tehlike',
+      vo: `Ceza sahasına muhteşem bir ara pası, savunma son anda araya giriyor! Maçta tempo nefes kesiyor!`
+    },
+    '⚽ GOOOL! Ağları Yırtan Vuruş': {
+      screen: 'GOOOOOL! 1-0!',
+      vo: `Ve top ağlarda! Kalecinin çaresiz kaldığı köşeye enfes bir füze! Tribünler sevinçten yıkılıyor!`
+    },
+    '🔥 Karşı Atak & Nefes Kesen Pozisyon': {
+      screen: 'Nefes Kesen Mücadele',
+      vo: `Rakip takım beraberlik için tüm hatlarıyla yükleniyor, kaleci kalesinde devleşiyor!`
+    },
+    '🏆 Maçı Koparan Gol & Zafer Çığlığı': {
+      screen: 'MAÇI BİTİREN GOL!',
+      vo: `Ve son dakikalarda gelen bu inanılmaz golle maçın fişi çekiliyor! Sahada büyük sevinç!`
+    },
+    '👉 Maç Sonu Skoru & Maçın Adamı Kimdi? (CTA)': {
+      screen: b.cta || 'Sizce Maçın Adamı Kimdi?',
+      vo: b.cta || `Nefes kesen 90 dakika sona erdi! Sizce maçın adamı kimdi? Yorumlara yazın ve takip etmeyi unutmayın!`
+    }
+  };
+
+  const shortsMap: Record<string, { screen: string; vo: string }> = {
+    '⚡ Viral Kanca & Şok Başlangıç': {
+      screen: `Bunu Mutlaka İzleyin!`,
+      vo: `Eğer hala bunu görmediyseniz, hayatınızın en ilginç detayını kaçırıyorsunuz!`
+    },
+    '🔥 Yükselen Gerilim & Kritik An': {
+      screen: 'Beklenmeyen Gelişme',
+      vo: `Olaylar tam burada değişmeye başlıyor, dikkatle izleyin!`
+    },
+    '💥 Beklenmeyen Kırılma & Olay': {
+      screen: 'İşte O Kırılma Anı!',
+      vo: `Kimsenin beklemediği o an gerçekleşti ve her şey altüst oldu!`
+    },
+    '🚀 Zirve Patlaması & En Can Alıcı An': {
+      screen: 'En Can Alıcı Sonuç',
+      vo: `İşte ortaya çıkan bu inanılmaz sonuç herkesi hayrete düşürdü!`
+    },
+    '👉 Takip Et & Yorumunu Yaz (CTA)': {
+      screen: b.cta || 'Siz Ne Düşünüyorsunuz?',
+      vo: b.cta || `Siz bu konuda ne düşünüyorsunuz? Yorumlara yazın ve daha fazlası için takip edin!`
+    }
+  };
+
   const templates: Record<string, Record<string, { screen: string; vo: string }> | { screen: string; vo: string }> = {
     Kanca: {
       reklam: { screen: p, vo: `Dikkat! ${p} ile tüm standartlar değişiyor.` },
@@ -152,6 +210,16 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
       voText = customLines[i] || youtubeMap[r].vo;
       subtitle = pts[i] || `YouTube Analiz & İnceleme`;
       highlight = i === roles.length - 1 ? (b.cta || 'ABONE OL & BEĞEN') : `DETAY`;
+    } else if (isSports && sportsMap[r]) {
+      screenText = sportsMap[r].screen;
+      voText = customLines[i] || sportsMap[r].vo;
+      subtitle = pts[i] || `Dev Maç & Gol Pozisyonları`;
+      highlight = i === roles.length - 1 ? (b.cta || 'MAÇIN ADAMI KİMDİ?') : `GOL ANI`;
+    } else if (isSocial && shortsMap[r]) {
+      screenText = shortsMap[r].screen;
+      voText = customLines[i] || shortsMap[r].vo;
+      subtitle = pts[i] || `Viral Shorts`;
+      highlight = i === roles.length - 1 ? (b.cta || 'TAKİP ET & YORUM YAZ') : `ÖNE ÇIKAN`;
     } else {
       const roleEntry = templates[r];
       if (roleEntry) {
@@ -261,18 +329,30 @@ export const providers = {
   // 2. Görsel ve Ses Modelleri
   async clips(scenes: Scene[], brief: BriefForm, mode: AppMode = 'sinema', addLog: (msg: string) => void): Promise<Scene[]> {
     const cfg = getSavedProviderConfig();
-    if (mode === 'classic' || cfg.tts === 'webspeech') {
-      addLog('[Klasik Mod] Tarayıcı Web Speech API (yerel seslendirme) ve sahne görsel katmanları bağlandı.');
-      await sleep(400);
-      return scenes.map(({ audioUrl: _a, ...rest }) => rest);
-    }
-
     const isCinema = brief.type === 'sinema';
     const isDocumentary = brief.type === 'belgesel';
     const isYouTube = brief.type === 'youtube';
     const logTag = isCinema ? '[Sinema Modu]' : isDocumentary ? '[Belgesel Modu]' : isYouTube ? '[YouTube Modu]' : '[AI Modu]';
 
-    addLog(`${logTag} Gemini 24kHz stüdyo seslendirmesi (Puck/Kore) ve Flux AI gerçekçi film sahneleri sentezleniyor...`);
+    const visualSource = brief.visualSource || 'ai_generate';
+    const visualLabel =
+      visualSource === 'web_search'
+        ? 'İnternetten Canlı Gerçek Fotoğraf Arama'
+        : visualSource === 'curated'
+        ? 'Küratörlü Tematik Fotoğraf Kütüphanesi'
+        : 'Flux/Turbo AI Görsel Sentezi';
+
+    const ttsDisabled = cfg.tts === 'webspeech';
+
+    // Yalnızca küratörlü havuz VE yerel webspeech seçilmişse sunucuya gitmeye gerek yok
+    if (visualSource === 'curated' && ttsDisabled) {
+      addLog(`${logTag} Küratörlü tematik fotoğraf kütüphanesi ve tarayıcı seslendirmesi hazırlandı.`);
+      await sleep(300);
+      return scenes.map(({ audioUrl: _a, ...rest }) => rest);
+    }
+
+    addLog(`${logTag} ${visualLabel} ve seslendirme pipeline başlatılıyor...`);
+
     try {
       const res = await fetch('/api/clips', {
         method: 'POST',
@@ -280,7 +360,8 @@ export const providers = {
         body: JSON.stringify({
           scenes,
           brief,
-          apiKey: cfg.geminiApiKey
+          apiKey: cfg.geminiApiKey,
+          ttsDisabled
         })
       });
 
@@ -290,7 +371,7 @@ export const providers = {
       }
 
       addLog(
-        `${logTag} Başarılı: ${data.ttsCount ?? scenes.length} sahne için stüdyo kalitesinde gerçek seslendirme ve fotogerçekçi sinema sahneleri bağlandı.`
+        `${logTag} Başarılı: ${data.imgCount ?? scenes.length} sahne için görsel (${visualLabel}) bağlandı.`
       );
       return data.scenes;
     } catch (err) {

@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     const scenes: Scene[] = body.scenes;
     const brief: BriefForm = body.brief;
     const apiKey: string | undefined = body.apiKey;
+    const ttsDisabled: boolean = Boolean(body.ttsDisabled);
 
     if (!Array.isArray(scenes) || scenes.length === 0) {
       return NextResponse.json(
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await synthesizeClipsWithGemini(scenes, brief, apiKey);
+    const result = await synthesizeClipsWithGemini(scenes, brief, apiKey, ttsDisabled);
 
     return NextResponse.json({
       success: true,

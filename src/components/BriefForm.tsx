@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { BriefForm as IBriefForm, Preset, AspectRatio, AppMode, CharacterProfile } from '@/types';
+import { BriefForm as IBriefForm, Preset, AspectRatio, AppMode, CharacterProfile, VisualSourceMode } from '@/types';
 import { TYPES, RATIOS, LANGUAGES, PRESETS, BG_MUSIC_OPTIONS, CHARACTER_PRESETS } from '@/lib/constants';
+import { audioMgr } from '@/lib/audio';
 
 interface BriefFormProps {
   form: IBriefForm;
@@ -44,6 +45,7 @@ export function BriefForm({
 }: BriefFormProps) {
   const [showAllPresets, setShowAllPresets] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [previewingTrackId, setPreviewingTrackId] = useState<string | null>(null);
 
   const isClassic = mode === 'classic';
   const currentType = form.type;
@@ -794,14 +796,14 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
             {isSocial && (
               <>
                 <label htmlFor="input-soc-hook">
-                  ⚡ İlk 3 Saniye Viral Kancası (Scroll Stopper)
-                  <span className="label-hint">(Aşağı kaydırmayı durduran merak cümlesi)</span>
+                  ⚡ İlk 3 Saniye Kancası / Öne Çıkan Pozisyon & Bilgiler
+                  <span className="label-hint">(Kaydırmayı durduran vuruş cümlesi veya maçın kritik anları)</span>
                 </label>
                 <textarea
                   id="input-soc-hook"
                   value={form.points}
-                  placeholder={`"Bu videoyu kaydetmeden geçmeyin, hayatınızı kolaylaştıracak!"`}
-                  rows={2}
+                  placeholder={`"Nefes kesen 90 dakika ve kaçırılmayacak gol pozisyonları!\nİnanılmaz şut ve köşeye giden 1. gol\nSon dakikalarda maçı koparan muhteşem vuruş"`}
+                  rows={3}
                   onChange={e => onUpdateField('points', e.target.value)}
                 />
 
@@ -811,7 +813,7 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
                 <input
                   id="input-soc-cta"
                   value={form.cta}
-                  placeholder="Örn: Siz bu konuda ne düşünüyorsunuz? Yorumlara yazın ve takip etmeyi unutmayın!"
+                  placeholder="Örn: Sizce maçın adamı kimdi? Yorumlara yazın ve takip etmeyi unutmayın!"
                   onChange={e => onUpdateField('cta', e.target.value)}
                 />
               </>
@@ -823,6 +825,84 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
       {/* ============================================================ */}
       {/* 3. ORTAK SESLENDİRME, MÜZİK VE TEKNİK AYARLAR */}
       {/* ============================================================ */}
+
+      {/* SAHNE GÖRSEL KAYNAĞI SEÇİMİ */}
+      <div style={{ marginTop: 14 }}>
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span>🖼️ Sahne Görselleri Kaynağı</span>
+          <span className="label-hint">Videonuzun görsel dünyası nasıl oluşturulsun?</span>
+        </label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+          {/* Seçenek 1: AI ile Sıfırdan Üret */}
+          <div
+            onClick={() => onUpdateField('visualSource', 'ai_generate')}
+            style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              cursor: 'pointer',
+              border: (form.visualSource === 'ai_generate' || !form.visualSource) ? '2px solid var(--acc)' : '1px solid var(--line)',
+              background: (form.visualSource === 'ai_generate' || !form.visualSource) ? 'rgba(99, 102, 241, 0.12)' : 'var(--card-sub)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>✨</span>
+              <strong style={{ fontSize: 13, color: (form.visualSource === 'ai_generate' || !form.visualSource) ? 'var(--acc)' : 'var(--txt)' }}>
+                Yapay Zekâ ile Sıfırdan Üret
+              </strong>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--mute)', lineHeight: 1.4 }}>
+              Flux & Turbo AI motoru ile senaryonuza ve konunuza özel sinematik foto-gerçekçi kareler anında çizilir.
+            </div>
+          </div>
+
+          {/* Seçenek 2: İnternetten Canlı Gerçek Fotoğraf Bul */}
+          <div
+            onClick={() => onUpdateField('visualSource', 'web_search')}
+            style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              cursor: 'pointer',
+              border: form.visualSource === 'web_search' ? '2px solid #0ea5e9' : '1px solid var(--line)',
+              background: form.visualSource === 'web_search' ? 'rgba(14, 165, 233, 0.12)' : 'var(--card-sub)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>🌐</span>
+              <strong style={{ fontSize: 13, color: form.visualSource === 'web_search' ? '#0ea5e9' : 'var(--txt)' }}>
+                İnternetten Canlı Gerçek Fotoğraf Bul
+              </strong>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--mute)', lineHeight: 1.4 }}>
+              Wikimedia Commons üzerinden konunuza ait telifsiz, 100+ milyon gerçek yüksek çözünürlüklü fotoğraf canlı taranır.
+            </div>
+          </div>
+
+          {/* Seçenek 3: Küratörlü Fotoğraf Kütüphanesi */}
+          <div
+            onClick={() => onUpdateField('visualSource', 'curated')}
+            style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              cursor: 'pointer',
+              border: form.visualSource === 'curated' ? '2px solid #10b981' : '1px solid var(--line)',
+              background: form.visualSource === 'curated' ? 'rgba(16, 185, 129, 0.12)' : 'var(--card-sub)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>📁</span>
+              <strong style={{ fontSize: 13, color: form.visualSource === 'curated' ? '#10b981' : 'var(--txt)' }}>
+                Seçkin Fotoğraf Kütüphanesi
+              </strong>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--mute)', lineHeight: 1.4 }}>
+              Turizm, kahve, sağlık, otomotiv, emlak ve teknoloji kategorilerindeki zengin hazır fotoğraf arşivi.
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* SESLENDİRME SEÇİMİ */}
       {isCinema ? (
@@ -876,19 +956,18 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
       {/* 14. ADIM: FON MÜZİĞİ VE SES TASARIMI */}
       <div style={{ marginTop: 14 }}>
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span>🎵 14. Adım: Sinematik Fon Müziği & Soundtrack</span>
-          <span className="label-hint">Ducking: Konuşurken kısılır (%12), durunca yükselir (%28)</span>
+          <span>🎵 14. Adım: Profesyonel Fon Müziği & Soundtrack (11 Tarz)</span>
+          <span className="label-hint">Ducking: Konuşurken kısılır (%10), durunca yükselir (%28)</span>
         </label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 }}>
           {BG_MUSIC_OPTIONS.map(opt => {
-            const currentMusic =
-              form.bgMusic ||
-              (isCinema || isDocumentary ? 'cinema_epic' : isYouTube ? 'youtube_lofi' : 'sales_corporate');
+            const currentMusic = form.bgMusic || 'auto';
             const isSelected = currentMusic === opt.id;
+            const isPreviewing = previewingTrackId === opt.id;
+
             return (
-              <button
+              <div
                 key={opt.id}
-                type="button"
                 onClick={() => onUpdateField('bgMusic', opt.id)}
                 style={{
                   padding: '9px 12px',
@@ -897,16 +976,48 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
                   border: isSelected ? '1.5px solid #38bdf8' : '1px solid var(--line)',
                   background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'var(--card-bg, rgba(255,255,255,0.02))',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  position: 'relative'
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: 13, color: isSelected ? '#38bdf8' : 'var(--txt)' }}>
-                  {opt.label}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: isSelected ? '#38bdf8' : 'var(--txt)' }}>
+                    {opt.label}
+                  </div>
+                  {opt.path && (
+                    <button
+                      type="button"
+                      title={isPreviewing ? 'Durdur' : 'Parçayı Dinle (Önizleme)'}
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (isPreviewing) {
+                          audioMgr.stopPreview();
+                          setPreviewingTrackId(null);
+                        } else {
+                          setPreviewingTrackId(opt.id);
+                          audioMgr.previewSoundtrack(opt.path, () => setPreviewingTrackId(null));
+                        }
+                      }}
+                      style={{
+                        background: isPreviewing ? '#ef4444' : 'rgba(56, 189, 248, 0.2)',
+                        border: 'none',
+                        color: isPreviewing ? '#fff' : '#38bdf8',
+                        borderRadius: 6,
+                        padding: '3px 7px',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        flexShrink: 0
+                      }}
+                    >
+                      {isPreviewing ? '⏹️ Dur' : '▶ Dinle'}
+                    </button>
+                  )}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--mute)', marginTop: 2, lineHeight: 1.3 }}>
+                <div style={{ fontSize: 11, color: 'var(--mute)', marginTop: 3, lineHeight: 1.3 }}>
                   {opt.desc}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

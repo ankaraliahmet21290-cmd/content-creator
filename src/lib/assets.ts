@@ -4,7 +4,111 @@
  * yerel yüksek çözünürlüklü fotoğraf ve sinematik kare eşleştirici.
  */
 
-// 1. Sinema Modu (21:9 Cinemascope / 16:9 Epik Film Kareleri)
+/**
+ * Korkmaz Klaket Studio - Gerçek HD Görsel ve Sahne Varlık Havuzu (v5 Standardı)
+ * Sinema (21:9 Cinemascope), YouTube (16:9 Geniş Ekran), Belgesel, Turizm, Gastronomi,
+ * Sağlık, Otomotiv, Emlak ve Ticari tanıtımlar için yüksek çözünürlüklü foto-gerçekçi varlık havuzu.
+ */
+
+// 1. Kapadokya, Turizm, Seyahat & Doğa Keşfi
+export const TOURISM_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1533105079780-92b9be482077?q=85&w=1280&auto=format&fit=crop', // Kapadokya balonları gün doğumu
+  'https://images.unsplash.com/photo-1570939274717-7eda259b50ed?q=85&w=1280&auto=format&fit=crop', // Peri bacaları altın saat
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=85&w=1280&auto=format&fit=crop', // Turkuaz Akdeniz kıyısı
+  'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=85&w=1280&auto=format&fit=crop', // Manzaralı yol seyahati
+  'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=85&w=1280&auto=format&fit=crop'  // Lüks resort & şehir ufku
+];
+
+// 2. Kahve, Restoran, Kafe & Gurme Gastronomi
+export const COFFEE_FOOD_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=85&w=1280&auto=format&fit=crop', // Pour-over latte art & buhar
+  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=85&w=1280&auto=format&fit=crop', // Taze kahve çekirdekleri kavurma
+  'https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=85&w=1280&auto=format&fit=crop', // Şefin gurme tabağı sunumu
+  'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=85&w=1280&auto=format&fit=crop', // Taze fırın ekmekleri & kruvasan
+  'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=85&w=1280&auto=format&fit=crop'  // Bağ ve şarap tadımı kadehler
+];
+
+// 3. Sağlık, Tıp, Cerrahi, Klinik & Yaşam
+export const HEALTH_MEDICAL_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=85&w=1280&auto=format&fit=crop', // Modern cerrahi ameliyathane
+  'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=85&w=1280&auto=format&fit=crop', // Şefkatli doktor stetoskop
+  'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=85&w=1280&auto=format&fit=crop', // Yüksek teknoloji biyoloji laboratuvarı
+  'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?q=85&w=1280&auto=format&fit=crop', // Modern diş kliniği ve gülüş tasarımı
+  'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=85&w=1280&auto=format&fit=crop'  // Doğal spa, wellness ve yoga
+];
+
+// 4. Otomobil, Süper Spor, Elektrikli Araçlar & Sürüş
+export const AUTOMOTIVE_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=85&w=1280&auto=format&fit=crop', // Fütüristik lüks spor araba
+  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=85&w=1280&auto=format&fit=crop', // Dağ virajında dinamik sürüş
+  'https://images.unsplash.com/photo-1563720223185-11003d516935?q=85&w=1280&auto=format&fit=crop', // Lüks kokpit & deri direksiyon
+  'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=85&w=1280&auto=format&fit=crop'  // Gece neon ışıklarında spor otomobil
+];
+
+// 5. Lüks Gayrimenkul, Mimari & Rezidans
+export const LUXURY_ESTATE_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=85&w=1280&auto=format&fit=crop', // Sonsuzluk havuzlu modern villa
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=85&w=1280&auto=format&fit=crop', // Gün batımı lüks dış cephe
+  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=85&w=1280&auto=format&fit=crop', // Minimalist geniş salon tasarımı
+  '/real_assets/hero_residence.jpg',
+  '/real_assets/luxury_villa.jpg',
+  '/real_assets/modern_map.jpg'
+];
+
+// 6. Doğa, Okyanus, Dağlar & Vahşi Yaşam
+export const NATURE_WILDLIFE_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=85&w=1280&auto=format&fit=crop', // Epik dağ gölü ve gün doğumu
+  'https://images.unsplash.com/photo-1518837695005-2083093ee35b?q=85&w=1280&auto=format&fit=crop', // Turkuaz derin okyanus dalgaları
+  'https://images.unsplash.com/photo-1448375240586-882707db888b?q=85&w=1280&auto=format&fit=crop', // Sisli yemyeşil çam ormanı
+  'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=85&w=1280&auto=format&fit=crop', // Altın kum çöl kumulları
+  '/cinema_assets/space_earth_orbit.jpg'
+];
+
+// 7. Teknoloji, Yapay Zekâ & Siber Güvenlik
+export const TECH_AI_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?q=85&w=1280&auto=format&fit=crop', // Işıltılı AI çip mikroişlemci
+  'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=85&w=1280&auto=format&fit=crop', // Siber güvenlik veri akışı
+  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=85&w=1280&auto=format&fit=crop', // Matris kod ekranı
+  '/youtube_assets/yt_ai_chip.jpg',
+  '/youtube_assets/yt_tech_desk.jpg'
+];
+
+// 8. İş Dünyası, Şirket & Finans
+export const BUSINESS_CORP_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1552664730-d307ca884978?q=85&w=1280&auto=format&fit=crop', // Yönetim kurulu strateji toplantısı
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=85&w=1280&auto=format&fit=crop', // Gökdelen cam cephe yansımaları
+  'https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?q=85&w=1280&auto=format&fit=crop', // Güven veren iş tokalaşması
+  '/youtube_assets/yt_data_charts.jpg'
+];
+
+// 9. Antik Tarih & Arkeoloji
+export const HISTORY_ARCHAEOLOGY_PHOTO_POOL = [
+  '/documentary_assets/doc_pyramids_giza.jpg',
+  'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=85&w=1280&auto=format&fit=crop', // Roma Kolezyum antik sütunlar
+  'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=85&w=1280&auto=format&fit=crop', // Antik el yazmaları kütüphane
+  '/cinema_assets/space_galaxy.jpg'
+];
+
+// 10. Spor, Fitness & Aktif Yaşam
+export const SPORTS_FITNESS_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=85&w=1280&auto=format&fit=crop', // Yoğun antrenman ve güç
+  'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?q=85&w=1280&auto=format&fit=crop', // Gün doğumunda koşan atlet
+  'https://images.unsplash.com/photo-1522163182402-834f871fd851?q=85&w=1280&auto=format&fit=crop'  // Zirvede kaya tırmanışı
+];
+
+// ⚽ 10.1 Futbol, Maç, Derbi, Stadyum & Goller
+export const FOOTBALL_MATCH_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=85&w=1280&auto=format&fit=crop', // Stadyum ışıkları ve yeşil saha
+  'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=85&w=1280&auto=format&fit=crop', // Kaleye giren top ve fileler
+  'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?q=85&w=1280&auto=format&fit=crop', // Takım gol sevinci ve coşku
+  'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?q=85&w=1280&auto=format&fit=crop', // Taraftarlarla dolu dev stadyum
+  'https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=85&w=1280&auto=format&fit=crop', // Futbolcu şut vuruşu ve aksiyon
+  'https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=85&w=1280&auto=format&fit=crop', // Tribün bayrakları ve taraftar
+  'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?q=85&w=1280&auto=format&fit=crop', // Sahada ikili mücadele
+  'https://images.unsplash.com/photo-1551958219-acbc608c6377?q=85&w=1280&auto=format&fit=crop'  // Maçın heyecan dolu anı
+];
+
+// 11. Sinema Modu (21:9 Cinemascope / 16:9 Epik Film Kareleri)
 export const CINEMA_PHOTO_POOL = {
   atmosphere: [
     '/cinema_assets/cyber_city_night.jpg',
@@ -43,23 +147,23 @@ export const CINEMA_PHOTO_POOL = {
   ]
 };
 
-// 2. Belgesel Modu (16:9 / 21:9 Uluslararası Araştırma & Doğa / Tarih Kareleri)
+// 12. Belgesel Modu (16:9 / 21:9 Uluslararası Araştırma & Doğa / Tarih Kareleri)
 export const DOCUMENTARY_PHOTO_POOL = {
   hook: [
     '/documentary_assets/doc_pyramids_giza.jpg',
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=85&w=1280&auto=format&fit=crop',
     '/cinema_assets/space_earth_orbit.jpg',
-    '/cinema_assets/outro_epic_horizon.jpg',
-    '/cinema_assets/char_silhouette.jpg'
+    '/cinema_assets/outro_epic_horizon.jpg'
   ],
   archive: [
+    'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=85&w=1280&auto=format&fit=crop',
     '/cinema_assets/space_galaxy.jpg',
-    '/cinema_assets/char_detective.jpg',
-    '/cinema_assets/space_nebula.jpg'
+    '/cinema_assets/char_detective.jpg'
   ],
   evidence: [
     '/documentary_assets/doc_pyramids_giza.jpg',
-    '/cinema_assets/cyber_corridor.jpg',
-    '/cinema_assets/space_stars.jpg'
+    'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=85&w=1280&auto=format&fit=crop',
+    '/cinema_assets/cyber_corridor.jpg'
   ],
   turning: [
     '/cinema_assets/climax_lightning.jpg',
@@ -67,9 +171,9 @@ export const DOCUMENTARY_PHOTO_POOL = {
     '/cinema_assets/action_sparks.jpg'
   ],
   analysis: [
-    '/cinema_assets/cyber_towers.jpg',
-    '/cinema_assets/cyber_city_night.jpg',
-    '/youtube_assets/yt_data_charts.jpg'
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?q=85&w=1280&auto=format&fit=crop',
+    '/youtube_assets/yt_data_charts.jpg',
+    '/cinema_assets/cyber_towers.jpg'
   ],
   conclusion: [
     '/cinema_assets/outro_dawn_sunrise.jpg',
@@ -78,7 +182,7 @@ export const DOCUMENTARY_PHOTO_POOL = {
   ]
 };
 
-// 3. YouTube Modu (16:9 Full HD İçerik & Stüdyo Görselleri)
+// 13. YouTube Modu (16:9 Full HD İçerik & Stüdyo Görselleri)
 export const YOUTUBE_PHOTO_POOL = {
   hook: [
     '/youtube_assets/yt_studio_neon.jpg',
@@ -102,7 +206,7 @@ export const YOUTUBE_PHOTO_POOL = {
   ]
 };
 
-// 3. Gayrimenkul & Ticari Portföy Varlık Havuzu
+// 14. Gayrimenkul & Ticari Portföy Varlık Havuzu
 export const REAL_PHOTO_POOL: Record<string, string[]> = {
   residence: ['/real_assets/hero_residence.jpg', '/real_assets/01-hero.jpg', '/real_assets/04-ilan1.jpg'],
   villa: ['/real_assets/luxury_villa.jpg', '/real_assets/02-villa.jpg', '/real_assets/05-ilan2.jpg'],
@@ -320,7 +424,7 @@ export function matchBestDocumentaryPhoto(role: string, visualDesc: string, inde
 }
 
 /**
- * Brief türüne ve sahneye göre doğrudan en uygun görseli döndürür
+ * Brief türüne, konu başlığına ve sahneye göre doğrudan en uygun yüksek çözünürlüklü görseli döndürür
  */
 export function getScenePhoto(
   briefType: string,
@@ -329,29 +433,139 @@ export function getScenePhoto(
   index: number,
   product?: string
 ): string {
-  if (briefType === 'sinema') {
-    return matchBestCinemaPhoto(role, visualDesc, index);
+  const combined = `${product || ''} ${visualDesc || ''} ${role || ''}`.toLowerCase();
+
+  // 0. ⚽ Futbol, Maç, Derbi, Takım, Stadyum, Gol, Şampiyonlar Ligi, Süper Lig
+  if (
+    combined.includes('maç') || combined.includes('futbol') || combined.includes('gol') ||
+    combined.includes('gs') || combined.includes('galatasaray') || combined.includes('fb') ||
+    combined.includes('fenerbahçe') || combined.includes('beşiktaş') || combined.includes('bjk') ||
+    combined.includes('trabzon') || combined.includes('stuttgart') || combined.includes('stutgart') ||
+    combined.includes('stadyum') || combined.includes('taraftar') || combined.includes('derbi') ||
+    combined.includes('soccer') || combined.includes('football') || combined.includes('uefa') ||
+    combined.includes('fifa') || combined.includes('penaltı') || combined.includes('şut') ||
+    combined.includes('şampiyon') || combined.includes('kupa') || combined.includes('lig')
+  ) {
+    return FOOTBALL_MATCH_PHOTO_POOL[index % FOOTBALL_MATCH_PHOTO_POOL.length];
   }
+
+  // 1. Kahve, Kafe, Restoran, Yemek & Gurme Lezzetler
+  if (
+    combined.includes('kahve') || combined.includes('kafe') || combined.includes('roastery') ||
+    combined.includes('yemek') || combined.includes('lezzet') || combined.includes('restoran') ||
+    combined.includes('tatlı') || combined.includes('ekmek') || combined.includes('fırın') ||
+    combined.includes('şarap') || combined.includes('gastronomi') || combined.includes('barista')
+  ) {
+    return COFFEE_FOOD_PHOTO_POOL[index % COFFEE_FOOD_PHOTO_POOL.length];
+  }
+
+  // 2. Turizm, Seyahat, Kapadokya, Balon, Tatil, Gezi, Doğa
+  if (
+    combined.includes('balon') || combined.includes('kapadokya') || combined.includes('turizm') ||
+    combined.includes('seyahat') || combined.includes('tatil') || combined.includes('otel') ||
+    combined.includes('gezi') || combined.includes('uçuş') || combined.includes('plaj') ||
+    combined.includes('yazlık') || combined.includes('manzara')
+  ) {
+    return TOURISM_PHOTO_POOL[index % TOURISM_PHOTO_POOL.length];
+  }
+
+  // 3. Sağlık, Tıp, Cerrahi, Doktor, Klinik, Diş
+  if (
+    combined.includes('sağlık') || combined.includes('tıp') || combined.includes('doktor') ||
+    combined.includes('hastane') || combined.includes('klinik') || combined.includes('cerrahi') ||
+    combined.includes('tedavi') || combined.includes('ilaç') || combined.includes('diş') ||
+    combined.includes('ameliyat') || combined.includes('wellness') || combined.includes('yoga')
+  ) {
+    return HEALTH_MEDICAL_PHOTO_POOL[index % HEALTH_MEDICAL_PHOTO_POOL.length];
+  }
+
+  // 4. Otomobil, Araba, Süper Spor, Elektrikli Araç, Hız
+  if (
+    combined.includes('araba') || combined.includes('otomobil') || combined.includes('araç') ||
+    combined.includes('sürüş') || combined.includes('hız') || combined.includes('elektrikli') ||
+    combined.includes('motor') || combined.includes('test sürüşü') || combined.includes('gt') ||
+    combined.includes('spor araba') || combined.includes('kokpit')
+  ) {
+    return AUTOMOTIVE_PHOTO_POOL[index % AUTOMOTIVE_PHOTO_POOL.length];
+  }
+
+  // 5. Gayrimenkul, Emlak, Rezidans, Villa, Mimari, Konut
+  if (
+    combined.includes('rezidans') || combined.includes('villa') || combined.includes('emlak') ||
+    combined.includes('konut') || combined.includes('daire') || combined.includes('arsa') ||
+    combined.includes('mimari') || combined.includes('korkmaz') || combined.includes('gayrimenkul') ||
+    briefType === 'tanitim'
+  ) {
+    return LUXURY_ESTATE_PHOTO_POOL[index % LUXURY_ESTATE_PHOTO_POOL.length];
+  }
+
+  // 6. Teknoloji, Yazılım, Yapay Zekâ, Çip, Robot, Siber
+  if (
+    combined.includes('yapay zeka') || combined.includes('yazılım') || combined.includes('teknoloji') ||
+    combined.includes('çip') || combined.includes('robot') || combined.includes('kodlama') ||
+    combined.includes('donanım') || combined.includes('ai') || combined.includes('bulut') ||
+    combined.includes('saas') || combined.includes('siber')
+  ) {
+    return TECH_AI_PHOTO_POOL[index % TECH_AI_PHOTO_POOL.length];
+  }
+
+  // 7. Doğa, Okyanus, Dağ, Orman, Vahşi Yaşam, Çevre
+  if (
+    combined.includes('okyanus') || combined.includes('deniz') || combined.includes('dağ') ||
+    combined.includes('orman') || combined.includes('doğa') || combined.includes('hayvan') ||
+    combined.includes('çevre') || combined.includes('mariana') || combined.includes('göl') ||
+    combined.includes('fırtına')
+  ) {
+    return NATURE_WILDLIFE_PHOTO_POOL[index % NATURE_WILDLIFE_PHOTO_POOL.length];
+  }
+
+  // 8. Tarih, Arkeoloji, Antik, Mısır, Piramit, Roma
+  if (
+    combined.includes('piramit') || combined.includes('mısır') || combined.includes('arkeoloji') ||
+    combined.includes('tarih') || combined.includes('antik') || combined.includes('roma') ||
+    combined.includes('tapınak') || combined.includes('gize') || combined.includes('sır') ||
+    combined.includes('kolezyum')
+  ) {
+    return HISTORY_ARCHAEOLOGY_PHOTO_POOL[index % HISTORY_ARCHAEOLOGY_PHOTO_POOL.length];
+  }
+
+  // 9. İş Dünyası, Şirket, Kurumsal, Finans, Yatırım
+  if (
+    combined.includes('şirket') || combined.includes('kurumsal') || combined.includes('holding') ||
+    combined.includes('finans') || combined.includes('yatırım') || combined.includes('danışmanlık') ||
+    combined.includes('ekip') || combined.includes('pazar') || briefType === 'kurumsal'
+  ) {
+    return BUSINESS_CORP_PHOTO_POOL[index % BUSINESS_CORP_PHOTO_POOL.length];
+  }
+
+  // 10. Spor, Fitness, Egzersiz, Koşu
+  if (
+    combined.includes('spor') || combined.includes('fitness') || combined.includes('koşu') ||
+    combined.includes('antrenman') || combined.includes('maraton') || combined.includes('egzersiz')
+  ) {
+    return SPORTS_FITNESS_PHOTO_POOL[index % SPORTS_FITNESS_PHOTO_POOL.length];
+  }
+
+  // 11. Belgesel modu
   if (briefType === 'belgesel') {
     return matchBestDocumentaryPhoto(role, visualDesc, index, product);
   }
-  if (briefType === 'youtube') {
+
+  // 12. YouTube modu
+  if (briefType === 'youtube' || briefType === 'sosyal') {
     return matchBestYouTubePhoto(role, visualDesc, index);
   }
-  const isRealEstate =
-    briefType === 'tanitim' ||
-    /gayrimenkul|emlak|rezidans|villa|arsa|konut/i.test(product || '') ||
-    /gayrimenkul|emlak|rezidans|villa/i.test(visualDesc || '');
 
-  if (isRealEstate) {
-    return matchBestRealPhoto(role, visualDesc, index);
+  // 13. Sinema modu
+  if (briefType === 'sinema') {
+    return matchBestCinemaPhoto(role, visualDesc, index);
   }
 
-  // Reklam ve diğer modlar için
+  // Genel reklam modu
   if (briefType === 'reklam') {
     return index % 2 === 0
-      ? matchBestCinemaPhoto(role, visualDesc, index)
-      : matchBestYouTubePhoto(role, visualDesc, index);
+      ? LUXURY_ESTATE_PHOTO_POOL[index % LUXURY_ESTATE_PHOTO_POOL.length]
+      : BUSINESS_CORP_PHOTO_POOL[index % BUSINESS_CORP_PHOTO_POOL.length];
   }
 
   return matchBestCinemaPhoto(role, visualDesc, index);
@@ -360,16 +574,47 @@ export function getScenePhoto(
 export interface VisualAssetItem {
   url: string;
   name: string;
-  category: 'sinema' | 'belgesel' | 'youtube' | 'emlak';
+  category: 'sinema' | 'belgesel' | 'youtube' | 'emlak' | 'turizm' | 'gastronomi' | 'saglik' | 'otomotiv' | 'teknoloji' | 'spor';
   tag: string;
 }
 
 export const ALL_CURATED_ASSETS: VisualAssetItem[] = [
+  // ⚽ Futbol & Spor (Maçlar, Derbiler, Stadyumlar)
+  { url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=85&w=1280&auto=format&fit=crop', name: 'Stadyum Projektörleri & Yeşil Saha', category: 'spor', tag: 'Stadyum' },
+  { url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=85&w=1280&auto=format&fit=crop', name: 'Kaleye Giren Top & Gol Anı', category: 'spor', tag: 'Gol' },
+  { url: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?q=85&w=1280&auto=format&fit=crop', name: 'Takım Gol Sevinci & Coşku', category: 'spor', tag: 'Sevinç' },
+  { url: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?q=85&w=1280&auto=format&fit=crop', name: 'Taraftarlarla Dolu Dev Stadyum', category: 'spor', tag: 'Tribün' },
+  { url: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?q=85&w=1280&auto=format&fit=crop', name: 'Futbolcu Şut Vuruşu', category: 'spor', tag: 'Aksiyon' },
+  { url: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?q=85&w=1280&auto=format&fit=crop', name: 'Maç Mücadelesi & Heyecan', category: 'spor', tag: 'Maç' },
+
+  // 🎈 Turizm & Kapadokya & Doğa
+  { url: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?q=85&w=1280&auto=format&fit=crop', name: 'Kapadokya Balonları Gün Doğumu', category: 'turizm', tag: 'Kapadokya' },
+  { url: 'https://images.unsplash.com/photo-1570939274717-7eda259b50ed?q=85&w=1280&auto=format&fit=crop', name: 'Peri Bacaları Altın Saat', category: 'turizm', tag: 'Turizm' },
+  { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=85&w=1280&auto=format&fit=crop', name: 'Turkuaz Kıyı Şeridi & Deniz', category: 'turizm', tag: 'Tatil' },
+
+  // ☕ Gastronomi & Kafe & Restoran
+  { url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=85&w=1280&auto=format&fit=crop', name: 'Artisan Latte & Kahve Buharı', category: 'gastronomi', tag: 'Kahve' },
+  { url: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=85&w=1280&auto=format&fit=crop', name: 'Taze Çekirdek Kavurma Atölyesi', category: 'gastronomi', tag: 'Kavurma' },
+  { url: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?q=85&w=1280&auto=format&fit=crop', name: 'Şefin Gurme Tabak Sunumu', category: 'gastronomi', tag: 'Restoran' },
+
+  // 🏥 Sağlık, Tıp & Klinik
+  { url: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=85&w=1280&auto=format&fit=crop', name: 'Modern Cerrahi Operasyon', category: 'saglik', tag: 'Cerrahi' },
+  { url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=85&w=1280&auto=format&fit=crop', name: 'Uzman Doktor Danışmanlığı', category: 'saglik', tag: 'Doktor' },
+  { url: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?q=85&w=1280&auto=format&fit=crop', name: 'Modern Diş Kliniği & Gülüş', category: 'saglik', tag: 'Klinik' },
+
+  // 🚗 Otomobil & Süper Spor
+  { url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=85&w=1280&auto=format&fit=crop', name: 'Elektrikli Süper Spor Otomobil', category: 'otomotiv', tag: 'Süper Spor' },
+  { url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=85&w=1280&auto=format&fit=crop', name: 'Dağ Yolunda Dinamik Sürüş', category: 'otomotiv', tag: 'Sürüş' },
+
+  // 💻 Teknoloji & Yapay Zekâ
+  { url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=85&w=1280&auto=format&fit=crop', name: 'Yapay Zekâ İşlemci & Mikroçip', category: 'teknoloji', tag: 'AI' },
+  { url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=85&w=1280&auto=format&fit=crop', name: 'Siber Güvenlik & Veri Akışı', category: 'teknoloji', tag: 'Siber' },
+
   // 🎙️ Belgesel (Doğa, Tarih, Bilim & Araştırma)
   { url: '/documentary_assets/doc_pyramids_giza.jpg', name: 'Gize Piramitleri ve Çöl (Altın Saat)', category: 'belgesel', tag: 'Arkeoloji' },
+  { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=85&w=1280&auto=format&fit=crop', name: 'Epik Dağ Manzarası & Gökyüzü', category: 'belgesel', tag: 'Doğa' },
   { url: '/cinema_assets/space_earth_orbit.jpg', name: 'Dünya Yörüngesi ve Atmosfer', category: 'belgesel', tag: 'Kozmoloji' },
   { url: '/cinema_assets/space_galaxy.jpg', name: 'Kozmik Sarmal Galaksi', category: 'belgesel', tag: 'Evren' },
-  { url: '/cinema_assets/char_detective.jpg', name: 'Arşiv Araştırmacısı / Keşif', category: 'belgesel', tag: 'Araştırma' },
   { url: '/cinema_assets/climax_lightning.jpg', name: 'Doğanın Gücü: Şimşek & Fırtına', category: 'belgesel', tag: 'Doğa' },
   { url: '/cinema_assets/outro_dawn_sunrise.jpg', name: 'Şafak Vakti & Yeni Çağ', category: 'belgesel', tag: 'Tarih' },
 
@@ -377,25 +622,12 @@ export const ALL_CURATED_ASSETS: VisualAssetItem[] = [
   { url: '/cinema_assets/cyber_city_night.jpg', name: 'Siberpunk Mega Kent (Gece)', category: 'sinema', tag: 'Atmosfer' },
   { url: '/cinema_assets/cyber_neon_rain.jpg', name: 'Neon Işıklı Yağmurlu Sokak', category: 'sinema', tag: 'Atmosfer' },
   { url: '/cinema_assets/cyber_towers.jpg', name: 'Fütüristik Gökdelenler', category: 'sinema', tag: 'Atmosfer' },
-  { url: '/cinema_assets/space_earth_orbit.jpg', name: 'Dünya Yörüngesi ve Atmosfer', category: 'sinema', tag: 'Uzay' },
-  { url: '/cinema_assets/space_nebula.jpg', name: 'Derin Uzay Bulutsusu (Nebula)', category: 'sinema', tag: 'Uzay' },
   { url: '/cinema_assets/char_cyber_hero.jpg', name: 'Siber Kahraman Portresi', category: 'sinema', tag: 'Karakter' },
   { url: '/cinema_assets/char_detective.jpg', name: 'Dedektif (Pardösülü & Gizemli)', category: 'sinema', tag: 'Karakter' },
   { url: '/cinema_assets/char_silhouette.jpg', name: 'Işığa Karşı Gizemli Silüet', category: 'sinema', tag: 'Karakter' },
-  { url: '/cinema_assets/char_lone_street.jpg', name: 'Yalnız Gece Yürüyüşü', category: 'sinema', tag: 'Karakter' },
-  { url: '/cinema_assets/cyber_corridor.jpg', name: 'Fütüristik Tesis Koridoru', category: 'sinema', tag: 'Keşif' },
-  { url: '/cinema_assets/space_galaxy.jpg', name: 'Sarmal Galaksi & Kozmos', category: 'sinema', tag: 'Uzay' },
-  { url: '/cinema_assets/action_dark_alley.jpg', name: 'Karanlık Çıkmaz Sokak', category: 'sinema', tag: 'Gerilim' },
-  { url: '/cinema_assets/action_sparks.jpg', name: 'Kıvılcımlar & Mekanik Aksiyon', category: 'sinema', tag: 'Aksiyon' },
   { url: '/cinema_assets/action_chase.jpg', name: 'Yüksek Hızlı Takip / Kovalamaca', category: 'sinema', tag: 'Aksiyon' },
-  { url: '/cinema_assets/space_stars.jpg', name: 'Yıldız Tarlası & Sonsuzluk', category: 'sinema', tag: 'Uzay' },
   { url: '/cinema_assets/climax_rooftop.jpg', name: 'Çatıda Büyük Yüzleşme (Climax)', category: 'sinema', tag: 'Zirve' },
-  { url: '/cinema_assets/climax_lightning.jpg', name: 'Dramatik Şimşek & Fırtına', category: 'sinema', tag: 'Zirve' },
   { url: '/cinema_assets/action_explosion.jpg', name: 'Büyük Patlama & Alevler', category: 'sinema', tag: 'Zirve' },
-  { url: '/cinema_assets/climax_fire_portal.jpg', name: 'Ateş Geçidi / Portalı', category: 'sinema', tag: 'Zirve' },
-  { url: '/cinema_assets/outro_dawn_sunrise.jpg', name: 'Epik Gün Doğumu / Son Şafak', category: 'sinema', tag: 'Final' },
-  { url: '/cinema_assets/outro_cinema_light.jpg', name: 'Sinema Projeksiyon Huzmesi', category: 'sinema', tag: 'Final' },
-  { url: '/cinema_assets/outro_epic_horizon.jpg', name: 'Sonsuz Ufuk & Kapanış', category: 'sinema', tag: 'Final' },
 
   // 🔴 YouTube (16:9 Full HD)
   { url: '/youtube_assets/yt_studio_neon.jpg', name: 'Neon YouTube Yayın Stüdyosu', category: 'youtube', tag: 'Stüdyo' },
@@ -403,13 +635,10 @@ export const ALL_CURATED_ASSETS: VisualAssetItem[] = [
   { url: '/youtube_assets/yt_tech_desk.jpg', name: 'İçerik Üretici RGB Setup', category: 'youtube', tag: 'Masaüstü' },
   { url: '/youtube_assets/yt_ai_chip.jpg', name: 'Yapay Zeka İşlemcisi & Çip', category: 'youtube', tag: 'Teknoloji' },
   { url: '/youtube_assets/yt_data_charts.jpg', name: 'Büyük Veri & Analiz Grafikleri', category: 'youtube', tag: 'Veri' },
-  { url: '/youtube_assets/yt_creator_workspace.jpg', name: 'Aydınlık Minimal Çalışma Alanı', category: 'youtube', tag: 'Çalışma' },
 
   // 🏢 Gayrimenkul & Kurumsal
+  { url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=85&w=1280&auto=format&fit=crop', name: 'Havuzlu Prestij Villa', category: 'emlak', tag: 'Villa' },
   { url: '/real_assets/hero_residence.jpg', name: 'Lüks Rezidans Kulesi', category: 'emlak', tag: 'Rezidans' },
-  { url: '/real_assets/luxury_villa.jpg', name: 'Havuzlu Prestij Villa', category: 'emlak', tag: 'Villa' },
-  { url: '/real_assets/01-hero.jpg', name: 'Modern Dış Cephe', category: 'emlak', tag: 'Konut' },
-  { url: '/real_assets/02-villa.jpg', name: 'Doğa İçinde Müstakil Villa', category: 'emlak', tag: 'Villa' },
   { url: '/real_assets/modern_map.jpg', name: 'Konum ve Lokasyon Haritası', category: 'emlak', tag: 'Harita' },
   { url: '/real_assets/outro_luxury.jpg', name: 'Kurumsal Ofis & İletişim', category: 'emlak', tag: 'Kapanış' }
 ];

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Scene, VideoItem } from '@/types';
-import { CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES, SOP_ROLES } from '@/lib/constants';
+import { CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES, SOP_ROLES, SHORTS_ROLES, SPORTS_ROLES } from '@/lib/constants';
 import { VisualPickerModal } from './VisualPickerModal';
 import { getScenePhoto } from '@/lib/assets';
 
@@ -53,26 +53,80 @@ export function StoryboardDesigner({
   };
 
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<string>('');
 
   const generateAllAiImages = async () => {
     setIsBatchGenerating(true);
+    setBatchProgress('Başlatılıyor...');
     try {
-      await Promise.all(scenes.map((_, i) => generateAiImageForScene(i)));
+      for (let i = 0; i < scenes.length; i++) {
+        setBatchProgress(`Sahne ${i + 1} / ${scenes.length} AI ile çiziliyor...`);
+        await generateAiImageForScene(i);
+      }
     } finally {
       setIsBatchGenerating(false);
+      setBatchProgress('');
+    }
+  };
+
+  const fetchWebImageForScene = async (index: number) => {
+    const sc = scenes[index];
+    if (!sc) return;
+    setGeneratingSceneId(sc.id);
+    try {
+      const q = (sc.visual || `${video.product} ${sc.role}`)
+        .replace(/award-winning|cinematic|35mm film still|shot on|arri alexa|panavision|anamorphic primes|dramatic cinematic lighting|color graded in davinci resolve|8k resolution|photorealistic|hyperdetailed|volumetric rim lighting|subtle film grain|movie scene|hasselblad|national geographic|bbc earth/gi, ' ')
+        .replace(/[,\.:\"\'\(\)\[\]\{\}]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const words = q.split(' ').filter(w => w.length > 2);
+      const query = words.slice(0, 3).join(' ') || video.product;
+
+      const res = await fetch(`/api/web-image?q=${encodeURIComponent(query)}&limit=6`);
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        const item = data.results[index % data.results.length];
+        if (item?.url) {
+          updateScene(index, { imageUrl: item.url });
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      setGeneratingSceneId(null);
+    }
+  };
+
+  const fetchAllWebImages = async () => {
+    setIsBatchGenerating(true);
+    setBatchProgress('İnternet araması başlatılıyor...');
+    try {
+      for (let i = 0; i < scenes.length; i++) {
+        setBatchProgress(`Sahne ${i + 1} / ${scenes.length} internetten bulunuyor...`);
+        await fetchWebImageForScene(i);
+      }
+    } finally {
+      setIsBatchGenerating(false);
+      setBatchProgress('');
     }
   };
 
   const isCinema = video.type === 'sinema' || video.ratio === '21:9';
   const isDocumentary = video.type === 'belgesel';
   const isYouTube = video.type === 'youtube';
+  const isSocial = video.type === 'sosyal' || video.ratio === '9:16';
+  const isSports = /maç|futbol|gol|gs|fb|bjk|ts|derbi|stadyum|şampiyon|lig|soccer|football|vs|stuttgart|stutgart|galatasaray|fenerbahçe|beşiktaş/i.test(
+    `${video.product} ${video.points || ''}`
+  );
 
   const roleOptions = useMemo(() => {
+    if (isSports) return SPORTS_ROLES;
+    if (isSocial) return SHORTS_ROLES;
     if (isCinema) return CINEMA_ROLES;
     if (isDocumentary) return DOCUMENTARY_ROLES;
     if (isYouTube) return YOUTUBE_ROLES;
     return SOP_ROLES;
-  }, [isCinema, isDocumentary, isYouTube]);
+  }, [isSports, isSocial, isCinema, isDocumentary, isYouTube]);
 
   const totalDuration = useMemo(() => {
     return scenes.reduce((acc, s) => acc + (Number(s.sec) || 0), 0);
@@ -167,7 +221,11 @@ export function StoryboardDesigner({
                   : 'ai'
               }`}
             >
-              {isCinema
+              {isSports
+                ? '⚽ Maç Özeti & Goller'
+                : isSocial
+                ? '📱 Shorts & Reels (9:16)'
+                : isCinema
                 ? '🎬 Sinema Storyboard'
                 : isDocumentary
                 ? '🎙️ Belgesel Storyboard'
@@ -205,31 +263,48 @@ export function StoryboardDesigner({
             disabled={isRendering || isBatchGenerating}
             title="Tüm sahnelerin kamera yönergelerinden yapay zekâ görseli üret"
             style={{
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
               color: '#ffffff',
               fontWeight: 600,
-              border: 'none'
+              border: 'none',
+              padding: '6px 12px'
             }}
           >
-            {isBatchGenerating ? '⏳ AI Kareleri Üretiliyor...' : '🤖 Tüm Kareleri AI ile Üret'}
+            {isBatchGenerating && batchProgress.includes('AI') ? `⏳ ${batchProgress}` : '✨ Tümünü AI ile Çiz'}
+          </button>
+          <button
+            type="button"
+            className="btn sm"
+            onClick={fetchAllWebImages}
+            disabled={isRendering || isBatchGenerating}
+            title="Tüm sahneler için internetten canlı telifsiz gerçek fotoğraflar ara ve bağla"
+            style={{
+              background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+              color: '#ffffff',
+              fontWeight: 600,
+              border: 'none',
+              padding: '6px 12px'
+            }}
+          >
+            {isBatchGenerating && batchProgress.includes('internet') ? `⏳ ${batchProgress}` : '🌐 Tümünü Web\'den Bul'}
           </button>
           <button
             type="button"
             className="btn sm"
             onClick={addScene}
-            disabled={isRendering}
+            disabled={isRendering || isBatchGenerating}
             title="Yeni bir sahne ekle"
           >
-            ➕ Yeni Sahne Ekle
+            ➕ Yeni Sahne
           </button>
           <button
             type="button"
             className="btn sm"
             onClick={autoReassignImages}
-            disabled={isRendering}
+            disabled={isRendering || isBatchGenerating}
             title="Tüm kareleri role göre otomatik yeniden eşle"
           >
-            🎲 Kareleri Yeniden Eşle
+            🎲 Yeniden Eşle
           </button>
           <button
             type="button"
@@ -237,20 +312,20 @@ export function StoryboardDesigner({
             onClick={onCancel}
             disabled={isRendering}
           >
-            ✕ İptal Et
+            ✕ İptal
           </button>
           <button
             type="button"
             className="btn primary storyboard-render-btn"
             onClick={() => onConfirmAndRender(scenes)}
-            disabled={isRendering || scenes.length === 0}
+            disabled={isRendering || scenes.length === 0 || isBatchGenerating}
             style={{
               fontWeight: 700,
               padding: '8px 20px',
               boxShadow: '0 4px 16px var(--acc-glow)'
             }}
           >
-            {isRendering ? '⏳ Render Ediliyor...' : '🎬 Tasarımı Onayla & Videoyu Render Et 🚀'}
+            {isRendering ? '⏳ Render Ediliyor...' : '🎬 Tasarımı Onayla & Render Et 🚀'}
           </button>
         </div>
       </div>
@@ -363,38 +438,59 @@ export function StoryboardDesigner({
                 padding: 8
               }}
             >
-              <button
-                type="button"
-                className="btn sm"
-                onClick={() => generateAiImageForScene(idx)}
-                disabled={generatingSceneId === scene.id}
-                style={{
-                  fontSize: 11,
-                  padding: '4px 9px',
-                  background: 'rgba(99, 102, 241, 0.9)',
-                  color: '#fff',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  backdropFilter: 'blur(4px)',
-                  fontWeight: 600
-                }}
-                title="Yapay zekâ ile bu sahne için sıfırdan benzersiz görsel üret"
-              >
-                {generatingSceneId === scene.id ? '⏳ Çiziliyor...' : '✨ AI ile Çiz'}
-              </button>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button
+                  type="button"
+                  className="btn sm"
+                  onClick={() => generateAiImageForScene(idx)}
+                  disabled={generatingSceneId === scene.id}
+                  style={{
+                    fontSize: 10.5,
+                    padding: '3px 7px',
+                    background: 'rgba(99, 102, 241, 0.9)',
+                    color: '#fff',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    backdropFilter: 'blur(4px)',
+                    fontWeight: 600
+                  }}
+                  title="Yapay zekâ ile bu sahne için sıfırdan benzersiz görsel üret"
+                >
+                  {generatingSceneId === scene.id ? '⏳ Çiziyor...' : '✨ AI'}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn sm"
+                  onClick={() => fetchWebImageForScene(idx)}
+                  disabled={generatingSceneId === scene.id}
+                  style={{
+                    fontSize: 10.5,
+                    padding: '3px 7px',
+                    background: 'rgba(14, 165, 233, 0.9)',
+                    color: '#fff',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    backdropFilter: 'blur(4px)',
+                    fontWeight: 600
+                  }}
+                  title="İnternetten bu sahneye uygun gerçek fotoğraf ara"
+                >
+                  🌐 Web
+                </button>
+              </div>
 
               <button
                 type="button"
                 className="btn sm primary"
                 onClick={() => setActivePickerIndex(idx)}
                 style={{
-                  fontSize: 11,
-                  padding: '4px 10px',
+                  fontSize: 10.5,
+                  padding: '3px 9px',
                   background: 'rgba(15, 23, 42, 0.85)',
                   backdropFilter: 'blur(4px)',
                   border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}
               >
-                🖼️ Galeriden Seç
+                🖼️ Seç / Ara
               </button>
             </div>
 

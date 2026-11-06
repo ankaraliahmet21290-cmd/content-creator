@@ -2,22 +2,76 @@ import { BriefForm, Preset, VideoType, CharacterProfile } from '@/types';
 
 export const BG_MUSIC_OPTIONS = [
   {
+    id: 'auto',
+    label: '🎯 Akıllı Otomatik (Konuya Göre Eşle)',
+    path: '',
+    desc: 'Videonun konusuna ve atmosferine göre en uygun soundtrack yapay zekâ tarafından otomatik seçilir'
+  },
+  {
     id: 'cinema_epic',
-    label: '🎬 Epik Sinema & Orkestral Fragman',
+    label: '🎬 Epik Sinema & Hollywood Fragmanı',
     path: '/audio_assets/cinema_epic_trailer.wav',
-    desc: 'Dramatik yaylılar, yükselen gerilim ve sub-bass vuruşları'
+    desc: 'Dramatik yaylılar, yükselen aksiyon gerilimi ve derin sub-bass vuruşları'
+  },
+  {
+    id: 'cinema_emotional',
+    label: '🎻 Dramatik & Duygusal Piyano / Yaylılar',
+    path: '/audio_assets/cinema_emotional_piano.wav',
+    desc: 'Hüzünlü ve ilham verici grand piyano ezgileri, derin çello ve yaylılar'
+  },
+  {
+    id: 'mystery_thriller',
+    label: '🌘 Karanlık Gizem & Gerilim Pulse',
+    path: '/audio_assets/mystery_thriller_pulse.wav',
+    desc: 'Tetikleyici sub-bass nabzı, klostrofobik gerilim ve karanlık atmosfer'
+  },
+  {
+    id: 'documentary_ambient',
+    label: '🌍 Belgesel & Doğa Keşfi Ambient',
+    path: '/audio_assets/documentary_ambient_earth.wav',
+    desc: 'BBC Earth tarzı atmosferik padler, derin uzam ve organik tınılar'
+  },
+  {
+    id: 'youtube_upbeat',
+    label: '⚡ Modern Upbeat & Dinamik Vibe',
+    path: '/audio_assets/youtube_upbeat_future.wav',
+    desc: 'YouTube vlogları, tech incelemeleri ve modern ritmik enerji'
   },
   {
     id: 'youtube_lofi',
-    label: '🎧 Modern Upbeat & Lo-Fi Beats',
-    path: '/audio_assets/youtube_upbeat_lofi.wav',
-    desc: 'YouTube, belgesel ve vloglar için sürükleyici akustik/ritmik ton'
+    label: '🎧 Lo-Fi Chill & Samimi Anlatım',
+    path: '/audio_assets/youtube_lofi_chill.wav',
+    desc: 'Sıcak Rhodes akorları, plak çıtırtısı ve rahatlatıcı hip-hop ritmi'
+  },
+  {
+    id: 'tech_cyber',
+    label: '🚀 Cyberpunk & Fütüristik Synthwave',
+    path: '/audio_assets/tech_cyber_synthwave.wav',
+    desc: 'Neon 80s analog arpejler, retro-fütüristik elektro bas ve aksiyon'
+  },
+  {
+    id: 'corporate_prestige',
+    label: '💼 Lüks & Prestij & Kurumsal Güven',
+    path: '/audio_assets/corporate_prestige_luxury.wav',
+    desc: 'Prestijli rezidans, holding, danışmanlık ve seçkin marka tanıtımı'
+  },
+  {
+    id: 'sales_dynamic',
+    label: '📢 Yüksek Enerji Ticari Satış & Reklam',
+    path: '/audio_assets/sales_dynamic_drive.wav',
+    desc: 'Dinamik akustik gitar ritmi, el çırpmaları ve yüksek dönüşümlü satış fonu'
+  },
+  {
+    id: 'acoustic_warmth',
+    label: '🌿 Sıcak Akustik & Organik Yaşam',
+    path: '/audio_assets/acoustic_warmth_life.wav',
+    desc: 'Parmakla çalınan samimi akustik gitar, organik doğa ve yaşam tarzı'
   },
   {
     id: 'sales_corporate',
-    label: '💼 Dinamik Satış & Kurumsal Fon',
+    label: '🏢 Klasik Kurumsal & Satış Fonu',
     path: '/sales-music.wav',
-    desc: 'Ürün tanıtımı, reklam ve enerjik marka duyurusu'
+    desc: 'Klasik enerjik tanıtım ve marka müziği'
   },
   {
     id: 'none',
@@ -26,6 +80,49 @@ export const BG_MUSIC_OPTIONS = [
     desc: 'Arka plan müziği olmadan sadece saf seslendirme'
   }
 ];
+
+export function resolveBgmTrackPath(bgMusic?: string, type: string = 'sinema', topic: string = ''): string {
+  if (bgMusic === 'none') return '';
+  if (bgMusic && bgMusic !== 'auto' && bgMusic !== '') {
+    const found = BG_MUSIC_OPTIONS.find(m => m.id === bgMusic);
+    if (found && found.path) return found.path;
+    if (bgMusic.startsWith('/')) return bgMusic;
+  }
+
+  // Akıllı otomatik eşleştirme (Konu ve türe göre)
+  const t = (topic || '').toLowerCase();
+  if (t.includes('gizem') || t.includes('korku') || t.includes('gerilim') || t.includes('cinayet') || t.includes('thriller')) {
+    return '/audio_assets/mystery_thriller_pulse.wav';
+  }
+  if (t.includes('duygusal') || t.includes('dram') || t.includes('aşk') || t.includes('hüzün') || t.includes('piyano') || t.includes('sevgi')) {
+    return '/audio_assets/cinema_emotional_piano.wav';
+  }
+  if (t.includes('cyber') || t.includes('siber') || t.includes('yapay zeka') || t.includes('robot') || t.includes('çip') || t.includes('kodlama')) {
+    return '/audio_assets/tech_cyber_synthwave.wav';
+  }
+  if (t.includes('belgesel') || t.includes('tarih') || t.includes('arkeoloji') || t.includes('uzay') || t.includes('okyanus') || t.includes('evren') || t.includes('doğa') || type === 'belgesel') {
+    return '/audio_assets/documentary_ambient_earth.wav';
+  }
+  if (t.includes('rezidans') || t.includes('villa') || t.includes('emlak') || t.includes('holding') || t.includes('lüks') || t.includes('prestij') || t.includes('mimari')) {
+    return '/audio_assets/corporate_prestige_luxury.wav';
+  }
+  if (t.includes('kahve') || t.includes('organik') || t.includes('sağlık') || t.includes('yoga') || t.includes('tatil') || t.includes('çiftlik') || t.includes('lezzet') || t.includes('balon')) {
+    return '/audio_assets/acoustic_warmth_life.wav';
+  }
+  if (t.includes('maç') || t.includes('futbol') || t.includes('gol') || t.includes('spor') || t.includes('derbi') || t.includes('şampiyon') || t.includes('stadyum') || t.includes('stuttgart') || t.includes('galatasaray') || t.includes('fenerbahçe') || t.includes('beşiktaş')) {
+    return '/audio_assets/sales_dynamic_drive.wav';
+  }
+  if (t.includes('satış') || t.includes('indirim') || t.includes('kampanya') || t.includes('reklam') || type === 'reklam') {
+    return '/audio_assets/sales_dynamic_drive.wav';
+  }
+  if (type === 'youtube') {
+    return '/audio_assets/youtube_upbeat_future.wav';
+  }
+  if (type === 'sinema') {
+    return '/audio_assets/cinema_epic_trailer.wav';
+  }
+  return '/audio_assets/corporate_prestige_luxury.wav';
+}
 
 export const CHARACTER_PRESETS: CharacterProfile[] = [
   {
@@ -178,7 +275,41 @@ export const YOUTUBE_ROLES = [
   'Özet & Abone Ol Çağrısı'
 ];
 
+export const SHORTS_ROLES = [
+  '⚡ Viral Kanca & Şok Başlangıç',
+  '🔥 Yükselen Gerilim & Kritik An',
+  '💥 Beklenmeyen Kırılma & Olay',
+  '🚀 Zirve Patlaması & En Can Alıcı An',
+  '👉 Takip Et & Yorumunu Yaz (CTA)'
+];
+
+export const SPORTS_ROLES = [
+  '🏟️ Başlama Düdüğü & Tribün Coşkusu',
+  '⚡ Tehlikeli Atak & İlk Tehdit',
+  '⚽ GOOOL! Ağları Yırtan Vuruş',
+  '🔥 Karşı Atak & Nefes Kesen Pozisyon',
+  '🏆 Maçı Koparan Gol & Zafer Çığlığı',
+  '👉 Maç Sonu Skoru & Maçın Adamı Kimdi? (CTA)'
+];
+
 export const PRESETS: Preset[] = [
+  {
+    name: '⚽ Futbol: GS - Stuttgart Maç Özeti & Goller',
+    data: {
+      type: 'sosyal',
+      product: 'Galatasaray - Stuttgart Maç Özeti & Goller',
+      audience: 'Futbol tutkunları, Galatasaray ve spor takipçileri',
+      points: 'Nefes kesen 90 dakika ve kaçırılmayacak gol pozisyonları\nİnanılmaz şut ve köşeye giden 1. gol\nSon dakikalarda maçı koparan muhteşem vuruş',
+      cta: 'Sizce maçın kırılma anı hangisiydi? Yorumlara yazın ve takip edin!',
+      tone: 'Heyecanlı & Dinamik',
+      dur: 25,
+      ratio: '9:16',
+      platform: 'YouTube Shorts (9:16)',
+      lang: 'tr-TR',
+      bgMusic: 'sales_dynamic',
+      visualSource: 'web_search'
+    }
+  },
   {
     name: '🎬 Sinema: 2088 Son Şafak',
     data: {
@@ -317,16 +448,48 @@ export const PRESETS: Preset[] = [
     name: '☕ Kafe & Restoran Lansmanı',
     data: {
       type: 'sosyal',
-      product: 'Artisan Soğuk Demleme Kahve',
-      audience: 'Gençler ve özel lezzet meraklıları',
-      points: '18 saatte demlenen taze çekirdek lezzeti\nDoğal ve katkısız enerji kaynağı\nHer gün taze tatlılarla ikram fırsatı',
-      cta: 'Hafta sonu arkadaşını al gel, ikinci kahve hediye!',
+      product: 'Artisan Soğuk Demleme Kahve & Roastery',
+      audience: 'Nitelikli kahve ve gurme lezzet tutkunları',
+      points: '18 saatte demlenen tek kökenli Etiyopya çekirdekleri\nÖdüllü baristalardan taze kavurma atölyesi\nTaş fırından yeni çıkmış sıcak kruvasanlar',
+      cta: 'Hafta sonu arkadaşını al gel, ikinci özel kahve bizden!',
       tone: 'Samimi',
-      dur: 15,
+      dur: 20,
       ratio: '9:16',
       platform: 'TikTok',
       lang: 'tr-TR',
-      bgMusic: 'sales_corporate'
+      bgMusic: 'acoustic_warmth'
+    }
+  },
+  {
+    name: '🎈 Turizm: Kapadokya Balon Turu',
+    data: {
+      type: 'reklam',
+      product: 'Kapadokya: Gün Doğumu Balon Keşfi',
+      audience: 'Seyahat severler, çiftler ve macera tutkunları',
+      points: 'Peri bacalarının üzerinde altın saat gün doğumu uçuşu\nÖzel VIP sepet ve profesyonel fotoğraf çekimi\nUçuş sonrası şampanyalı kutlama ve sertifika töreni',
+      cta: 'Erken rezervasyon fırsatıyla gökyüzündeki yerinizi hemen ayırtın.',
+      tone: 'Duygusal & İlham Verici',
+      dur: 35,
+      ratio: '16:9',
+      platform: 'Web Sitesi & Portföy',
+      lang: 'tr-TR',
+      bgMusic: 'cinema_emotional'
+    }
+  },
+  {
+    name: '⚡ Otomobil: Yeni Nesil Elektrikli GT',
+    data: {
+      type: 'reklam',
+      product: 'Aura GT: Saf Elektrikli Süper Spor',
+      audience: 'Otomobil tutkunları ve lüks teknoloji meraklıları',
+      points: '0-100 km/s hızlanma 2.4 saniye ve 800 km menzil\nAerodinamik karbon gövde ve akıllı otonom pilot\nMinimalist lüks iç mekan ve panoramik cam tavan',
+      cta: 'Özel test sürüşü randevusu için showroomumuza davetlisiniz.',
+      tone: 'Prestijli & Lüks',
+      dur: 30,
+      ratio: '21:9',
+      platform: 'YouTube (Yatay 16:9)',
+      lang: 'tr-TR',
+      bgMusic: 'tech_cyber'
     }
   },
   {
@@ -342,7 +505,7 @@ export const PRESETS: Preset[] = [
       ratio: '9:16',
       platform: 'Instagram Reels',
       lang: 'tr-TR',
-      bgMusic: 'sales_corporate'
+      bgMusic: 'corporate_prestige'
     }
   }
 ];
@@ -359,7 +522,11 @@ export const INITIAL_FORM: BriefForm = {
   platform: 'Sinema & Film Festivali (21:9 / 16:9)',
   lang: 'tr-TR',
   voiceGender: 'male',
-  customInstructions: 'Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karakter: Dedektif Kaan. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.',
-  bgMusic: 'cinema_epic',
-  character: CHARACTER_PRESETS[0]
+  customInstructions: 'Epik ve dramatik bir bilim kurgu film fragmanı kurgula. Karanlık neon ışıklı sokaklar, fütüristik araçlar ve devasa hologramlar tasvir edilsin. Müzikal yükseliş ve gerilim doruk noktasına çıksın.',
+  bgMusic: 'auto',
+  visualSource: 'ai_generate',
+  character: {
+    ...CHARACTER_PRESETS[0],
+    enabled: false
+  }
 };

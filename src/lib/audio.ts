@@ -1,7 +1,10 @@
 'use client';
 
+import { resolveBgmTrackPath } from './constants';
+
 export class AudioManager {
   private bgmAudio: HTMLAudioElement | null = null;
+  private previewAudio: HTMLAudioElement | null = null;
   private currentSpeechAudio: HTMLAudioElement | null = null;
   private synthCtx: AudioContext | null = null;
   private oscSub: OscillatorNode | null = null;
@@ -12,8 +15,8 @@ export class AudioManager {
   public isPlaying: boolean = false;
   public isBGMEnabled: boolean = true;
 
-  // Fon müziğini yapım türüne veya seçilen parçaya uygun olarak başlat
-  public startBGM(type: string = 'sinema', customTrack?: string): void {
+  // Fon müziğini yapım türüne, seçilen parçaya ve konuya uygun olarak akıllıca başlat
+  public startBGM(type: string = 'sinema', customTrack?: string, topic: string = ''): void {
     if (typeof window === 'undefined') return;
     if (customTrack === 'none') {
       this.stopBGM();
@@ -21,19 +24,10 @@ export class AudioManager {
     }
 
     try {
-      let targetTrack = '/sales-music.wav';
-      if (customTrack === 'cinema_epic') {
-        targetTrack = '/audio_assets/cinema_epic_trailer.wav';
-      } else if (customTrack === 'youtube_lofi') {
-        targetTrack = '/audio_assets/youtube_upbeat_lofi.wav';
-      } else if (customTrack === 'sales_corporate') {
-        targetTrack = '/sales-music.wav';
-      } else if (customTrack && customTrack.startsWith('/')) {
-        targetTrack = customTrack;
-      } else if (type === 'sinema' || type === 'belgesel') {
-        targetTrack = '/audio_assets/cinema_epic_trailer.wav';
-      } else if (type === 'youtube') {
-        targetTrack = '/audio_assets/youtube_upbeat_lofi.wav';
+      const targetTrack = resolveBgmTrackPath(customTrack, type, topic);
+      if (!targetTrack) {
+        this.stopBGM();
+        return;
       }
 
       if (!this.bgmAudio || this.currentTrackUrl !== targetTrack) {
@@ -50,6 +44,48 @@ export class AudioManager {
       this.isPlaying = true;
     } catch {
       // ignore
+    }
+  }
+
+  // Müzik parçasını anlık olarak ön dinleme yap (5 saniye çalar)
+  public previewSoundtrack(trackPath: string, onEnded?: () => void): void {
+    if (typeof window === 'undefined') return;
+    try {
+      if (this.previewAudio) {
+        this.previewAudio.pause();
+        this.previewAudio = null;
+      }
+      if (!trackPath) return;
+
+      const audio = new Audio(trackPath);
+      audio.volume = 0.45;
+      this.previewAudio = audio;
+
+      const stopTimeout = setTimeout(() => {
+        try {
+          audio.pause();
+          if (onEnded) onEnded();
+        } catch {}
+      }, 7000);
+
+      audio.onended = () => {
+        clearTimeout(stopTimeout);
+        if (onEnded) onEnded();
+      };
+
+      audio.play().catch(() => {});
+    } catch {
+      // ignore
+    }
+  }
+
+  public stopPreview(): void {
+    if (this.previewAudio) {
+      try {
+        this.previewAudio.pause();
+        this.previewAudio.currentTime = 0;
+      } catch {}
+      this.previewAudio = null;
     }
   }
 
@@ -80,8 +116,8 @@ export class AudioManager {
 
   public setBGMVolume(ducked: boolean): void {
     if (this.bgmAudio) {
-      // Konuşma varken müziği kıs (ducking: 0.12), konuşma bitince yükselt (0.28)
-      this.bgmAudio.volume = ducked ? 0.12 : 0.28;
+      // Konuşma varken müziği kıs (ducking: 0.10), konuşma bitince yükselt (0.28)
+      this.bgmAudio.volume = ducked ? 0.10 : 0.28;
     }
   }
 

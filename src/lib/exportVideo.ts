@@ -1,6 +1,6 @@
 'use client';
 
-import { RATIOS } from './constants';
+import { RATIOS, resolveBgmTrackPath } from './constants';
 import { VideoItem } from '@/types';
 import { sleep } from './providers';
 
@@ -70,34 +70,22 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   const audioCtx = AudioCtx ? new AudioCtx() : null;
   const audioDest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
 
-  // Fon müziği miksajı: Kullanıcının seçtiği veya türe özel parça
+  // Fon müziği miksajı: Kullanıcının seçtiği veya türe/konuya özel parça
   let bgmSource: AudioBufferSourceNode | null = null;
   if (audioCtx && audioDest && video.bgMusic !== 'none') {
-    let bgmTrackPath = '/sales-music.wav';
-    if (video.bgMusic === 'cinema_epic') {
-      bgmTrackPath = '/audio_assets/cinema_epic_trailer.wav';
-    } else if (video.bgMusic === 'youtube_lofi') {
-      bgmTrackPath = '/audio_assets/youtube_upbeat_lofi.wav';
-    } else if (video.bgMusic === 'sales_corporate') {
-      bgmTrackPath = '/sales-music.wav';
-    } else if (video.bgMusic && video.bgMusic.startsWith('/')) {
-      bgmTrackPath = video.bgMusic;
-    } else if (isCinema || isDocumentary) {
-      bgmTrackPath = '/audio_assets/cinema_epic_trailer.wav';
-    } else if (isYouTube) {
-      bgmTrackPath = '/audio_assets/youtube_upbeat_lofi.wav';
-    }
-
-    const bgmBuffer = await loadAudioBuffer(audioCtx, bgmTrackPath);
-    if (bgmBuffer) {
-      bgmSource = audioCtx.createBufferSource();
-      bgmSource.buffer = bgmBuffer;
-      bgmSource.loop = true;
-      const bgmGain = audioCtx.createGain();
-      bgmGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      bgmSource.connect(bgmGain);
-      bgmGain.connect(audioDest);
-      bgmSource.start();
+    const bgmTrackPath = resolveBgmTrackPath(video.bgMusic, video.type, video.product);
+    if (bgmTrackPath) {
+      const bgmBuffer = await loadAudioBuffer(audioCtx, bgmTrackPath);
+      if (bgmBuffer) {
+        bgmSource = audioCtx.createBufferSource();
+        bgmSource.buffer = bgmBuffer;
+        bgmSource.loop = true;
+        const bgmGain = audioCtx.createGain();
+        bgmGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        bgmSource.connect(bgmGain);
+        bgmGain.connect(audioDest);
+        bgmSource.start();
+      }
     }
   }
 
