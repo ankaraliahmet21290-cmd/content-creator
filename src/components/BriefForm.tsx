@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { BriefForm as IBriefForm, Preset, AspectRatio, AppMode, CharacterProfile } from '@/types';
+import { BriefForm as IBriefForm, Preset, AspectRatio, AppMode, CharacterProfile, VisualSourceMode } from '@/types';
 import { TYPES, RATIOS, LANGUAGES, PRESETS, BG_MUSIC_OPTIONS, CHARACTER_PRESETS } from '@/lib/constants';
+import { audioMgr } from '@/lib/audio';
 
 interface BriefFormProps {
   form: IBriefForm;
@@ -44,6 +45,7 @@ export function BriefForm({
 }: BriefFormProps) {
   const [showAllPresets, setShowAllPresets] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [previewingTrackId, setPreviewingTrackId] = useState<string | null>(null);
 
   const isClassic = mode === 'classic';
   const currentType = form.type;
@@ -99,8 +101,8 @@ export function BriefForm({
   const displayPresets = showAllPresets
     ? PRESETS
     : relevantPresets.length > 0
-    ? relevantPresets
-    : PRESETS;
+      ? relevantPresets
+      : PRESETS;
 
   return (
     <section className="panel" aria-labelledby="brief-section-title">
@@ -109,57 +111,55 @@ export function BriefForm({
           {isCinema
             ? '🎬 AI Sinema Filmi & Fragman Stüdyosu'
             : isDocumentary
-            ? '🎙️ AI Sinematik Belgesel Stüdyosu'
-            : isYouTube
-            ? '🔴 AI YouTube Video Stüdyosu'
-            : isSocial
-            ? '📱 AI Shorts & Reels Stüdyosu'
-            : isClassic
-            ? '⚡ Klasik Video Brief\'i'
-            : '✨ AI Ticari Reklam Stüdyosu'}
+              ? '🎙️ AI Sinematik Belgesel Stüdyosu'
+              : isYouTube
+                ? '🔴 AI YouTube Video Stüdyosu'
+                : isSocial
+                  ? '📱 AI Shorts & Reels Stüdyosu'
+                  : isClassic
+                    ? '⚡ Klasik Video Brief\'i'
+                    : '✨ AI Ticari Reklam Stüdyosu'}
         </h2>
         <span
-          className={`badge ${
-            isCinema
+          className={`badge ${isCinema
               ? 'badge-cinema'
               : isDocumentary
-              ? 'badge-documentary'
-              : isYouTube
-              ? 'badge-youtube'
-              : isSocial
-              ? 'badge-social'
-              : isClassic
-              ? 'sop'
-              : 'badge-ai'
-          }`}
+                ? 'badge-documentary'
+                : isYouTube
+                  ? 'badge-youtube'
+                  : isSocial
+                    ? 'badge-social'
+                    : isClassic
+                      ? 'sop'
+                      : 'badge-ai'
+            }`}
         >
           {isCinema
             ? '21:9 Cinemascope'
             : isDocumentary
-            ? '16:9 Belgesel'
-            : isYouTube
-            ? '16:9 Full HD'
-            : isSocial
-            ? '9:16 Dikey Mobil'
-            : isClassic
-            ? 'Kural Şablonu'
-            : 'Gemini 3.6 AI'}
+              ? '16:9 Belgesel'
+              : isYouTube
+                ? '16:9 Full HD'
+                : isSocial
+                  ? '9:16 Dikey Mobil'
+                  : isClassic
+                    ? 'Kural Şablonu'
+                    : 'Gemini 3.6 AI'}
         </span>
       </div>
 
       {/* Aktif Mod Açıklama Kartı */}
       <div
-        className={`mode-banner ${
-          isCinema
+        className={`mode-banner ${isCinema
             ? 'cinema-banner'
             : isDocumentary
-            ? 'documentary-banner'
-            : isYouTube
-            ? 'youtube-banner'
-            : isClassic
-            ? 'classic-banner'
-            : 'ai-banner'
-        }`}
+              ? 'documentary-banner'
+              : isYouTube
+                ? 'youtube-banner'
+                : isClassic
+                  ? 'classic-banner'
+                  : 'ai-banner'
+          }`}
       >
         {isCinema ? (
           <div>
@@ -314,12 +314,12 @@ export function BriefForm({
         {isCinema
           ? '🎬 Film, Fragman veya Eser Adı *'
           : isDocumentary
-          ? '🎙️ Belgesel, Keşif veya Araştırma Başlığı *'
-          : isYouTube
-          ? '🔴 YouTube Video Başlığı veya Konusu *'
-          : isSocial
-          ? '📱 Trend Video Başlığı veya Konusu *'
-          : '📢 Ürün, Marka veya Portföy Adı *'}
+            ? '🎙️ Belgesel, Keşif veya Araştırma Başlığı *'
+            : isYouTube
+              ? '🔴 YouTube Video Başlığı veya Konusu *'
+              : isSocial
+                ? '📱 Trend Video Başlığı veya Konusu *'
+                : '📢 Ürün, Marka veya Portföy Adı *'}
       </label>
       <input
         id="input-product"
@@ -328,12 +328,12 @@ export function BriefForm({
           isCinema
             ? 'Örn: 2088: Son Şafak (The Last Dawn) veya Zamanın Ötesi'
             : isDocumentary
-            ? 'Örn: Gize: Zamana Meydan Okuyan Sırlar veya Mariana Çukuru'
-            : isYouTube
-            ? 'Örn: Yapay Zekâ Sinema Sektörünü Nasıl Değiştiriyor? veya 2026 AI Donanımları'
-            : isSocial
-            ? 'Örn: Bunu Biliyor muydunuz? 3 Hayat Kurtaran İpucu'
-            : 'Örn: Korkmaz Gayrimenkul - Elit Rezidans veya BulutFlow AI'
+              ? 'Örn: Gize: Zamana Meydan Okuyan Sırlar veya Mariana Çukuru'
+              : isYouTube
+                ? 'Örn: Yapay Zekâ Sinema Sektörünü Nasıl Değiştiriyor? veya 2026 AI Donanımları'
+                : isSocial
+                  ? 'Örn: Bunu Biliyor muydunuz? 3 Hayat Kurtaran İpucu'
+                  : 'Örn: Korkmaz Gayrimenkul - Elit Rezidans veya BulutFlow AI'
         }
         onChange={e => onUpdateField('product', e.target.value)}
       />
@@ -344,22 +344,22 @@ export function BriefForm({
           {isCinema
             ? '✨ Film Hikâyesi, Hazır Senaryo & Karakter Replikleri'
             : isDocumentary
-            ? '✨ Belgesel Akışı, Kanca Soru & Yönetmen Talimatı'
-            : isYouTube
-            ? '✨ YouTube Video Akışı, Bölümler & B-Roll Talimatı'
-            : isSocial
-            ? '✨ Hızlı Video Akışı & İpuçları'
-            : '✨ Reklam Senaryo Özeti & İstekler'}
+              ? '✨ Belgesel Akışı, Kanca Soru & Yönetmen Talimatı'
+              : isYouTube
+                ? '✨ YouTube Video Akışı, Bölümler & B-Roll Talimatı'
+                : isSocial
+                  ? '✨ Hızlı Video Akışı & İpuçları'
+                  : '✨ Reklam Senaryo Özeti & İstekler'}
           <span className="label-hint">
             {isCinema
               ? '(Hazır diyaloglarınızı doğrudan yapıştırabilir veya fikrinizi yazabilirsiniz)'
               : isDocumentary
-              ? '(Merak kancası, kadim sorular ve görsel atmosfer talimatı)'
-              : isYouTube
-              ? '(Giriş vaadi, ana argümanlar ve B-roll geçişleri)'
-              : isSocial
-              ? '(15-30 saniyelik hızlı viral maddeler)'
-              : '(Hedef kitle, öne çıkanlar ve görsel çekim notları)'}
+                ? '(Merak kancası, kadim sorular ve görsel atmosfer talimatı)'
+                : isYouTube
+                  ? '(Giriş vaadi, ana argümanlar ve B-roll geçişleri)'
+                  : isSocial
+                    ? '(15-30 saniyelik hızlı viral maddeler)'
+                    : '(Hedef kitle, öne çıkanlar ve görsel çekim notları)'}
           </span>
         </label>
         <textarea
@@ -374,12 +374,12 @@ Sahne 2 (Ajan Selin - Kadın): "Sinyali tespit ettik komutanım, zamanımız tü
 Sahne 3 (Komutan Demir - Erkek): "Operasyonu hemen başlatın, geri dönüş yok!"
 Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
               : isDocumentary
-              ? 'Örn: BBC Earth ve National Geographic standartlarında bir belgesel kurgula. Kadim bir soru ile başla: Sisli çöl ve gün doğumu drone çekimleri, antik hiyerogliflerin şifresi ve tarihin bilinmeyen yönlerini anlatan bilge, usta bir anlatıcı tonu...'
-              : isYouTube
-              ? 'Örn: İzleyiciyi ilk 5 saniyede ekrana kitleyen merak uyandırıcı bir YouTube kancası ile başla. Hollywood\'dan çarpıcı örnekler, B-roll ekran çekimleri ve sonunda kanala abone olma & yorum bırakma çağrısı yap.'
-              : isSocial
-              ? '1. İpucu: Asla ilk teklifi doğrudan kabul etmeyin.\n2. İpucu: Karar vermeden önce 24 saat kuralını uygulayın.\n3. İpucu: Detayları mutlaka yazılı olarak onaylatın.'
-              : 'Örn: Lüks yaşam tarzını ve prestiji öne çıkar. Geniş açı rezidans ve havuz çekimleri, anahtar teslimi anı ve mutlu bir aile karesi yer alsın. Güven veren tok bir ses tonu kullanılsın.'
+                ? 'Örn: BBC Earth ve National Geographic standartlarında bir belgesel kurgula. Kadim bir soru ile başla: Sisli çöl ve gün doğumu drone çekimleri, antik hiyerogliflerin şifresi ve tarihin bilinmeyen yönlerini anlatan bilge, usta bir anlatıcı tonu...'
+                : isYouTube
+                  ? 'Örn: İzleyiciyi ilk 5 saniyede ekrana kitleyen merak uyandırıcı bir YouTube kancası ile başla. Hollywood\'dan çarpıcı örnekler, B-roll ekran çekimleri ve sonunda kanala abone olma & yorum bırakma çağrısı yap.'
+                  : isSocial
+                    ? '1. İpucu: Asla ilk teklifi doğrudan kabul etmeyin.\n2. İpucu: Karar vermeden önce 24 saat kuralını uygulayın.\n3. İpucu: Detayları mutlaka yazılı olarak onaylatın.'
+                    : 'Örn: Lüks yaşam tarzını ve prestiji öne çıkar. Geniş açı rezidans ve havuz çekimleri, anahtar teslimi anı ve mutlu bir aile karesi yer alsın. Güven veren tok bir ses tonu kullanılsın.'
           }
           rows={5}
           onChange={e => onUpdateField('customInstructions', e.target.value)}
@@ -418,12 +418,12 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
                 {isCinema
                   ? 'Janr, Kilit Çatışma, Karakter Tasarımı & Vizyon CTA'
                   : isDocumentary
-                  ? 'Araştırma Alanı, Bilgi Kartları (Mekan/Tarih), Üslup & Çıkarım'
-                  : isYouTube
-                  ? 'Hedef Niş, 5sn Kancası, Ton & Abone Ol Çağrısı'
-                  : isSocial
-                  ? '3sn Viral Kancası & Takip/Yorum Çağrısı'
-                  : 'USP Satış Vaatleri, Müşteri Profili & Harekete Geçirici CTA'}
+                    ? 'Araştırma Alanı, Bilgi Kartları (Mekan/Tarih), Üslup & Çıkarım'
+                    : isYouTube
+                      ? 'Hedef Niş, 5sn Kancası, Ton & Abone Ol Çağrısı'
+                      : isSocial
+                        ? '3sn Viral Kancası & Takip/Yorum Çağrısı'
+                        : 'USP Satış Vaatleri, Müşteri Profili & Harekete Geçirici CTA'}
               </div>
             </div>
           </div>
@@ -794,14 +794,14 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
             {isSocial && (
               <>
                 <label htmlFor="input-soc-hook">
-                  ⚡ İlk 3 Saniye Viral Kancası (Scroll Stopper)
-                  <span className="label-hint">(Aşağı kaydırmayı durduran merak cümlesi)</span>
+                  ⚡ İlk 3 Saniye Kancası / Öne Çıkan Pozisyon & Bilgiler
+                  <span className="label-hint">(Kaydırmayı durduran vuruş cümlesi veya maçın kritik anları)</span>
                 </label>
                 <textarea
                   id="input-soc-hook"
                   value={form.points}
-                  placeholder={`"Bu videoyu kaydetmeden geçmeyin, hayatınızı kolaylaştıracak!"`}
-                  rows={2}
+                  placeholder={`"Nefes kesen 90 dakika ve kaçırılmayacak gol pozisyonları!\nİnanılmaz şut ve köşeye giden 1. gol\nSon dakikalarda maçı koparan muhteşem vuruş"`}
+                  rows={3}
                   onChange={e => onUpdateField('points', e.target.value)}
                 />
 
@@ -811,7 +811,7 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
                 <input
                   id="input-soc-cta"
                   value={form.cta}
-                  placeholder="Örn: Siz bu konuda ne düşünüyorsunuz? Yorumlara yazın ve takip etmeyi unutmayın!"
+                  placeholder="Örn: Sizce maçın adamı kimdi? Yorumlara yazın ve takip etmeyi unutmayın!"
                   onChange={e => onUpdateField('cta', e.target.value)}
                 />
               </>
@@ -823,6 +823,84 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
       {/* ============================================================ */}
       {/* 3. ORTAK SESLENDİRME, MÜZİK VE TEKNİK AYARLAR */}
       {/* ============================================================ */}
+
+      {/* SAHNE GÖRSEL KAYNAĞI SEÇİMİ */}
+      <div style={{ marginTop: 14 }}>
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span>🖼️ Sahne Görselleri Kaynağı</span>
+          <span className="label-hint">Videonuzun görsel dünyası nasıl oluşturulsun?</span>
+        </label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+          {/* Seçenek 1: AI ile Sıfırdan Üret */}
+          <div
+            onClick={() => onUpdateField('visualSource', 'ai_generate')}
+            style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              cursor: 'pointer',
+              border: (form.visualSource === 'ai_generate' || !form.visualSource) ? '2px solid var(--acc)' : '1px solid var(--line)',
+              background: (form.visualSource === 'ai_generate' || !form.visualSource) ? 'rgba(99, 102, 241, 0.12)' : 'var(--card-sub)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>✨</span>
+              <strong style={{ fontSize: 13, color: (form.visualSource === 'ai_generate' || !form.visualSource) ? 'var(--acc)' : 'var(--txt)' }}>
+                Yapay Zekâ ile Sıfırdan Üret
+              </strong>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--mute)', lineHeight: 1.4 }}>
+              Flux & Turbo AI motoru ile senaryonuza ve konunuza özel sinematik foto-gerçekçi kareler anında çizilir.
+            </div>
+          </div>
+
+          {/* Seçenek 2: İnternetten Canlı Gerçek Fotoğraf Bul */}
+          <div
+            onClick={() => onUpdateField('visualSource', 'web_search')}
+            style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              cursor: 'pointer',
+              border: form.visualSource === 'web_search' ? '2px solid #0ea5e9' : '1px solid var(--line)',
+              background: form.visualSource === 'web_search' ? 'rgba(14, 165, 233, 0.12)' : 'var(--card-sub)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>🌐</span>
+              <strong style={{ fontSize: 13, color: form.visualSource === 'web_search' ? '#0ea5e9' : 'var(--txt)' }}>
+                İnternetten Canlı Gerçek Fotoğraf Bul
+              </strong>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--mute)', lineHeight: 1.4 }}>
+              Wikimedia Commons üzerinden konunuza ait telifsiz, 100+ milyon gerçek yüksek çözünürlüklü fotoğraf canlı taranır.
+            </div>
+          </div>
+
+          {/* Seçenek 3: Küratörlü Fotoğraf Kütüphanesi */}
+          <div
+            onClick={() => onUpdateField('visualSource', 'curated')}
+            style={{
+              padding: '12px 14px',
+              borderRadius: 10,
+              cursor: 'pointer',
+              border: form.visualSource === 'curated' ? '2px solid #10b981' : '1px solid var(--line)',
+              background: form.visualSource === 'curated' ? 'rgba(16, 185, 129, 0.12)' : 'var(--card-sub)',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 18 }}>📁</span>
+              <strong style={{ fontSize: 13, color: form.visualSource === 'curated' ? '#10b981' : 'var(--txt)' }}>
+                Seçkin Fotoğraf Kütüphanesi
+              </strong>
+            </div>
+            <div style={{ fontSize: 11.5, color: 'var(--mute)', lineHeight: 1.4 }}>
+              Turizm, kahve, sağlık, otomotiv, emlak ve teknoloji kategorilerindeki zengin hazır fotoğraf arşivi.
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* SESLENDİRME SEÇİMİ */}
       {isCinema ? (
@@ -876,19 +954,18 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
       {/* 14. ADIM: FON MÜZİĞİ VE SES TASARIMI */}
       <div style={{ marginTop: 14 }}>
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span>🎵 14. Adım: Sinematik Fon Müziği & Soundtrack</span>
-          <span className="label-hint">Ducking: Konuşurken kısılır (%12), durunca yükselir (%28)</span>
+          <span>🎵 14. Adım: Profesyonel Fon Müziği & Soundtrack (11 Tarz)</span>
+          <span className="label-hint">Ducking: Konuşurken kısılır (%10), durunca yükselir (%28)</span>
         </label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 }}>
           {BG_MUSIC_OPTIONS.map(opt => {
-            const currentMusic =
-              form.bgMusic ||
-              (isCinema || isDocumentary ? 'cinema_epic' : isYouTube ? 'youtube_lofi' : 'sales_corporate');
+            const currentMusic = form.bgMusic || 'auto';
             const isSelected = currentMusic === opt.id;
+            const isPreviewing = previewingTrackId === opt.id;
+
             return (
-              <button
+              <div
                 key={opt.id}
-                type="button"
                 onClick={() => onUpdateField('bgMusic', opt.id)}
                 style={{
                   padding: '9px 12px',
@@ -897,16 +974,48 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
                   border: isSelected ? '1.5px solid #38bdf8' : '1px solid var(--line)',
                   background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'var(--card-bg, rgba(255,255,255,0.02))',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  position: 'relative'
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: 13, color: isSelected ? '#38bdf8' : 'var(--txt)' }}>
-                  {opt.label}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: isSelected ? '#38bdf8' : 'var(--txt)' }}>
+                    {opt.label}
+                  </div>
+                  {opt.path && (
+                    <button
+                      type="button"
+                      title={isPreviewing ? 'Durdur' : 'Parçayı Dinle (Önizleme)'}
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (isPreviewing) {
+                          audioMgr.stopPreview();
+                          setPreviewingTrackId(null);
+                        } else {
+                          setPreviewingTrackId(opt.id);
+                          audioMgr.previewSoundtrack(opt.path, () => setPreviewingTrackId(null));
+                        }
+                      }}
+                      style={{
+                        background: isPreviewing ? '#ef4444' : 'rgba(56, 189, 248, 0.2)',
+                        border: 'none',
+                        color: isPreviewing ? '#fff' : '#38bdf8',
+                        borderRadius: 6,
+                        padding: '3px 7px',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        flexShrink: 0
+                      }}
+                    >
+                      {isPreviewing ? '⏹️ Dur' : '▶ Dinle'}
+                    </button>
+                  )}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--mute)', marginTop: 2, lineHeight: 1.3 }}>
+                <div style={{ fontSize: 11, color: 'var(--mute)', marginTop: 3, lineHeight: 1.3 }}>
                   {opt.desc}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -937,10 +1046,10 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
                 {r === '21:9'
                   ? 'Sinematik Geniş (21:9 Cinemascope)'
                   : r === '16:9'
-                  ? 'Yatay Standart (16:9 YouTube)'
-                  : r === '9:16'
-                  ? 'Dikey (9:16 Reels / Shorts)'
-                  : 'Kare (1:1 Post)'}
+                    ? 'Yatay Standart (16:9 YouTube)'
+                    : r === '9:16'
+                      ? 'Dikey (9:16 Reels / Shorts)'
+                      : 'Kare (1:1 Post)'}
               </option>
             ))}
           </select>
@@ -1004,15 +1113,14 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
         <button
           id="btn-produce"
           type="button"
-          className={`btn-produce ${
-            isCinema
+          className={`btn-produce ${isCinema
               ? 'btn-produce-cinema'
               : isDocumentary
-              ? 'btn-produce-documentary'
-              : isYouTube
-              ? 'btn-produce-youtube'
-              : ''
-          }`}
+                ? 'btn-produce-documentary'
+                : isYouTube
+                  ? 'btn-produce-youtube'
+                  : ''
+            }`}
           disabled={isProducing}
           onClick={onSubmit}
           style={{
@@ -1025,19 +1133,19 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
             ? isCinema
               ? '⏳ Gemini AI Sinema Filmini Kurguluyor...'
               : isDocumentary
-              ? '⏳ Gemini AI Belgeseli Kurguluyor...'
-              : isYouTube
-              ? '⏳ Gemini AI YouTube Videosunu Hazırlıyor...'
-              : '⏳ Video Oluşturuluyor...'
+                ? '⏳ Gemini AI Belgeseli Kurguluyor...'
+                : isYouTube
+                  ? '⏳ Gemini AI YouTube Videosunu Hazırlıyor...'
+                  : '⏳ Video Oluşturuluyor...'
             : isCinema
-            ? '⚡ Hızlı Üret (Doğrudan Sinema Filmi Render Et)'
-            : isDocumentary
-            ? '⚡ Hızlı Üret (Doğrudan Belgesel Render Et)'
-            : isYouTube
-            ? '⚡ Hızlı Üret (Doğrudan YouTube Videosu Render Et)'
-            : isClassic
-            ? '⚡ Hızlı Klasik Video Üret'
-            : '⚡ Hızlı AI Reklamı Üret'}
+              ? '⚡ Hızlı Üret (Doğrudan Sinema Filmi Render Et)'
+              : isDocumentary
+                ? '⚡ Hızlı Üret (Doğrudan Belgesel Render Et)'
+                : isYouTube
+                  ? '⚡ Hızlı Üret (Doğrudan YouTube Videosu Render Et)'
+                  : isClassic
+                    ? '⚡ Hızlı Klasik Video Üret'
+                    : '⚡ Hızlı AI Reklamı Üret'}
         </button>
       </div>
     </section>

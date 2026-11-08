@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Scene, VideoItem } from '@/types';
-import { RATIOS } from '@/lib/constants';
+import { RATIOS, BG_MUSIC_OPTIONS } from '@/lib/constants';
 import { audioMgr } from '@/lib/audio';
 import { exportVideoFile, downloadVideoJson, exportFilmPoster, downloadDistributionPackage } from '@/lib/exportVideo';
 import { SceneTimeline } from './SceneTimeline';
@@ -19,6 +19,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSActive, setIsTTSActive] = useState(true);
   const [isBGMActive, setIsBGMActive] = useState(true);
+  const [currentBgm, setCurrentBgm] = useState<string>(video.bgMusic || 'auto');
   const [editScene, setEditScene] = useState<Scene | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isPosterLoading, setIsPosterLoading] = useState(false);
@@ -36,9 +37,10 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     setCurIndex(0);
     setProgress(0);
     setIsPlaying(false);
+    setCurrentBgm(video.bgMusic || 'auto');
     audioMgr.stopSpeech();
     audioMgr.stopBGM();
-  }, [video.id]);
+  }, [video.id, video.bgMusic]);
 
   useEffect(() => {
     if (isPlaying && isTTSActive && curScene) {
@@ -60,12 +62,12 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
 
   useEffect(() => {
     if (isBGMActive && isPlaying) {
-      audioMgr.startBGM(video.type, video.bgMusic);
+      audioMgr.startBGM(video.type, currentBgm, video.product);
     } else {
       audioMgr.stopBGM();
     }
     return () => audioMgr.stopBGM();
-  }, [isBGMActive, isPlaying, video.type, video.bgMusic]);
+  }, [isBGMActive, isPlaying, video.type, currentBgm, video.product]);
 
   useEffect(() => {
     if (!isPlaying || !curScene) return;
@@ -89,7 +91,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   async function handleExportVideo() {
     setIsExporting(true);
     try {
-      await exportVideoFile(video);
+      await exportVideoFile({ ...video, bgMusic: currentBgm });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       alert('Video render hatası: ' + msg);
@@ -237,12 +239,38 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               className={`btn sm ${isBGMActive ? 'primary' : ''}`}
               onClick={() => setIsBGMActive(!isBGMActive)}
             >
-              {isBGMActive
-                ? isCinema || isDocumentary
-                  ? '🎵 Sinematik Müzik Açık'
-                  : '🎵 Satış Müziği Açık'
-                : '🎵 Müzik Kapalı'}
+              {isBGMActive ? '🎵 Müzik Açık' : '🔇 Müzik Kapalı'}
             </button>
+
+            {/* Anlık Müzik Değiştirici */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+              <span style={{ fontSize: 12, color: 'var(--mute)' }}>Fon Müziği:</span>
+              <select
+                value={currentBgm}
+                onChange={e => {
+                  const newTrack = e.target.value;
+                  setCurrentBgm(newTrack);
+                  if (isPlaying && isBGMActive) {
+                    audioMgr.startBGM(video.type, newTrack, video.product);
+                  }
+                }}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  background: 'var(--card-bg, #1a2234)',
+                  color: 'var(--txt, #ffffff)',
+                  border: '1px solid var(--line, rgba(255,255,255,0.15))',
+                  cursor: 'pointer'
+                }}
+              >
+                {BG_MUSIC_OPTIONS.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Dışa Aktarma Butonları */}

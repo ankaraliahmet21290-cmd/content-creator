@@ -23,6 +23,8 @@ export interface CharacterProfile {
   consistencyPrompt: string;
 }
 
+export type VisualSourceMode = 'ai_generate' | 'web_search' | 'curated';
+
 export interface BriefForm {
   type: VideoType;
   product: string;
@@ -38,6 +40,7 @@ export interface BriefForm {
   customInstructions?: string;
   bgMusic?: string;
   character?: CharacterProfile;
+  visualSource?: VisualSourceMode;
 }
 
 export interface Scene {
