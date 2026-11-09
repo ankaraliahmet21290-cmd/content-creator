@@ -74,6 +74,12 @@ export const BG_MUSIC_OPTIONS = [
     desc: 'Klasik enerjik tanıtım ve marka müziği'
   },
   {
+    id: 'custom',
+    label: '📁 Kendi Müziğim (Özel Ses Yükle)',
+    path: '',
+    desc: 'Cihazınızdan yüklediğiniz MP3, WAV, M4A formatındaki özel fon müziği'
+  },
+  {
     id: 'none',
     label: '🔇 Müziksiz (Sadece Diyalog & Seslendirme)',
     path: '',
@@ -81,13 +87,22 @@ export const BG_MUSIC_OPTIONS = [
   }
 ];
 
-export function resolveBgmTrackPath(bgMusic?: string, type: string = 'sinema', topic: string = ''): string {
+export function resolveBgmTrackPath(
+  bgMusic?: string,
+  type: string = 'sinema',
+  topic: string = '',
+  customMusicData?: string
+): string {
   if (bgMusic === 'none') return '';
-  if (bgMusic && bgMusic !== 'auto' && bgMusic !== '') {
+  if (bgMusic === 'custom' && customMusicData) return customMusicData;
+  if (bgMusic && bgMusic !== 'auto' && bgMusic !== 'custom' && bgMusic !== '') {
     const found = BG_MUSIC_OPTIONS.find(m => m.id === bgMusic);
     if (found && found.path) return found.path;
-    if (bgMusic.startsWith('/')) return bgMusic;
+    if (bgMusic.startsWith('/') || bgMusic.startsWith('data:') || bgMusic.startsWith('blob:') || bgMusic.startsWith('http')) {
+      return bgMusic;
+    }
   }
+  if (customMusicData && !bgMusic) return customMusicData;
 
   // Akıllı otomatik eşleştirme (Konu ve türe göre)
   const t = (topic || '').toLowerCase();
@@ -438,13 +453,14 @@ export const PRESETS: Preset[] = [
       product: 'BulutFlow AI Süreç Yönetimi',
       audience: 'Girişimciler ve proje yöneticileri',
       points: 'Tüm işleri tek tıkla otomatikleştirin\nEkip iletişiminde %40 zaman tasarrufu\nKredi kartsız 14 gün ücretsiz deneme',
-      cta: 'Şimdi ücretsiz deneyin ve farkı görün.',
+      cta: 'Şimdi bulutflow.ai adresinden ücretsiz deneyin.',
       tone: 'Enerjik',
       dur: 20,
       ratio: '16:9',
       platform: 'YouTube (Yatay 16:9)',
       lang: 'tr-TR',
-      bgMusic: 'sales_corporate'
+      bgMusic: 'sales_corporate',
+      customInstructions: '1. Sahnede karmaşık ve yorucu geleneksel excel tablolarına veda edin. 2. Sahnede BulutFlow AI yapay zeka otomasyonunun tek tıkla işleri nasıl hızlandırdığını göster. 3. Sahnede zamandan kazanan mutlu ve dinamik ekip tablosunu çiz. Kapanışta 14 gün ücretsiz deneme çağrısı yap.'
     }
   },
   {
@@ -460,7 +476,8 @@ export const PRESETS: Preset[] = [
       ratio: '9:16',
       platform: 'TikTok',
       lang: 'tr-TR',
-      bgMusic: 'acoustic_warmth'
+      bgMusic: 'acoustic_warmth',
+      customInstructions: 'Girişte taze kahve çekirdeklerinin kavrulması ve mis gibi buharı vurgulansın. İkinci sahnede usta baristanın sanatsal latte art çizimi ve espresso akışı gösterilsin. Üçüncü sahnede müşterinin kahveden ilk yudumu alıp gülümsemesi ve lezzet şöleni anlatılsın. Kapanışta hafta sonuna özel 1 alana 1 bedava daveti yapılsın.'
     }
   },
   {
@@ -476,7 +493,8 @@ export const PRESETS: Preset[] = [
       ratio: '16:9',
       platform: 'Web Sitesi & Portföy',
       lang: 'tr-TR',
-      bgMusic: 'cinema_emotional'
+      bgMusic: 'cinema_emotional',
+      customInstructions: 'Açılışta sabahın ilk ışıklarıyla gökyüzüne yükselen rengarenk sıcak hava balonları gösterilsin. İkinci sahnede peri bacalarının üzerinden süzülen nefes kesici drone manzarası yer alsın. Üçüncü sahnede sepetteki çiftin unutulmaz anı ve fotoğraf çekimi vurgulansın. Kapanışta erken rezervasyona özel %15 avantaj duyurulsun.'
     }
   },
   {
@@ -492,7 +510,8 @@ export const PRESETS: Preset[] = [
       ratio: '21:9',
       platform: 'YouTube (Yatay 16:9)',
       lang: 'tr-TR',
-      bgMusic: 'tech_cyber'
+      bgMusic: 'tech_cyber',
+      customInstructions: 'Açılışta aerodinamik fütüristik hatlar, LED farlar ve sessiz güç vurgusu. İkinci sahnede virajlı dağ yollarında üstün yol tutuşu ve 0-100 hızlanması. Üçüncü sahnede lüks kokpit ve yapay zeka destekli otopilot ekranı. Kapanışta özel test sürüşü randevusu çağrısı.'
     }
   },
   {

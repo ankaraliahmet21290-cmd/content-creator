@@ -203,9 +203,10 @@ export async function generateScenesWithGemini(
     !isYouTube &&
     (brief.type === 'sosyal' || brief.ratio === '9:16' || /shorts|reels|tiktok/i.test(brief.platform || ''));
 
-  const isSports = /maç|futbol|gol|gs|fb|bjk|ts|derbi|stadyum|şampiyon|lig|soccer|football|vs|stuttgart|stutgart|galatasaray|fenerbahçe|beşiktaş|trabzon|skor|özet|penaltı|hakem/i.test(
-    `${brief.product} ${brief.customInstructions || ''} ${brief.points || ''}`
-  );
+  const isSports = !isCinema && !isDocumentary && brief.type !== 'reklam' && brief.type !== 'tanitim' &&
+    /\b(futbol|stadyum|şampiyonlar\s+ligi|süper\s+lig|taraftar|derbi|maç\s+özeti|galatasaray|fenerbahçe|beşiktaş|trabzonspor)\b/i.test(
+      `${brief.product} ${brief.customInstructions || ''}`
+    );
 
   const baseRoles = isDocumentary
     ? DOCUMENTARY_ROLES
@@ -461,20 +462,30 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
     prompt = `Sen Türkiye'nin en iyi televizyon ve sosyal medya reklam yönetmenisin.
 Aşağıdaki brief bilgilerine göre tam ${n} sahnelik SİNEMATİK, PROFESYONEL VE YÜKSEK DÖNÜŞÜMLÜ bir ticari reklam filmi kurgula.
 
-BRIEF VE KULLANICI TALİMATI:
+BRIEF VE KULLANICI BİLGİLERİ:
 - Ürün / Marka / Konu: "${brief.product}"
 ${brief.audience ? `- Hedef Kitle: "${brief.audience}"` : ''}
 ${brief.points ? `- Öne Çıkan Satış Avantajları (USP) / Kilit Özellikler: "${brief.points}"` : ''}
 ${brief.cta ? `- Harekete Geçirici Mesaj (CTA): "${brief.cta}"` : ''}
 - Anlatım Tonu: "${brief.tone || 'Enerjik'}"
-${brief.customInstructions ? `- ÖZEL REKLAM TALİMATI & İSTEKLER: "${brief.customInstructions}"` : ''}
 - Toplam Süre: ${brief.dur} saniye
 - En-Boy Oranı: ${brief.ratio}
 - Dil Kodu: ${brief.lang || 'tr-TR'}
 
-MUTLAK REKLAM KURALI:
-Reklamın konusu ne ise sahneler, metinler ve görseller DOĞRUDAN o ürüne ve markaya ait olmalıdır.
-"visual" alanı: O ürünün lüks ve profesyonel çekimini tarif eden detaylı İNGİLİZCE fotoğraf promptu olmalıdır (örn: "Commercial advertising photography of ..., luxury studio lighting, 8k resolution, photorealistic, premium commercial aesthetic").
+====================================================================
+🚨 MUTLAK 1. ÖNCELİK - KULLANICININ YAZDIĞI SENARYO ÖZETİ VE İSTEKLER:
+${brief.customInstructions ? `KULLANICININ VERDİĞİ SENARYO METNİ & ÖZEL İSTEKLERİ (TANIM):
+"""
+${brief.customInstructions}
+"""
+
+ZORUNLU YÖNETMEN VE KURGU KURALLARI:
+1. Kullanıcının yukarıda yazdığı reklam senaryosu, sahne akışı, mekanlar, diyaloglar ve talepler EN YÜKSEK ÖNCELİKLİ EMİRDİR.
+2. Sahne seslendirmeleri ("vo"): Kullanıcının yukarıda belirttiği senaryo akışını sahne sahne, eksiksiz, samimi ve profesyonel bir reklam seslendirmesiyle işle. Klişe veya kullanıcının istemediği alakasız şeylerden ASLA bahsetme!
+3. Sahne görsel yönergeleri ("visual"): Kullanıcının istediği sahneyi tarif eden ultra detaylı İNGİLİZCE fotoğraf/kamera promptu yaz (örn: "Commercial advertising photography of [kullanıcının belirttiği sahne/eylem], luxury studio lighting, 8k resolution, photorealistic, premium commercial aesthetic, crisp focus").
+4. Ekran metinleri ("text", "subtitle", "highlight"): Kullanıcının isteklerindeki en vurucu kelimeleri ve vaatleri doğrudan ekrana taşı.
+` : `Kullanıcının belirlediği ürün, hedef kitle ve satış avantajlarına göre en çarpıcı, özgün reklam kurgusunu oluştur.`}
+====================================================================
 
 REKLAM STANDARTLARI:
 1. Sahne Rolleri: ${JSON.stringify(roles)}.
@@ -504,8 +515,8 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
 ]`;
   }
 
-  // En yeni ve güçlü Gemini 3.6 Flash'ı öncelikli kullan; yoğunluk (503/429) durumunda 2.5 Flash'a geç
-  const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+  // Güçlü ve hızlı modelleri sırayla dene: gemini-2.5-flash ilk sırada
+  const candidateModels = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
   let rawText = '[]';
   for (const model of candidateModels) {
     const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -639,13 +650,23 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
       const cleanPrompt = (visualPrompt || `${productTitle} ${role}`).trim();
       const charPrefix = characterPrompt ? `${characterPrompt.trim()}, ` : '';
 
-      const isSports = /maç|futbol|gol|gs|fb|bjk|ts|derbi|stadyum|şampiyon|lig|soccer|football|vs|stuttgart|stutgart|galatasaray|fenerbahçe|beşiktaş|score/i.test(
+      const isRealEstate = /gayrimenkul|emlak|inşaat|rezidans|villa|konut|daire|arsa|korkmaz|broker|tapu/i.test(
         `${cleanPrompt} ${productTitle}`
       );
+      const isSports = !isRealEstate && briefType !== 'reklam' && briefType !== 'tanitim' &&
+        /\b(futbol|stadyum|şampiyonlar\s+ligi|süper\s+lig|taraftar|derbi|maç\s+özeti|galatasaray|fenerbahçe|beşiktaş|trabzonspor)\b/i.test(
+          `${cleanPrompt} ${productTitle}`
+        );
 
       let enhancedPrompt = '';
         if (isSports) {
           enhancedPrompt = `${cleanPrompt}, dynamic action sports photography, professional soccer football match, player scoring goal, stadium floodlights, green pitch, high shutter speed, 8k resolution, photorealistic, athletic intensity, 9:16 vertical action frame`;
+        } else if (briefType === 'reklam') {
+          if (isRealEstate) {
+            enhancedPrompt = `${cleanPrompt}, professional commercial architectural photography, luxury real estate and modern architecture, photorealistic, clean studio lighting, 8k resolution, elegant composition, crisp detail`;
+          } else {
+            enhancedPrompt = `${charPrefix}${cleanPrompt}, professional commercial advertising photography, luxury studio lighting, 8k resolution, photorealistic, premium commercial aesthetic, crisp sharp detail, award-winning cinematography`;
+          }
         } else if (briefType === 'sosyal') {
           enhancedPrompt = `${charPrefix}${cleanPrompt}, trending high-retention 9:16 vertical frame for YouTube Shorts and TikTok, vibrant colors, crisp mobile cinematography, 8k resolution, dynamic focal depth`;
         } else if (briefType === 'sinema') {
@@ -709,10 +730,20 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
             }
           }
         } catch {
-          // Harici servis ulaşılamıyorsa tematik fotoğraf havuzuna geç
+          // Harici AI servisleri meşgulse internetten gerçek fotoğrafa geç
         }
 
-        // 3. Kademe: Zengin Tematik Fotoğraf Havuzu Eşleştirmesi (Konuya %100 Uyumlu)
+        // 3. Kademe: İnternetten Canlı Gerçek Fotoğraf Arama (Wikimedia Commons 8K/HD)
+        try {
+          const webImg = await fetchWebImageForScene(cleanPrompt, productTitle, role, index, briefType);
+          if (webImg && (webImg.startsWith('http://') || webImg.startsWith('https://'))) {
+            return webImg;
+          }
+        } catch {
+          // Tematik fotoğraf havuzuna geç
+        }
+
+        // 4. Kademe: Zengin Tematik Fotoğraf Havuzu Eşleştirmesi (Konuya %100 Uyumlu)
         return getScenePhoto(briefType, role, cleanPrompt, index, productTitle);
       }
 

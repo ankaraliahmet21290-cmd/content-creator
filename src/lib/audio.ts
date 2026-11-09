@@ -16,7 +16,7 @@ export class AudioManager {
   public isBGMEnabled: boolean = true;
 
   // Fon müziğini yapım türüne, seçilen parçaya ve konuya uygun olarak akıllıca başlat
-  public startBGM(type: string = 'sinema', customTrack?: string, topic: string = ''): void {
+  public startBGM(type: string = 'sinema', customTrack?: string, topic: string = '', customMusicData?: string): void {
     if (typeof window === 'undefined') return;
     if (customTrack === 'none') {
       this.stopBGM();
@@ -24,7 +24,7 @@ export class AudioManager {
     }
 
     try {
-      const targetTrack = resolveBgmTrackPath(customTrack, type, topic);
+      const targetTrack = resolveBgmTrackPath(customTrack, type, topic, customMusicData);
       if (!targetTrack) {
         this.stopBGM();
         return;

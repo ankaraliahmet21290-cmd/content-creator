@@ -45,7 +45,7 @@
       "text": "KURUCU BROKER & UZMAN DANIŞMANLIK",
       "subtitle": "Mustafa Korkmaz liderliğinde 15 yılı aşkın sektör deneyimi",
       "highlight": "DOĞRU EKSPERTİZ",
-      "vo": "Kurucu broker Mustafa Korkmaz liderliğinde; konut, arsa ve ticari yatırımlarınızda şeffaf ve profesyonel danışmanlık sunuyoruz.",
+      "vo": "Kurucu Broker Mustafa Korkmaz liderliğinde; konut ve arsa yatırımlarınızda şeffaf, profesyonel danışmanlık.",
       "visual": "Mustafa Korkmaz, Gayrimenkul Kurucu Brokerı profesyonel portresi",
       "grad": [
         "#0b1329",
@@ -55,16 +55,16 @@
       "zoomDir": "out",
       "speaker": "Reklam Anlatıcısı (Tok Erkek Sesi)",
       "voiceGender": "male",
-      "audioUrl": "/api/assets/korkmaz_single_voice_s2_1794215726594.wav"
+      "audioUrl": "/api/assets/korkmaz_single_voice_s2_1794222482150.wav"
     },
     {
       "id": 3,
       "role": "İnşaat & Kentsel Dönüşüm",
-      "sec": 7.5,
+      "sec": 7.2,
       "text": "İNŞAAT MÜHENDİSLİĞİ VE GÜVEN",
       "subtitle": "Salih Korkmaz denetiminde statik güvenlik ve modern yapılar",
       "highlight": "MÜHENDİSLİK GÜVENCESİ",
-      "vo": "İnşaat Mühendisi Salih Korkmaz denetiminde; kentsel dönüşüm mevzuatına tam uyumlu, depreme dayanıklı modern yaşam alanları inşa ediyoruz.",
+      "vo": "İnşaat Mühendisi Salih Korkmaz denetiminde; modern, güvenilir ve depreme dayanıklı yapılar inşa ediyoruz.",
       "visual": "Salih Korkmaz, İnşaat Mühendisi ve Proje Yöneticisi profesyonel portresi",
       "grad": [
         "#1e1b4b",
@@ -74,12 +74,12 @@
       "zoomDir": "in",
       "speaker": "Reklam Anlatıcısı (Tok Erkek Sesi)",
       "voiceGender": "male",
-      "audioUrl": "/api/assets/korkmaz_single_voice_s3_1794215825414.wav"
+      "audioUrl": "/api/assets/korkmaz_single_voice_s3_1794222485182.wav"
     },
     {
       "id": 4,
       "role": "Müşteri Memnuniyeti",
-      "sec": 7.5,
+      "sec": 7.9,
       "text": "BİNLERCE MUTLU MÜŞTERİ",
       "subtitle": "Şeffaf pazarlık, resmi tapu ve satış sonrası tam memnuniyet",
       "highlight": "YÜZDE YÜZ MEMNUNİYET",
@@ -98,7 +98,7 @@
     {
       "id": 5,
       "role": "Resmi Güvence & Ekip",
-      "sec": 7.5,
+      "sec": 7.8,
       "text": "RESMİ TAŞINMAZ YETKİ BELGELİ",
       "subtitle": "EİDS doğrulamalı güvenilir portföy ve şeffaf sözleşmeler",
       "highlight": "RESMİ VE ŞEFFAF",
@@ -117,11 +117,11 @@
     {
       "id": 6,
       "role": "Adres & Web Sitesi Kapanış",
-      "sec": 7.5,
+      "sec": 7.9,
       "text": "KORKMAZ GAYRİMENKUL İNŞAAT",
       "subtitle": "Medrese, 88. Sokak 40100 Kırşehir Merkez",
       "highlight": "korkmazgayrimenkulinsaat.com",
-      "vo": "Siz de bir kahvemizi içmeye bekleriz. Adresimiz: Medrese, 88. Sokak Kırşehir Merkez. Web sitemiz: korkmazgayrimenkulinsaat.com.",
+      "vo": "Sizleri de kahvemizi içmeye bekleriz. Medrese, 88. Sokak Kırşehir. korkmazgayrimenkulinsaat.com.",
       "visual": "Korkmaz Gayrimenkul Kırşehir ofisinin cadde görünümü ve tabela detayı",
       "grad": [
         "#0f172a",
@@ -131,16 +131,16 @@
       "zoomDir": "out",
       "speaker": "Reklam Anlatıcısı (Tok Erkek Sesi)",
       "voiceGender": "male",
-      "audioUrl": "/api/assets/korkmaz_single_voice_s6_1794215835482.wav"
+      "audioUrl": "/api/assets/korkmaz_single_voice_s6_1794222488557.wav"
     }
   ],
   "logs": [
-    "[12:17:15] 🏢 1. Adım: Korkmaz Gayrimenkul kurumsal kimliği yüklendi.",
-    "[12:17:15] 📜 2. Adım: Tam 45 saniyelik tek anlatıcı senaryosu oluşturuldu.",
-    "[12:17:15] 🎙️ 12. Adım: 6 sahnenin tamamı aynı tok ve güven verici erkek sesiyle (Puck) seslendirildi.",
-    "[12:17:15] 🏢 4. & 5. Adım: Gerçek ofis, Mustafa Korkmaz, Salih Korkmaz ve müşteri uğurlama fotoğrafları bağlandı.",
-    "[12:17:15] 🎵 14. Adım: Dinamik kurumsal satış fon müziği ve akıllı ducking miksajı yapıldı.",
-    "[12:17:15] 🌐 24. Adım: korkmazgayrimenkulinsaat.com web adresi ve Medrese 88. Sokak adresi kilitlendi."
+    "[14:08:08] 🏢 1. Adım: Korkmaz Gayrimenkul kurumsal kimliği yüklendi.",
+    "[14:08:08] 📜 2. Adım: Tam 45 saniyelik tek anlatıcı senaryosu oluşturuldu.",
+    "[14:08:08] 🎙️ 12. Adım: 6 sahnenin tamamı aynı tok ve güven verici erkek sesiyle (Puck) seslendirildi.",
+    "[14:08:08] 🏢 4. & 5. Adım: Gerçek ofis, Mustafa Korkmaz, Salih Korkmaz ve müşteri uğurlama fotoğrafları bağlandı.",
+    "[14:08:08] 🎵 14. Adım: Dinamik kurumsal satış fon müziği ve akıllı ducking miksajı yapıldı.",
+    "[14:08:08] 🌐 24. Adım: korkmazgayrimenkulinsaat.com web adresi ve Medrese 88. Sokak adresi kilitlendi."
   ],
-  "created": "09.11.2026 12:17:15"
+  "created": "09.11.2026 14:08:08"
 }

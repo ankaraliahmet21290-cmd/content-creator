@@ -39,6 +39,8 @@ export interface BriefForm {
   voiceGender?: VoiceGender;
   customInstructions?: string;
   bgMusic?: string;
+  customMusicName?: string;
+  customMusicData?: string;
   character?: CharacterProfile;
   visualSource?: VisualSourceMode;
   enableLipSync?: boolean;

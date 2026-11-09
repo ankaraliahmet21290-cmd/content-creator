@@ -83,12 +83,19 @@ export default function StudioPage() {
     }
   }, [theme]);
 
-  // Sayfa açıldığında güncel master videoyu (Korkmaz Gayrimenkul) doğrudan seçili ve aktif yap
+  // Sayfa açıldığında güncel master videoyu (Korkmaz Gayrimenkul) doğrudan seçili ve aktif yap, eski çöp isimleri temizle
   useEffect(() => {
     if (defaultShowcase) {
       setVideos(prev => {
-        const filtered = prev.filter(v => v.id !== defaultShowcase.id);
-        const updated = [defaultShowcase as VideoItem, ...filtered];
+        const sanitized = prev
+          .filter(v => v.id !== defaultShowcase.id && !v.product.includes('_reklam'))
+          .map(v => ({
+            ...v,
+            product: v.product
+              ? v.product.replace(/_reklam.*$/i, '').replace(/\s*\(\d+\)/g, '').replace(/_/g, ' ').trim()
+              : 'Korkmaz Gayrimenkul İnşaat'
+          }));
+        const updated = [defaultShowcase as VideoItem, ...sanitized];
         try {
           localStorage.setItem('klaket_sop_vids', JSON.stringify(updated));
         } catch {

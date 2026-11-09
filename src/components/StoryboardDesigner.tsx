@@ -166,9 +166,13 @@ export function StoryboardDesigner({
   const isDocumentary = video.type === 'belgesel';
   const isYouTube = video.type === 'youtube';
   const isSocial = video.type === 'sosyal' || video.ratio === '9:16';
-  const isSports = /maç|futbol|gol|gs|fb|bjk|ts|derbi|stadyum|şampiyon|lig|soccer|football|vs|stuttgart|stutgart|galatasaray|fenerbahçe|beşiktaş/i.test(
+  const isRealEstate = /gayrimenkul|emlak|inşaat|rezidans|villa|konut|daire|arsa|korkmaz|broker|tapu/i.test(
     `${video.product} ${video.points || ''}`
   );
+  const isSports = !isRealEstate && video.type !== 'reklam' && video.mode !== 'reklam' &&
+    /\b(futbol|stadyum|şampiyonlar\s+ligi|süper\s+lig|taraftar|derbi|maç\s+özeti|galatasaray|fenerbahçe|beşiktaş|trabzonspor)\b/i.test(
+      `${video.product} ${video.points || ''}`
+    );
 
   const roleOptions = useMemo(() => {
     if (isSports) return SPORTS_ROLES;
@@ -273,15 +277,17 @@ return (
           >
               {isSports
               ? '⚽ Maç Özeti & Goller'
-              : isSocial
-                ? '📱 Shorts & Reels (9:16)'
-                : isCinema
-                  ? '🎬 Sinema Storyboard'
-                  : isDocumentary
-                    ? '🎙️ Belgesel Storyboard'
-                    : isYouTube
-                      ? '🔴 YouTube Storyboard'
-                      : '✨ Sahne Tasarımcısı'}
+              : video.mode === 'reklam' || video.type === 'reklam'
+                ? '📢 Ticari Reklam Storyboard'
+                : isSocial
+                  ? '📱 Shorts & Reels (9:16)'
+                  : isCinema
+                    ? '🎬 Sinema Storyboard'
+                    : isDocumentary
+                      ? '🎙️ Belgesel Storyboard'
+                      : isYouTube
+                        ? '🔴 YouTube Storyboard'
+                        : '✨ Sahne Tasarımcısı'}
           </span>
           <span className="badge" style={{ background: 'var(--acc-glow)', color: 'var(--acc-light)' }}>
             {scenes.length} Sahne · Toplam {totalDuration.toFixed(1)} sn (Hedef: {video.dur} sn)
@@ -293,7 +299,7 @@ return (
           )}
           {video.bgMusic && video.bgMusic !== 'none' && (
             <span className="badge" style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
-              🎵 {video.bgMusic === 'cinema_epic' ? 'Epik Sinema' : video.bgMusic === 'youtube_lofi' ? 'Lo-Fi Beats' : 'Kurumsal Fon'}
+              🎵 {video.bgMusic === 'custom' ? `Özel Müzik: ${video.customMusicName || 'Yüklenen Parça'}` : video.bgMusic === 'cinema_epic' ? 'Epik Sinema' : video.bgMusic === 'youtube_lofi' ? 'Lo-Fi Beats' : video.bgMusic === 'auto' ? 'Otomatik Eşleme' : 'Fon Müziği'}
             </span>
           )}
         </div>

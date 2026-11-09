@@ -121,12 +121,16 @@ export function normalizeTopicQuery(rawQuery: string): { cleanQuery: string; can
   const words = q.split(/\s+/).filter(w => !conversationalStopwords.includes(w.toLowerCase()) && w.length > 1);
   const cleanQuery = words.join(' ');
 
-  const isSports = /maç|futbol|gol|galatasaray|fenerbahce|besiktas|trabzonspor|stuttgart|stutgart|derbi|stadyum|soccer|football/i.test(rawQuery);
+  const isRealEstate = /gayrimenkul|emlak|inşaat|rezidans|villa|konut|daire|arsa|korkmaz|broker|tapu/i.test(rawQuery);
+  const isSports = !isRealEstate && /\b(futbol|stadyum|şampiyonlar\s+ligi|süper\s+lig|taraftar|derbi|maç\s+özeti|galatasaray|fenerbahce|besiktas|trabzonspor|soccer|football)\b/i.test(rawQuery);
 
   const candidateQueries: string[] = [];
   if (cleanQuery) candidateQueries.push(cleanQuery);
 
-  if (isSports) {
+  if (isRealEstate) {
+    candidateQueries.push('modern corporate real estate architecture building');
+    candidateQueries.push('modern office exterior architectural photography');
+  } else if (isSports) {
     if (cleanQuery.includes('Galatasaray')) candidateQueries.push('Galatasaray football');
     if (cleanQuery.includes('Stuttgart')) candidateQueries.push('VfB Stuttgart');
     if (cleanQuery.includes('Fenerbahce')) candidateQueries.push('Fenerbahce football');

@@ -423,6 +423,32 @@ export function matchBestDocumentaryPhoto(role: string, visualDesc: string, inde
   return DOCUMENTARY_PHOTO_POOL.conclusion[index % DOCUMENTARY_PHOTO_POOL.conclusion.length];
 }
 
+// 12. Moda, Lüks Tüketim, Kozmetik, Parfüm & Alışveriş
+export const FASHION_LIFESTYLE_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=85&w=1280&auto=format&fit=crop', // Lüks makyaj ve kozmetik ürünleri
+  'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=85&w=1280&auto=format&fit=crop', // Lüks parfüm şişesi ve zarafet
+  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=85&w=1280&auto=format&fit=crop', // Şık moda kombini ve stil
+  'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=85&w=1280&auto=format&fit=crop', // Modern şık butik ve mağaza
+  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=85&w=1280&auto=format&fit=crop'  // Moda çekimi podyum zarafeti
+];
+
+// 13. Eğitim, Kurs, Akademi & Öğrenim
+export const EDUCATION_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=85&w=1280&auto=format&fit=crop', // Modern interaktif sınıf ve eğitim
+  'https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=85&w=1280&auto=format&fit=crop', // Birlikte çalışan üniversite öğrencileri
+  'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=85&w=1280&auto=format&fit=crop', // Kitaplar ve çalışma masası
+  'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=85&w=1280&auto=format&fit=crop'  // Mezuniyet ve başarı anı
+];
+
+// 14. Genel Premium Ticari Reklam Havuzu (Lüks Ürün & Müşteri Deneyimi)
+export const GENERAL_COMMERCIAL_PHOTO_POOL = [
+  'https://images.unsplash.com/photo-1556742049-0a67c5574f73?q=85&w=1280&auto=format&fit=crop', // Mutlu müşteri alışveriş ve dijital ödeme
+  'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=85&w=1280&auto=format&fit=crop', // Başarılı iş grafikleri ve büyüme
+  'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=85&w=1280&auto=format&fit=crop', // Profesyonel iş insanı ve prestij
+  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=85&w=1280&auto=format&fit=crop', // Yaratıcı ajans ekibi toplantısı
+  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=85&w=1280&auto=format&fit=crop'  // Başarılı ekip kutlaması
+];
+
 /**
  * Brief türüne, konu başlığına ve sahneye göre doğrudan en uygun yüksek çözünürlüklü görseli döndürür
  */
@@ -435,81 +461,103 @@ export function getScenePhoto(
 ): string {
   const combined = `${product || ''} ${visualDesc || ''} ${role || ''}`.toLowerCase();
 
-  // 0. ⚽ Futbol, Maç, Derbi, Takım, Stadyum, Gol, Şampiyonlar Ligi, Süper Lig
+  // 1. ☕ Kahve, Kafe, Restoran, Yemek, Gurme, Barista, Fırın, Lezzet
   if (
-    combined.includes('maç') || combined.includes('futbol') || combined.includes('gol') ||
-    combined.includes('gs') || combined.includes('galatasaray') || combined.includes('fb') ||
-    combined.includes('fenerbahçe') || combined.includes('beşiktaş') || combined.includes('bjk') ||
-    combined.includes('trabzon') || combined.includes('stuttgart') || combined.includes('stutgart') ||
-    combined.includes('stadyum') || combined.includes('taraftar') || combined.includes('derbi') ||
-    combined.includes('soccer') || combined.includes('football') || combined.includes('uefa') ||
-    combined.includes('fifa') || combined.includes('penaltı') || combined.includes('şut') ||
-    combined.includes('şampiyon') || combined.includes('kupa') || combined.includes('lig')
-  ) {
-    return FOOTBALL_MATCH_PHOTO_POOL[index % FOOTBALL_MATCH_PHOTO_POOL.length];
-  }
-
-  // 1. Kahve, Kafe, Restoran, Yemek & Gurme Lezzetler
-  if (
-    combined.includes('kahve') || combined.includes('kafe') || combined.includes('roastery') ||
-    combined.includes('yemek') || combined.includes('lezzet') || combined.includes('restoran') ||
-    combined.includes('tatlı') || combined.includes('ekmek') || combined.includes('fırın') ||
-    combined.includes('şarap') || combined.includes('gastronomi') || combined.includes('barista')
+    combined.includes('kahve') || combined.includes('kafe') || combined.includes('restoran') ||
+    combined.includes('yemek') || combined.includes('gurme') || combined.includes('barista') ||
+    combined.includes('tatlı') || combined.includes('pasta') || combined.includes('fırın') ||
+    combined.includes('lezzet') || combined.includes('coffee') || combined.includes('espresso') ||
+    combined.includes('latte') || combined.includes('roast')
   ) {
     return COFFEE_FOOD_PHOTO_POOL[index % COFFEE_FOOD_PHOTO_POOL.length];
   }
 
-  // 2. Turizm, Seyahat, Kapadokya, Balon, Tatil, Gezi, Doğa
+  // 2. 🚗 Otomobil, Araba, Sürüş, Motor, Galeri, Elektrikli Araç, Spor Araba
   if (
-    combined.includes('balon') || combined.includes('kapadokya') || combined.includes('turizm') ||
-    combined.includes('seyahat') || combined.includes('tatil') || combined.includes('otel') ||
-    combined.includes('gezi') || combined.includes('uçuş') || combined.includes('plaj') ||
-    combined.includes('yazlık') || combined.includes('manzara')
-  ) {
-    return TOURISM_PHOTO_POOL[index % TOURISM_PHOTO_POOL.length];
-  }
-
-  // 3. Sağlık, Tıp, Cerrahi, Doktor, Klinik, Diş
-  if (
-    combined.includes('sağlık') || combined.includes('tıp') || combined.includes('doktor') ||
-    combined.includes('hastane') || combined.includes('klinik') || combined.includes('cerrahi') ||
-    combined.includes('tedavi') || combined.includes('ilaç') || combined.includes('diş') ||
-    combined.includes('ameliyat') || combined.includes('wellness') || combined.includes('yoga')
-  ) {
-    return HEALTH_MEDICAL_PHOTO_POOL[index % HEALTH_MEDICAL_PHOTO_POOL.length];
-  }
-
-  // 4. Otomobil, Araba, Süper Spor, Elektrikli Araç, Hız
-  if (
-    combined.includes('araba') || combined.includes('otomobil') || combined.includes('araç') ||
-    combined.includes('sürüş') || combined.includes('hız') || combined.includes('elektrikli') ||
-    combined.includes('motor') || combined.includes('test sürüşü') || combined.includes('gt') ||
-    combined.includes('spor araba') || combined.includes('kokpit')
+    combined.includes('otomobil') || combined.includes('araba') || combined.includes('araç') ||
+    combined.includes('motor') || combined.includes('sürüş') || combined.includes('galeri') ||
+    combined.includes('elektrikli araç') || combined.includes('car') || combined.includes('suv')
   ) {
     return AUTOMOTIVE_PHOTO_POOL[index % AUTOMOTIVE_PHOTO_POOL.length];
   }
 
-  // 5. Gayrimenkul, Emlak, Rezidans, Villa, Mimari, Konut
+  // 3. 🏥 Sağlık, Tıp, Doktor, Hastane, Klinik, Diş, Cerrahi, Eczane, Wellness, Spa
   if (
-    combined.includes('rezidans') || combined.includes('villa') || combined.includes('emlak') ||
-    combined.includes('konut') || combined.includes('daire') || combined.includes('arsa') ||
-    combined.includes('mimari') || combined.includes('korkmaz') || combined.includes('gayrimenkul') ||
-    briefType === 'tanitim'
+    combined.includes('sağlık') || combined.includes('doktor') || combined.includes('hastane') ||
+    combined.includes('klinik') || combined.includes('diş') || combined.includes('cerrahi') ||
+    combined.includes('tedavi') || combined.includes('eczane') || combined.includes('wellness') ||
+    combined.includes('spa') || combined.includes('medical')
   ) {
-    return LUXURY_ESTATE_PHOTO_POOL[index % LUXURY_ESTATE_PHOTO_POOL.length];
+    return HEALTH_MEDICAL_PHOTO_POOL[index % HEALTH_MEDICAL_PHOTO_POOL.length];
   }
 
-  // 6. Teknoloji, Yazılım, Yapay Zekâ, Çip, Robot, Siber
+  // 4. 🎈 Turizm, Kapadokya, Otel, Tatil, Seyahat, Balon, Peri Bacaları, Gezi
+  if (
+    combined.includes('kapadokya') || combined.includes('turizm') || combined.includes('otel') ||
+    combined.includes('tatil') || combined.includes('seyahat') || combined.includes('balon') ||
+    combined.includes('peri bacaları') || combined.includes('pansiyon') || combined.includes('resort') ||
+    combined.includes('travel') || combined.includes('tourism')
+  ) {
+    return TOURISM_PHOTO_POOL[index % TOURISM_PHOTO_POOL.length];
+  }
+
+  // 5. 💄 Moda, Kozmetik, Parfüm, Giyim, Butik, Takı, Mücevher, Lüks Tüketim
+  if (
+    combined.includes('moda') || combined.includes('kozmetik') || combined.includes('parfüm') ||
+    combined.includes('giyim') || combined.includes('butik') || combined.includes('elbise') ||
+    combined.includes('kombin') || combined.includes('takı') || combined.includes('mücevher') ||
+    combined.includes('aksesuar') || combined.includes('fashion') || combined.includes('perfume')
+  ) {
+    return FASHION_LIFESTYLE_PHOTO_POOL[index % FASHION_LIFESTYLE_PHOTO_POOL.length];
+  }
+
+  // 6. ⚽ Futbol, Maç, Derbi, Takım, Stadyum (Açıkça futbol konusuysa)
+  const isExplicitFootball = /\b(futbol|stadyum|şampiyonlar\s+ligi|süper\s+lig|taraftar|derbi|maç\s+özeti|galatasaray|fenerbahçe|beşiktaş|trabzonspor|soccer)\b/i.test(combined);
+  if (isExplicitFootball) {
+    return FOOTBALL_MATCH_PHOTO_POOL[index % FOOTBALL_MATCH_PHOTO_POOL.length];
+  }
+
+  // 7. 🏃 Spor, Fitness, Egzersiz, Koşu, Antrenman
+  if (
+    combined.includes('fitness') || combined.includes('gym') || combined.includes('koşu') ||
+    combined.includes('antrenman') || combined.includes('maraton') || combined.includes('egzersiz') ||
+    combined.includes('sporcu') || combined.includes('workout')
+  ) {
+    return SPORTS_FITNESS_PHOTO_POOL[index % SPORTS_FITNESS_PHOTO_POOL.length];
+  }
+
+  // 8. 💻 Teknoloji, Yazılım, Yapay Zekâ, Çip, Robot, Siber, Kodlama
   if (
     combined.includes('yapay zeka') || combined.includes('yazılım') || combined.includes('teknoloji') ||
     combined.includes('çip') || combined.includes('robot') || combined.includes('kodlama') ||
     combined.includes('donanım') || combined.includes('ai') || combined.includes('bulut') ||
-    combined.includes('saas') || combined.includes('siber')
+    combined.includes('saas') || combined.includes('siber') || combined.includes('uygulama') ||
+    combined.includes('bilgisayar') || combined.includes('software')
   ) {
     return TECH_AI_PHOTO_POOL[index % TECH_AI_PHOTO_POOL.length];
   }
 
-  // 7. Doğa, Okyanus, Dağ, Orman, Vahşi Yaşam, Çevre
+  // 9. 🎓 Eğitim, Kurs, Akademi, Okul, Üniversite, Öğrenci, Kitap
+  if (
+    combined.includes('eğitim') || combined.includes('kurs') || combined.includes('okul') ||
+    combined.includes('üniversite') || combined.includes('öğrenci') || combined.includes('akademi') ||
+    combined.includes('ders') || combined.includes('kitap') || combined.includes('education')
+  ) {
+    return EDUCATION_PHOTO_POOL[index % EDUCATION_PHOTO_POOL.length];
+  }
+
+  // 10. 🏢 Gayrimenkul, Emlak, İnşaat, Rezidans, Villa, Mimari, Konut, Ofis, Danışmanlık
+  if (
+    combined.includes('gayrimenkul') || combined.includes('emlak') || combined.includes('inşaat') ||
+    combined.includes('rezidans') || combined.includes('villa') || combined.includes('konut') ||
+    combined.includes('daire') || combined.includes('arsa') || combined.includes('mimari') ||
+    combined.includes('korkmaz') || combined.includes('broker') || combined.includes('tapu') ||
+    combined.includes('müteahhit') || combined.includes('kentsel dönüşüm')
+  ) {
+    return LUXURY_ESTATE_PHOTO_POOL[index % LUXURY_ESTATE_PHOTO_POOL.length];
+  }
+
+  // 11. 🌊 Doğa, Okyanus, Dağ, Orman, Vahşi Yaşam, Çevre
   if (
     combined.includes('okyanus') || combined.includes('deniz') || combined.includes('dağ') ||
     combined.includes('orman') || combined.includes('doğa') || combined.includes('hayvan') ||
@@ -519,7 +567,7 @@ export function getScenePhoto(
     return NATURE_WILDLIFE_PHOTO_POOL[index % NATURE_WILDLIFE_PHOTO_POOL.length];
   }
 
-  // 8. Tarih, Arkeoloji, Antik, Mısır, Piramit, Roma
+  // 12. 🏛️ Tarih, Arkeoloji, Antik, Mısır, Piramit, Roma
   if (
     combined.includes('piramit') || combined.includes('mısır') || combined.includes('arkeoloji') ||
     combined.includes('tarih') || combined.includes('antik') || combined.includes('roma') ||
@@ -529,7 +577,7 @@ export function getScenePhoto(
     return HISTORY_ARCHAEOLOGY_PHOTO_POOL[index % HISTORY_ARCHAEOLOGY_PHOTO_POOL.length];
   }
 
-  // 9. İş Dünyası, Şirket, Kurumsal, Finans, Yatırım
+  // 13. 💼 İş Dünyası, Şirket, Kurumsal, Finans, Yatırım
   if (
     combined.includes('şirket') || combined.includes('kurumsal') || combined.includes('holding') ||
     combined.includes('finans') || combined.includes('yatırım') || combined.includes('danışmanlık') ||
@@ -538,37 +586,23 @@ export function getScenePhoto(
     return BUSINESS_CORP_PHOTO_POOL[index % BUSINESS_CORP_PHOTO_POOL.length];
   }
 
-  // 10. Spor, Fitness, Egzersiz, Koşu
-  if (
-    combined.includes('spor') || combined.includes('fitness') || combined.includes('koşu') ||
-    combined.includes('antrenman') || combined.includes('maraton') || combined.includes('egzersiz')
-  ) {
-    return SPORTS_FITNESS_PHOTO_POOL[index % SPORTS_FITNESS_PHOTO_POOL.length];
-  }
-
-  // 11. Belgesel modu
+  // 14. Belgesel modu
   if (briefType === 'belgesel') {
     return matchBestDocumentaryPhoto(role, visualDesc, index, product);
   }
 
-  // 12. YouTube modu
+  // 15. YouTube modu
   if (briefType === 'youtube' || briefType === 'sosyal') {
     return matchBestYouTubePhoto(role, visualDesc, index);
   }
 
-  // 13. Sinema modu
+  // 16. Sinema modu
   if (briefType === 'sinema') {
     return matchBestCinemaPhoto(role, visualDesc, index);
   }
 
-  // Genel reklam modu
-  if (briefType === 'reklam') {
-    return index % 2 === 0
-      ? LUXURY_ESTATE_PHOTO_POOL[index % LUXURY_ESTATE_PHOTO_POOL.length]
-      : BUSINESS_CORP_PHOTO_POOL[index % BUSINESS_CORP_PHOTO_POOL.length];
-  }
-
-  return matchBestCinemaPhoto(role, visualDesc, index);
+  // 17. Reklam & Tanıtım Genel Havuzu (Lüks Stüdyo Çekimleri & Prestij)
+  return GENERAL_COMMERCIAL_PHOTO_POOL[index % GENERAL_COMMERCIAL_PHOTO_POOL.length];
 }
 
 export interface VisualAssetItem {

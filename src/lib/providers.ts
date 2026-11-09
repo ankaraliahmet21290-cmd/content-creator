@@ -48,9 +48,10 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     /belgesel|documentary/i.test(b.product || '');
   const isYouTube = !isDocumentary && b.type === 'youtube';
   const isSocial = !isCinema && !isDocumentary && !isYouTube && (b.type === 'sosyal' || b.ratio === '9:16' || /shorts|reels|tiktok/i.test(b.platform || ''));
-  const isSports = /maç|futbol|gol|gs|fb|bjk|ts|derbi|stadyum|şampiyon|lig|soccer|football|vs|stuttgart|stutgart|galatasaray|fenerbahçe|beşiktaş|trabzon|skor|özet|penaltı|hakem/i.test(
-    `${b.product} ${b.customInstructions || ''} ${b.points || ''}`
-  );
+  const isSports = !isCinema && !isDocumentary && b.type !== 'reklam' && b.type !== 'tanitim' &&
+    /\b(futbol|stadyum|şampiyonlar\s+ligi|süper\s+lig|taraftar|derbi|maç\s+özeti|galatasaray|fenerbahçe|beşiktaş|trabzonspor)\b/i.test(
+      `${b.product} ${b.customInstructions || ''}`
+    );
 
   const baseRoles = isDocumentary
     ? DOCUMENTARY_ROLES
@@ -190,10 +191,14 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
   const hookSec = b.dur <= 15 ? 2.5 : isCinema ? 4.0 : 3.0;
   const remainingSec = +((b.dur - hookSec) / (n - 1)).toFixed(1);
 
-  const customLines = (b.customInstructions || '')
-    .split(/[.\n!?;]+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 5);
+  const rawCustom = (b.customInstructions || '').trim();
+  // Kullanıcının yazdığı satırları, maddeleri veya cümleleri ayıkla (Sahne 1:, 1., -, * gibi işaretleri temizle; %20 gibi sayıları koru)
+  const customLines = rawCustom
+    ? rawCustom
+        .split(/(?:\r?\n+|(?<=[.!?])\s+(?=(?:Sahne\s*\d+|\d+)[\.:\)]|\b[A-ZÇĞİÖŞÜ])|^\s*(?:Sahne\s*\d+|\d+)[\.:\)]\s*)/m)
+        .map(s => s.replace(/^\s*(?:Sahne\s*\d+|\d+)[\.:\)]\s*/i, '').replace(/^[-*•]\s*/, '').trim())
+        .filter(s => s.length > 3)
+    : [];
 
   return roles.map((r, i) => {
     let screenText = p;
@@ -201,62 +206,83 @@ export function buildScenesFromSOP(b: BriefForm): Scene[] {
     let subtitle = '';
     let highlight = '';
 
+    const userLine = customLines.length > 0 ? customLines[i % customLines.length] : undefined;
+
     if (isDocumentary && documentaryMap[r]) {
       screenText = documentaryMap[r].screen;
-      voText = customLines[i] || documentaryMap[r].vo;
+      voText = userLine || documentaryMap[r].vo;
       subtitle = pts[i] || `Araştırma ve Keşif Kayıtları`;
       highlight = i === roles.length - 1 ? (b.cta || 'BİLİM VE TARİHİN DÖNÜM NOKTASI') : `BÖLÜM ${i + 1}`;
     } else if (isCinema && cinemaMap[r]) {
       screenText = cinemaMap[r].screen;
-      voText = customLines[i] || cinemaMap[r].vo;
+      voText = userLine || cinemaMap[r].vo;
       subtitle = pts[i] || `${p} · Sinematik Fragman`;
       highlight = i === roles.length - 1 ? (b.cta || 'ÇOK YAKINDA SİNEMALARDA') : `${p.toUpperCase()}`;
     } else if (isYouTube && youtubeMap[r]) {
       screenText = youtubeMap[r].screen;
-      voText = customLines[i] || youtubeMap[r].vo;
+      voText = userLine || youtubeMap[r].vo;
       subtitle = pts[i] || `YouTube Analiz & İnceleme`;
       highlight = i === roles.length - 1 ? (b.cta || 'ABONE OL & BEĞEN') : `DETAY`;
     } else if (isSports && sportsMap[r]) {
       screenText = sportsMap[r].screen;
-      voText = customLines[i] || sportsMap[r].vo;
+      voText = userLine || sportsMap[r].vo;
       subtitle = pts[i] || `Dev Maç & Gol Pozisyonları`;
       highlight = i === roles.length - 1 ? (b.cta || 'MAÇIN ADAMI KİMDİ?') : `GOL ANI`;
     } else if (isSocial && shortsMap[r]) {
       screenText = shortsMap[r].screen;
-      voText = customLines[i] || shortsMap[r].vo;
+      voText = userLine || shortsMap[r].vo;
       subtitle = pts[i] || `Viral Shorts`;
       highlight = i === roles.length - 1 ? (b.cta || 'TAKİP ET & YORUM YAZ') : `ÖNE ÇIKAN`;
     } else {
-      const roleEntry = templates[r];
-      if (roleEntry) {
-        if (typeof roleEntry === 'object' && b.type in roleEntry) {
-          const typeMatch = (roleEntry as Record<string, { screen: string; vo: string }>)[b.type];
-          screenText = typeMatch.screen;
-          voText = typeMatch.vo;
-        } else if ('screen' in roleEntry && 'vo' in roleEntry) {
-          screenText = (roleEntry as { screen: string; vo: string }).screen;
-          voText = (roleEntry as { screen: string; vo: string }).vo;
+      // Reklam ve Tanıtım Modu: Kullanıcının isteklerini doğrudan seslendirme ve ekrana taşı
+      if (userLine) {
+        voText = userLine;
+        const words = userLine.split(/[,:;.-]/)[0].trim().split(/\s+/);
+        if (words.length >= 2 && words.length <= 6) {
+          screenText = words.join(' ').toUpperCase();
+        } else if (words.length > 6) {
+          screenText = words.slice(0, 5).join(' ').toUpperCase();
+        } else {
+          screenText = p.toUpperCase();
         }
+        subtitle = pts[i] || `${p} · ${r}`;
+        highlight = i === roles.length - 1 ? (b.cta || 'HEMEN İNCELEYİN') : p.toUpperCase();
+      } else {
+        const roleEntry = templates[r];
+        if (roleEntry) {
+          if (typeof roleEntry === 'object' && b.type in roleEntry) {
+            const typeMatch = (roleEntry as Record<string, { screen: string; vo: string }>)[b.type];
+            screenText = typeMatch.screen;
+            voText = typeMatch.vo;
+          } else if ('screen' in roleEntry && 'vo' in roleEntry) {
+            screenText = (roleEntry as { screen: string; vo: string }).screen;
+            voText = (roleEntry as { screen: string; vo: string }).vo;
+          }
+        }
+        subtitle = pts[i] || `${p} Tanıtımı`;
+        highlight = b.cta || '';
       }
-      subtitle = pts[i] || `${p} Tanıtımı`;
-      highlight = b.cta || '';
     }
 
     if (r === 'Özellik' || r.includes('Detay') || r.includes('Kanıt')) {
       if (pts[ptIndex]) {
         screenText = pts[ptIndex];
-        voText = customLines[i] || `${screenText} ile ilgili tüm detaylar.`;
+        if (!userLine) {
+          voText = `${screenText} ile ilgili tüm detaylar.`;
+        }
         ptIndex++;
       }
     } else if ((r === 'Çağrı' || r.includes('Çağrısı') || r.includes('Kapanış')) && b.cta) {
       screenText = b.cta;
-      voText = customLines[i] || b.cta;
+      if (!userLine) {
+        voText = b.cta;
+      }
       highlight = b.cta;
     }
 
     const sceneDuration = i === 0 ? hookSec : remainingSec;
-    const visualContext = customLines[i] || b.customInstructions || p;
-    const visual = `[${b.tone} ışıklandırma, ${r.toLowerCase()} planı: ${visualContext.slice(0, 80)}]`;
+    const visualContext = userLine || customLines[i] || rawCustom || p;
+    const visual = `Commercial advertising photography of ${p}, ${visualContext.slice(0, 100)}, luxury commercial lighting, 8k resolution, photorealistic, cinematic composition, crisp focus`;
     const imageUrl = getScenePhoto(b.type, r, visualContext, i, p);
     const zoomDir: 'in' | 'out' = i % 2 === 0 ? 'in' : 'out';
 

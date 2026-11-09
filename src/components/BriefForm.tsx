@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { BriefForm as IBriefForm, Preset, AspectRatio, AppMode, CharacterProfile } from '@/types';
 import { TYPES, RATIOS, LANGUAGES, PRESETS, BG_MUSIC_OPTIONS, CHARACTER_PRESETS } from '@/lib/constants';
 import { audioMgr } from '@/lib/audio';
@@ -46,6 +46,23 @@ export function BriefForm({
   const [showAllPresets, setShowAllPresets] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [previewingTrackId, setPreviewingTrackId] = useState<string | null>(null);
+  const musicFileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleAudioUpload(file: File) {
+    if (!file) return;
+    if (file.size > 30 * 1024 * 1024) {
+      alert('Müzik dosyası boyutu maksimum 30MB olabilir.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      onUpdateField('customMusicData', dataUrl);
+      onUpdateField('customMusicName', file.name);
+      onUpdateField('bgMusic', 'custom');
+    };
+    reader.readAsDataURL(file);
+  }
 
   const isClassic = mode === 'classic';
   const currentType = form.type;
@@ -340,26 +357,28 @@ export function BriefForm({
 
       {/* Ana Senaryo / Kurgu / Talimat Alanı (Türe Göre Akıllı Kılavuz) */}
       <div className="ai-instructions-box" style={{ marginTop: 12 }}>
-        <label htmlFor="ai-instructions" style={{ fontSize: 13.5 }}>
-          {isCinema
-            ? '✨ Film Hikâyesi, Hazır Senaryo & Karakter Replikleri'
-            : isDocumentary
-              ? '✨ Belgesel Akışı, Kanca Soru & Yönetmen Talimatı'
-              : isYouTube
-                ? '✨ YouTube Video Akışı, Bölümler & B-Roll Talimatı'
-                : isSocial
-                  ? '✨ Hızlı Video Akışı & İpuçları'
-                  : '✨ Reklam Senaryo Özeti & İstekler'}
-          <span className="label-hint">
+        <label htmlFor="ai-instructions" style={{ fontSize: 13.5, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+          <span>
             {isCinema
-              ? '(Hazır diyaloglarınızı doğrudan yapıştırabilir veya fikrinizi yazabilirsiniz)'
+              ? '✨ Film Hikâyesi, Hazır Senaryo & Karakter Replikleri'
               : isDocumentary
-                ? '(Merak kancası, kadim sorular ve görsel atmosfer talimatı)'
+                ? '✨ Belgesel Akışı, Kanca Soru & Yönetmen Talimatı'
                 : isYouTube
-                  ? '(Giriş vaadi, ana argümanlar ve B-roll geçişleri)'
+                  ? '✨ YouTube Video Akışı, Bölümler & B-Roll Talimatı'
                   : isSocial
-                    ? '(15-30 saniyelik hızlı viral maddeler)'
-                    : '(Hedef kitle, öne çıkanlar ve görsel çekim notları)'}
+                    ? '✨ Hızlı Video Akışı & İpuçları'
+                    : '✨ Reklam Senaryo Özeti & İstekler'}
+          </span>
+          <span className="label-hint" style={{ color: '#38bdf8', fontWeight: 600 }}>
+            {isCinema
+              ? '⚡ AI bu replikleri ve sahne planını birebir kullanır'
+              : isDocumentary
+                ? '⚡ Belgesel sahneleri bu tanıma göre kurgulanır'
+                : isYouTube
+                  ? '⚡ Bölümler ve B-roll geçişleri bu tanıma göre hazırlanır'
+                  : isSocial
+                    ? '⚡ Viral kurgu bu maddelere göre üretilir'
+                    : '⚡ Sahneler, seslendirme ve çekimler bu senaryoya harfiyen uyar'}
           </span>
         </label>
         <textarea
@@ -954,7 +973,7 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
       {/* 14. ADIM: FON MÜZİĞİ VE SES TASARIMI */}
       <div style={{ marginTop: 14 }}>
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span>🎵 14. Adım: Profesyonel Fon Müziği & Soundtrack (11 Tarz)</span>
+          <span>🎵 14. Adım: Profesyonel Fon Müziği & Soundtrack (11 Tarz + Özel Yükleme)</span>
           <span className="label-hint">Ducking: Konuşurken kısılır (%10), durunca yükselir (%28)</span>
         </label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 }}>
@@ -962,25 +981,32 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
             const currentMusic = form.bgMusic || 'auto';
             const isSelected = currentMusic === opt.id;
             const isPreviewing = previewingTrackId === opt.id;
+            const isCustomOpt = opt.id === 'custom';
 
             return (
               <div
                 key={opt.id}
-                onClick={() => onUpdateField('bgMusic', opt.id)}
+                onClick={() => {
+                  if (isCustomOpt && !form.customMusicData) {
+                    musicFileInputRef.current?.click();
+                  } else {
+                    onUpdateField('bgMusic', opt.id);
+                  }
+                }}
                 style={{
                   padding: '9px 12px',
                   borderRadius: 10,
                   textAlign: 'left',
-                  border: isSelected ? '1.5px solid #38bdf8' : '1px solid var(--line)',
-                  background: isSelected ? 'rgba(56, 189, 248, 0.12)' : 'var(--card-bg, rgba(255,255,255,0.02))',
+                  border: isSelected ? (isCustomOpt ? '1.5px solid #10b981' : '1.5px solid #38bdf8') : '1px solid var(--line)',
+                  background: isSelected ? (isCustomOpt ? 'rgba(16, 185, 129, 0.12)' : 'rgba(56, 189, 248, 0.12)') : 'var(--card-bg, rgba(255,255,255,0.02))',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   position: 'relative'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, color: isSelected ? '#38bdf8' : 'var(--txt)' }}>
-                    {opt.label}
+                  <div style={{ fontWeight: 600, fontSize: 13, color: isSelected ? (isCustomOpt ? '#10b981' : '#38bdf8') : 'var(--txt)' }}>
+                    {isCustomOpt && form.customMusicName ? `📁 Özel: ${form.customMusicName}` : opt.label}
                   </div>
                   {opt.path && (
                     <button
@@ -1011,13 +1037,160 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
                       {isPreviewing ? '⏹️ Dur' : '▶ Dinle'}
                     </button>
                   )}
+                  {isCustomOpt && form.customMusicData && (
+                    <button
+                      type="button"
+                      title={isPreviewing ? 'Durdur' : 'Özel Parçayı Dinle'}
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (isPreviewing) {
+                          audioMgr.stopPreview();
+                          setPreviewingTrackId(null);
+                        } else {
+                          setPreviewingTrackId(opt.id);
+                          audioMgr.previewSoundtrack(form.customMusicData!, () => setPreviewingTrackId(null));
+                        }
+                      }}
+                      style={{
+                        background: isPreviewing ? '#ef4444' : 'rgba(16, 185, 129, 0.25)',
+                        border: 'none',
+                        color: isPreviewing ? '#fff' : '#10b981',
+                        borderRadius: 6,
+                        padding: '3px 7px',
+                        fontSize: 11,
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        flexShrink: 0
+                      }}
+                    >
+                      {isPreviewing ? '⏹️ Dur' : '▶ Dinle'}
+                    </button>
+                  )}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--mute)', marginTop: 3, lineHeight: 1.3 }}>
-                  {opt.desc}
+                  {isCustomOpt && form.customMusicName
+                    ? 'Yüklenen kendi müzik dosyanız. İstediğiniz an değiştirebilir veya silebilirsiniz.'
+                    : opt.desc}
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Kendi Müziğini Yükle (Custom Audio Upload) Paneli */}
+        <div
+          style={{
+            marginTop: 10,
+            padding: '12px 14px',
+            borderRadius: 10,
+            border: form.bgMusic === 'custom' ? '1.5px solid #10b981' : '1px dashed var(--line, rgba(255,255,255,0.2))',
+            background: form.bgMusic === 'custom' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ fontSize: 24 }}>{form.customMusicData ? '🎧' : '📁'}</div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: form.bgMusic === 'custom' ? '#10b981' : 'var(--txt)' }}>
+                {form.customMusicData ? `Seçili Özel Müzik: ${form.customMusicName || 'Özel Parça'}` : 'Kendi Müziğini Yükle (Custom Audio Upload)'}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--mute)', marginTop: 2 }}>
+                {form.customMusicData
+                  ? 'Bu müzik tüm sahnelerde ve MP4 video çıktısında otomatik ducking (%10 / %28) ile çalınır.'
+                  : 'MP3, WAV, M4A, OGG veya AAC formatında kendi müzik dosyanızı yükleyebilirsiniz (Max 30MB).'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <input
+              ref={musicFileInputRef}
+              type="file"
+              accept="audio/mp3,audio/wav,audio/m4a,audio/aac,audio/ogg,audio/*"
+              style={{ display: 'none' }}
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) handleAudioUpload(file);
+              }}
+            />
+
+            {form.customMusicData && (
+              <button
+                type="button"
+                onClick={() => {
+                  const isPreviewing = previewingTrackId === 'custom';
+                  if (isPreviewing) {
+                    audioMgr.stopPreview();
+                    setPreviewingTrackId(null);
+                  } else {
+                    setPreviewingTrackId('custom');
+                    audioMgr.previewSoundtrack(form.customMusicData!, () => setPreviewingTrackId(null));
+                  }
+                }}
+                style={{
+                  background: previewingTrackId === 'custom' ? '#ef4444' : 'rgba(16, 185, 129, 0.2)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: previewingTrackId === 'custom' ? '#fff' : '#10b981',
+                  borderRadius: 6,
+                  padding: '5px 11px',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                {previewingTrackId === 'custom' ? '⏹️ Dur' : '▶ Dinle'}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => musicFileInputRef.current?.click()}
+              style={{
+                background: 'rgba(56, 189, 248, 0.15)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                color: '#38bdf8',
+                borderRadius: 6,
+                padding: '5px 12px',
+                fontSize: 12,
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
+            >
+              {form.customMusicData ? '🔄 Değiştir' : '📂 Dosya Seç & Yükle'}
+            </button>
+
+            {form.customMusicData && (
+              <button
+                type="button"
+                title="Özel Müziği Kaldır"
+                onClick={() => {
+                  if (previewingTrackId === 'custom') {
+                    audioMgr.stopPreview();
+                    setPreviewingTrackId(null);
+                  }
+                  onUpdateField('customMusicData', undefined);
+                  onUpdateField('customMusicName', undefined);
+                  onUpdateField('bgMusic', 'auto');
+                }}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#ef4444',
+                  borderRadius: 6,
+                  padding: '5px 10px',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                🗑️ Kaldır
+              </button>
+            )}
+          </div>
         </div>
       </div>
       {/* 13. ADIM: DUDAK SENKRONİZASYONU (LIP-SYNC) */}

@@ -92,12 +92,25 @@ export async function exportVideoFile(
     await audioCtx.resume();
   }
   const audioDest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
+  const masterBus = audioCtx ? audioCtx.createGain() : null;
+  const compressor = audioCtx ? audioCtx.createDynamicsCompressor() : null;
+
+  if (audioCtx && masterBus && compressor && audioDest) {
+    masterBus.gain.setValueAtTime(0.95, audioCtx.currentTime);
+    compressor.threshold.setValueAtTime(-2.0, audioCtx.currentTime);
+    compressor.knee.setValueAtTime(6, audioCtx.currentTime);
+    compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+    compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+    compressor.release.setValueAtTime(0.20, audioCtx.currentTime);
+    masterBus.connect(compressor);
+    compressor.connect(audioDest);
+  }
 
   // Fon müziği miksajı: Kullanıcının seçtiği veya türe/konuya özel parça
   let bgmSource: AudioBufferSourceNode | null = null;
   let bgmGain: GainNode | null = null;
-  if (audioCtx && audioDest && video.bgMusic !== 'none') {
-    const bgmTrackPath = resolveBgmTrackPath(video.bgMusic, video.type, video.product);
+  if (audioCtx && masterBus && video.bgMusic !== 'none') {
+    const bgmTrackPath = resolveBgmTrackPath(video.bgMusic, video.type, video.product, video.customMusicData);
     if (bgmTrackPath) {
       const bgmBuffer = await loadAudioBuffer(audioCtx, bgmTrackPath);
       if (bgmBuffer) {
@@ -107,7 +120,7 @@ export async function exportVideoFile(
         bgmGain = audioCtx.createGain();
         bgmGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
         bgmSource.connect(bgmGain);
-        bgmGain.connect(audioDest);
+        bgmGain.connect(masterBus);
         bgmSource.start();
       }
     }
@@ -160,10 +173,14 @@ export async function exportVideoFile(
         const fileExt = isMp4 ? 'mp4' : 'webm';
         const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
+        const cleanFileBase = (video.product || 'video_export')
+          .replace(/_reklam.*$/i, '')
+          .replace(/\s*\(\d+\)/g, '')
+          .replace(/\s+/g, '_')
+          .replace(/[^a-zA-Z0-9_\-]/g, '') || 'video_export';
         const a = document.createElement('a');
         a.href = url;
-        const typeSuffix = isCinema ? 'sinema_filmi' : isYouTube ? 'youtube_video' : 'reklam';
-        a.download = `${video.product.replace(/\s+/g, '_')}_${typeSuffix}.${fileExt}`;
+        a.download = `${cleanFileBase}.${fileExt}`;
         a.click();
         URL.revokeObjectURL(url);
         resolve();
@@ -179,25 +196,28 @@ export async function exportVideoFile(
       try {
         const totalSec = video.scenes.reduce((acc, s) => acc + s.sec, 0) || video.dur || 45;
         let accumulatedSec = 0;
+        let currentVoSource: AudioBufferSourceNode | null = null;
+        let currentVoGain: GainNode | null = null;
         onProgress?.(2, 'Görseller ve ses kanalları hazırlanıyor...');
 
         for (let idx = 0; idx < video.scenes.length; idx++) {
           const sc = video.scenes[idx];
           const img = sceneImages[idx];
 
-          // 15. Adım: Sahne Geçiş Ses Efektini Mikse Dahil Et
-          if (idx > 0 && sfxBuffer && audioCtx && audioDest) {
-            const sfxSrc = audioCtx.createBufferSource();
-            sfxSrc.buffer = sfxBuffer;
-            const sfxGain = audioCtx.createGain();
-            sfxGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-            sfxSrc.connect(sfxGain);
-            sfxGain.connect(audioDest);
-            sfxSrc.start();
+          // Önceki sahneden kalan ses varsa pürüzsüzce kısarak durdur, asla üst üste binmesin!
+          if (currentVoGain && audioCtx) {
+            try {
+              currentVoGain.gain.setValueAtTime(currentVoGain.gain.value, audioCtx.currentTime);
+              currentVoGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.04);
+            } catch {}
+          }
+          if (currentVoSource) {
+            try { currentVoSource.stop(audioCtx ? audioCtx.currentTime + 0.05 : 0); } catch {}
+            currentVoSource = null;
           }
 
           // 12. Adım: TTS sesini mikse dahil et
-          if (sc.audioUrl && audioCtx && audioDest) {
+          if (sc.audioUrl && audioCtx && masterBus) {
             const voBuf = await loadAudioBuffer(audioCtx, sc.audioUrl);
             if (voBuf) {
               if (bgmGain) {
@@ -208,13 +228,15 @@ export async function exportVideoFile(
               const voGain = audioCtx.createGain();
               voGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
               voSrc.connect(voGain);
-              voGain.connect(audioDest);
+              voGain.connect(masterBus);
               voSrc.onended = () => {
                 if (bgmGain && audioCtx) {
                   bgmGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
                 }
               };
               voSrc.start();
+              currentVoSource = voSrc;
+              currentVoGain = voGain;
             }
           }
 
@@ -233,8 +255,11 @@ export async function exportVideoFile(
               );
             }
 
-            // 1. Dudak Senkronlu Video veya Sinematik Ken Burns Kamera Hareketi (v5 algoritması)
+            // 1. Dudak Senkronlu Video veya Sinematik Ken Burns Kamera Hareketi + Çapraz Erime (Cross-Dissolve)
             const sceneVideo = sceneVideos[idx];
+            const prevImg = idx > 0 ? sceneImages[idx - 1] : null;
+            const crossFadeFrames = 15; // ~0.50 saniyelik pürüzsüz sinematik geçiş
+
             if (sceneVideo && sceneVideo.readyState >= 2) {
               ctx.drawImage(sceneVideo, 0, 0, w, h);
             } else if (img) {
@@ -243,7 +268,21 @@ export async function exportVideoFile(
               const drawH = h * zoom;
               const offsetX = (w - drawW) / 2;
               const offsetY = (h - drawH) / 2;
-              ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+
+              // Sahne başlarında önceki görselden yeni görsele pürüzsüz sinematik erime geçişi
+              if (idx > 0 && prevImg && f < crossFadeFrames) {
+                const prevW = w * 1.12;
+                const prevH = h * 1.12;
+                ctx.drawImage(prevImg, (w - prevW) / 2, (h - prevH) / 2, prevW, prevH);
+
+                const fadeAlpha = Math.min(1, Math.max(0, f / crossFadeFrames));
+                ctx.save();
+                ctx.globalAlpha = fadeAlpha;
+                ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+                ctx.restore();
+              } else {
+                ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+              }
             } else {
               const grad = ctx.createLinearGradient(0, 0, w, h);
               grad.addColorStop(0, sc.grad[0]);
@@ -270,8 +309,14 @@ export async function exportVideoFile(
             ctx.shadowBlur = 8;
             ctx.shadowOffsetX = 2;
             ctx.shadowOffsetY = 3;
-            const badgePrefix = isCinema ? '🎬 SİNEMA · ' : isDocumentary ? '🎙️ BELGESEL · ' : isYouTube ? '🔴 YOUTUBE · ' : '';
-            ctx.fillText(`${badgePrefix}${video.product.toUpperCase()}`, 80, 75);
+            const cleanBadgeTitle = (video.product || 'VİDEO PROJESİ')
+              .replace(/_reklam.*$/i, '')
+              .replace(/\s*\(\d+\)/g, '')
+              .replace(/_/g, ' ')
+              .trim()
+              .toUpperCase();
+            const badgePrefix = isCinema ? '🎬 SİNEMA · ' : isDocumentary ? '🎙️ BELGESEL · ' : isYouTube ? '🔴 YOUTUBE · ' : (video.type === 'reklam' ? '📢 REKLAM · ' : '🏢 ');
+            ctx.fillText(`${badgePrefix}${cleanBadgeTitle}`, 80, 75);
 
             // 4. Ana Başlık / Replik / Belgesel Bölümü
             const titleAlpha = Math.min(1, Math.max(0, (progress - 0.1) / 0.2));

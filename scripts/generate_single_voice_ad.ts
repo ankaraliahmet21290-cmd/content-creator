@@ -48,19 +48,26 @@ async function generateSingleVoiceTTS(text: string, sceneIndex: number): Promise
   const dir = path.join(process.cwd(), 'public', 'generated_assets');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  // Sahne 1 ve 2 zaten üretildiyse kontrol et
+  // Sahne 1, 4, 5 önbellek kontrolü
   if (sceneIndex === 0) {
     const s1File = 'korkmaz_single_voice_s1_1794215720827.wav';
     if (fs.existsSync(path.join(dir, s1File))) {
-      console.log(`⚡ Sahne 1 önbellekten kullanılıyor: ${s1File}`);
+      console.log(`⚡ Sahne 1 önbellekten kullanılıyor (7.13s): ${s1File}`);
       return `/api/assets/${s1File}`;
     }
   }
-  if (sceneIndex === 1) {
-    const s2File = 'korkmaz_single_voice_s2_1794215726594.wav';
-    if (fs.existsSync(path.join(dir, s2File))) {
-      console.log(`⚡ Sahne 2 önbellekten kullanılıyor: ${s2File}`);
-      return `/api/assets/${s2File}`;
+  if (sceneIndex === 3) {
+    const s4File = 'korkmaz_single_voice_s4_1794215828550.wav';
+    if (fs.existsSync(path.join(dir, s4File))) {
+      console.log(`⚡ Sahne 4 önbellekten kullanılıyor (7.53s): ${s4File}`);
+      return `/api/assets/${s4File}`;
+    }
+  }
+  if (sceneIndex === 4) {
+    const s5File = 'korkmaz_single_voice_s5_1794215831701.wav';
+    if (fs.existsSync(path.join(dir, s5File))) {
+      console.log(`⚡ Sahne 5 önbellekten kullanılıyor (7.45s): ${s5File}`);
+      return `/api/assets/${s5File}`;
     }
   }
 
@@ -145,7 +152,7 @@ async function main() {
       text: 'KURUCU BROKER & UZMAN DANIŞMANLIK',
       subtitle: 'Mustafa Korkmaz liderliğinde 15 yılı aşkın sektör deneyimi',
       highlight: 'DOĞRU EKSPERTİZ',
-      vo: 'Kurucu broker Mustafa Korkmaz liderliğinde; konut, arsa ve ticari yatırımlarınızda şeffaf ve profesyonel danışmanlık sunuyoruz.',
+      vo: 'Kurucu Broker Mustafa Korkmaz liderliğinde; konut ve arsa yatırımlarınızda şeffaf, profesyonel danışmanlık.',
       visual: 'Mustafa Korkmaz, Gayrimenkul Kurucu Brokerı profesyonel portresi',
       grad: ['#0b1329', '#1e293b'] as [string, string],
       imageUrl: '/real_assets/team_mustafa.jpg',
@@ -160,7 +167,7 @@ async function main() {
       text: 'İNŞAAT MÜHENDİSLİĞİ VE GÜVEN',
       subtitle: 'Salih Korkmaz denetiminde statik güvenlik ve modern yapılar',
       highlight: 'MÜHENDİSLİK GÜVENCESİ',
-      vo: 'İnşaat Mühendisi Salih Korkmaz denetiminde; kentsel dönüşüm mevzuatına tam uyumlu, depreme dayanıklı modern yaşam alanları inşa ediyoruz.',
+      vo: 'İnşaat Mühendisi Salih Korkmaz denetiminde; modern, güvenilir ve depreme dayanıklı yapılar inşa ediyoruz.',
       visual: 'Salih Korkmaz, İnşaat Mühendisi ve Proje Yöneticisi profesyonel portresi',
       grad: ['#1e1b4b', '#1e3a8a'] as [string, string],
       imageUrl: '/real_assets/team_salih.jpg',
@@ -205,7 +212,7 @@ async function main() {
       text: 'KORKMAZ GAYRİMENKUL İNŞAAT',
       subtitle: 'Medrese, 88. Sokak 40100 Kırşehir Merkez',
       highlight: 'korkmazgayrimenkulinsaat.com',
-      vo: 'Siz de bir kahvemizi içmeye bekleriz. Adresimiz: Medrese, 88. Sokak Kırşehir Merkez. Web sitemiz: korkmazgayrimenkulinsaat.com.',
+      vo: 'Sizleri de kahvemizi içmeye bekleriz. Medrese, 88. Sokak Kırşehir. korkmazgayrimenkulinsaat.com.',
       visual: 'Korkmaz Gayrimenkul Kırşehir ofisinin cadde görünümü ve tabela detayı',
       grad: ['#0f172a', '#1e40af'] as [string, string],
       imageUrl: '/real_assets/real_office_front.jpg',
@@ -220,8 +227,19 @@ async function main() {
   for (let i = 0; i < scenesConfig.length; i++) {
     const sc = scenesConfig[i];
     const audioUrl = await generateSingleVoiceTTS(sc.vo, i);
+    const audioFilename = audioUrl.replace('/api/assets/', '');
+    const wavPath = path.join(process.cwd(), 'public', 'generated_assets', audioFilename);
+    let exactSec = sc.sec;
+    if (fs.existsSync(wavPath)) {
+      const stat = fs.statSync(wavPath);
+      const audioDuration = (stat.size - 44) / 48000;
+      // Seslendirme süresinin üzerine 0.35 saniye nefes payı ekle, asla ses bitmeden sahne geçişi olmasın!
+      exactSec = Math.max(7.2, Math.round((audioDuration + 0.35) * 10) / 10);
+      console.log(`⏱️ Sahne ${i + 1}: Ses=${audioDuration.toFixed(2)}s -> Sahne Süresi=${exactSec}s`);
+    }
     scenes.push({
       ...sc,
+      sec: exactSec,
       audioUrl
     });
   }

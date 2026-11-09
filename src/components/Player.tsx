@@ -20,6 +20,8 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const [isTTSActive, setIsTTSActive] = useState(true);
   const [isBGMActive, setIsBGMActive] = useState(true);
   const [currentBgm, setCurrentBgm] = useState<string>(video.bgMusic || 'auto');
+  const [customMusicData, setCustomMusicData] = useState<string | undefined>(video.customMusicData);
+  const [customMusicName, setCustomMusicName] = useState<string | undefined>(video.customMusicName);
   const [editScene, setEditScene] = useState<Scene | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isPosterLoading, setIsPosterLoading] = useState(false);
@@ -38,18 +40,17 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     setProgress(0);
     setIsPlaying(false);
     setCurrentBgm(video.bgMusic || 'auto');
+    setCustomMusicData(video.customMusicData);
+    setCustomMusicName(video.customMusicName);
     audioMgr.stopSpeech();
     audioMgr.stopBGM();
-  }, [video.id, video.bgMusic]);
+  }, [video.id, video.bgMusic, video.customMusicData, video.customMusicName]);
 
   useEffect(() => {
     if (isPlaying && isTTSActive && curScene) {
-      if (isCinema && curIndex > 0) {
-        audioMgr.playTransitionSFX();
-      }
       const sceneVoice =
         curScene.voiceGender ||
-        (isCinema ? (curIndex % 2 === 1 ? 'female' : 'male') : (video.voiceGender || 'female'));
+        (video.voiceGender || 'male');
 
       audioMgr.speak(
         curScene.vo,
@@ -58,16 +59,16 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
         sceneVoice
       );
     }
-  }, [curIndex, isPlaying, isTTSActive, curScene, video.lang, video.voiceGender, video.id, isCinema]);
+  }, [curIndex, isPlaying, isTTSActive, curScene, video.lang, video.voiceGender, video.id]);
 
   useEffect(() => {
     if (isBGMActive && isPlaying) {
-      audioMgr.startBGM(video.type, currentBgm, video.product);
+      audioMgr.startBGM(video.type, currentBgm, video.product, customMusicData);
     } else {
       audioMgr.stopBGM();
     }
     return () => audioMgr.stopBGM();
-  }, [isBGMActive, isPlaying, video.type, currentBgm, video.product]);
+  }, [isBGMActive, isPlaying, video.type, currentBgm, video.product, customMusicData]);
 
   useEffect(() => {
     if (!isPlaying || !curScene) return;
@@ -93,7 +94,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
     setExportProgress({ percent: 1, statusText: 'Render motoru başlatılıyor...' });
     try {
       await exportVideoFile(
-        { ...video, bgMusic: currentBgm },
+        { ...video, bgMusic: currentBgm, customMusicData, customMusicName },
         (percent, statusText) => {
           setExportProgress({ percent, statusText });
         }
@@ -146,17 +147,32 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                 }}
               />
             ) : (
-              <div
-                className="v5-photo-layer"
-                style={{
-                  backgroundImage: curScene?.imageUrl
-                    ? `url("${curScene.imageUrl}")`
-                    : `linear-gradient(135deg, ${curScene?.grad?.[0] || '#0a1020'}, ${curScene?.grad?.[1] || '#000000'})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  transform: `scale(${zoomScale})`
-                }}
-              />
+              <>
+                {curIndex > 0 && scenes[curIndex - 1]?.imageUrl && (
+                  <div
+                    key={`prev-bg-${curIndex}`}
+                    className="v5-photo-layer"
+                    style={{
+                      backgroundImage: `url("${scenes[curIndex - 1].imageUrl}")`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      opacity: 0.75
+                    }}
+                  />
+                )}
+                <div
+                  key={`cur-bg-${curIndex}`}
+                  className="v5-photo-layer v5-photo-fade-in"
+                  style={{
+                    backgroundImage: curScene?.imageUrl
+                      ? `url("${curScene.imageUrl}")`
+                      : `linear-gradient(135deg, ${curScene?.grad?.[0] || '#0a1020'}, ${curScene?.grad?.[1] || '#000000'})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    transform: `scale(${zoomScale})`
+                  }}
+                />
+              </>
             )}
 
             {/* 2. Sinematik Koyu Alt Kuşak (Dark / Gradient Overlay) */}
@@ -165,8 +181,13 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
             {/* 3. Üst Rozet */}
             <div className="v5-top-badge">
               <span className={`v5-brand-title ${isCinema ? 'cinema-badge' : isDocumentary ? 'documentary-badge' : isYouTube ? 'youtube-badge' : ''}`}>
-                {isCinema ? '🎬 ' : isDocumentary ? '🎙️ ' : isYouTube ? '🔴 ' : ''}
-                {video.product.toUpperCase()}
+                {isCinema ? '🎬 ' : isDocumentary ? '🎙️ ' : isYouTube ? '🔴 ' : (video.type === 'reklam' ? '📢 ' : '🏢 ')}
+                {(video.product || 'VİDEO PROJESİ')
+                  .replace(/_reklam.*$/i, '')
+                  .replace(/\s*\(\d+\)/g, '')
+                  .replace(/_/g, ' ')
+                  .trim()
+                  .toUpperCase()}
               </span>
               <span className="v5-scene-tag">
                 {curScene?.role} · {curIndex + 1}/{scenes.length}
@@ -194,7 +215,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
             </div>
 
             {/* 4. Alt Tipografi Grubu (Başlık, Alt Başlık, Vurgu) */}
-            <div className="v5-content-group">
+            <div key={`content-group-${curIndex}`} className="v5-content-group v5-text-fade">
               <div className={`v5-main-title ${isCinema || isDocumentary ? 'cinema-title' : ''}`} key={`title-${curIndex}`}>
                 {curScene?.text}
               </div>
@@ -273,7 +294,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
             </button>
 
             {/* Anlık Müzik Değiştirici */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginLeft: 'auto', flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, color: 'var(--mute)' }}>Fon Müziği:</span>
               <select
                 value={currentBgm}
@@ -281,7 +302,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                   const newTrack = e.target.value;
                   setCurrentBgm(newTrack);
                   if (isPlaying && isBGMActive) {
-                    audioMgr.startBGM(video.type, newTrack, video.product);
+                    audioMgr.startBGM(video.type, newTrack, video.product, customMusicData);
                   }
                 }}
                 style={{
@@ -296,10 +317,51 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               >
                 {BG_MUSIC_OPTIONS.map(m => (
                   <option key={m.id} value={m.id}>
-                    {m.label}
+                    {m.id === 'custom' && customMusicName ? `📁 Özel: ${customMusicName}` : m.label}
                   </option>
                 ))}
               </select>
+
+              {/* Kendi Müziğini Yükle Butonu */}
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  background: currentBgm === 'custom' && customMusicData ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.15)',
+                  border: currentBgm === 'custom' && customMusicData ? '1px solid #10b981' : '1px solid rgba(56, 189, 248, 0.3)',
+                  color: currentBgm === 'custom' && customMusicData ? '#10b981' : '#38bdf8',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+                title="Kendi MP3/WAV/M4A ses dosyanızı yükleyin"
+              >
+                📁 {customMusicName ? 'Müziği Değiştir' : 'Özel Müzik Yükle'}
+                <input
+                  type="file"
+                  accept="audio/mp3,audio/wav,audio/m4a,audio/aac,audio/ogg,audio/*"
+                  style={{ display: 'none' }}
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        const dataUrl = reader.result as string;
+                        setCustomMusicData(dataUrl);
+                        setCustomMusicName(file.name);
+                        setCurrentBgm('custom');
+                        if (isPlaying && isBGMActive) {
+                          audioMgr.startBGM(video.type, 'custom', video.product, dataUrl);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
             </div>
           </div>
 
