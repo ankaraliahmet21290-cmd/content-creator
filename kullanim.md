@@ -135,6 +135,17 @@ Videolarınızda profesyonel sinema ve televizyon ses kurgusu uygulanır:
 
 ---
 
+### 👄 13. Adım: Dudak Senkronizasyonu (Lip-Sync AI) & Konuşan Karakterler
+- **Sesle Uyumlu Dudak Hareketi:** Karakter fotoğrafları, Gemini 24kHz stüdyo seslendirmesinin ses dalga boyuna (amplitude / viseme) göre dinamik olarak ağız, çene ve kafa salınımı hareketlerine kavuşur.
+- **Nasıl Kullanılır?**
+  1. Sol panelden **"👄 13. Adım: Dudak Senkronizasyonunu Aç"** kutucuğunu işaretleyin veya doğrudan **Storyboard Masası**'na geçin.
+  2. Sahne kartındaki **"👄 Dudak"** butonuna tıklayın (veya üst bardaki **"👄 Tümünü Dudak Senkronla"** ile toplu üretin).
+  3. Sistem saniyeler içinde ses ile dudakları eşleştirerek konuşan bir video klibi (`.webm`/`.mp4`) oluşturur.
+  4. Video oynatıcıda karakterin dudakları sesle birebir senkronize oynar ve **"⬇ 1080p Video İndir"** butonuna bastığınızda final videoya entegre edilir.
+- **SadTalker / LivePortrait Desteği:** İsteğe bağlı olarak `/api/lipsync` üzerinden bulut AI modelleriyle de çalışabilir; API anahtarı yoksa yerel kesintisiz ses analizör motoru otomatik devreye girer.
+
+---
+
 ## 5. Storyboard Masasında Sahne Düzenleme
 
 Storyboard masası açıldığında yapabileceğiniz işlemler:

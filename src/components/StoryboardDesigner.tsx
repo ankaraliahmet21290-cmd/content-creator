@@ -5,6 +5,7 @@ import { Scene, VideoItem } from '@/types';
 import { CINEMA_ROLES, DOCUMENTARY_ROLES, YOUTUBE_ROLES, SOP_ROLES, SHORTS_ROLES, SPORTS_ROLES } from '@/lib/constants';
 import { VisualPickerModal } from './VisualPickerModal';
 import { getScenePhoto } from '@/lib/assets';
+import { generateLipSyncForScene } from '@/lib/lipSync';
 
 interface StoryboardDesignerProps {
   video: VideoItem;
@@ -24,6 +25,8 @@ export function StoryboardDesigner({
   const [scenes, setScenes] = useState<Scene[]>(video.scenes || []);
   const [activePickerIndex, setActivePickerIndex] = useState<number | null>(null);
   const [generatingSceneId, setGeneratingSceneId] = useState<number | null>(null);
+  const [lipSyncingSceneId, setLipSyncingSceneId] = useState<number | null>(null);
+  const [lipSyncProgressText, setLipSyncProgressText] = useState<string>('');
 
   const generateAiImageForScene = async (index: number) => {
     const sc = scenes[index];
@@ -104,6 +107,54 @@ export function StoryboardDesigner({
       for (let i = 0; i < scenes.length; i++) {
         setBatchProgress(`Sahne ${i + 1} / ${scenes.length} internetten bulunuyor...`);
         await fetchWebImageForScene(i);
+      }
+    } finally {
+      setIsBatchGenerating(false);
+      setBatchProgress('');
+    }
+  };
+
+  const generateLipSync = async (index: number) => {
+    const sc = scenes[index];
+    if (!sc || !sc.imageUrl) {
+      alert('Dudak senkronu oluşturmak için önce bir görsel (AI veya Web) atanmış olmalıdır.');
+      return;
+    }
+    setLipSyncingSceneId(sc.id);
+    setLipSyncProgressText('Ses ve ağız analizi yapılıyor...');
+    try {
+      const result = await generateLipSyncForScene({
+        imageUrl: sc.imageUrl,
+        audioUrl: sc.audioUrl,
+        durationSec: sc.sec || 4,
+        onProgress: (_pct, statusText) => {
+          setLipSyncProgressText(statusText);
+        }
+      });
+      if (result.videoUrl) {
+        updateScene(index, {
+          lipSyncVideoUrl: result.videoUrl,
+          lipSyncStatus: 'ready'
+        });
+      }
+    } catch (err) {
+      console.error('Lip sync hatası:', err);
+      alert('Dudak senkronu oluşturulamadı: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setLipSyncingSceneId(null);
+      setLipSyncProgressText('');
+    }
+  };
+
+  const generateAllLipSync = async () => {
+    setIsBatchGenerating(true);
+    setBatchProgress('Dudak senkronizasyonu başlatılıyor...');
+    try {
+      for (let i = 0; i < scenes.length; i++) {
+        if (scenes[i].imageUrl) {
+          setBatchProgress(`Sahne ${i + 1}/${scenes.length} dudak senkronlanıyor...`);
+          await generateLipSync(i);
+        }
       }
     } finally {
       setIsBatchGenerating(false);
@@ -290,6 +341,22 @@ return (
         <button
           type="button"
           className="btn sm"
+          onClick={generateAllLipSync}
+          disabled={isRendering || isBatchGenerating}
+          title="Tüm konuşan sahnelerin karakterlerini seslendirmeyle dudak senkronuna al"
+          style={{
+            background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
+            color: '#ffffff',
+            fontWeight: 600,
+            border: 'none',
+            padding: '6px 12px'
+          }}
+        >
+          {isBatchGenerating && batchProgress.includes('dudak') ? `⏳ ${batchProgress}` : '👄 Tümünü Dudak Senkronla'}
+        </button>
+        <button
+          type="button"
+          className="btn sm"
           onClick={addScene}
           disabled={isRendering || isBatchGenerating}
           title="Yeni bir sahne ekle"
@@ -437,7 +504,28 @@ return (
               padding: 8
             }}
           >
-            <div style={{ display: 'flex', gap: 4 }}>
+            {/* Dudak Senkronlu Video Önizlemesi */}
+            {scene.lipSyncVideoUrl && (
+              <video
+                src={scene.lipSyncVideoUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  pointerEvents: 'none',
+                  zIndex: 1
+                }}
+              />
+            )}
+
+            <div style={{ display: 'flex', gap: 4, zIndex: 2 }}>
               <button
                 type="button"
                 className="btn sm"
@@ -474,6 +562,37 @@ return (
                 title="İnternetten bu sahneye uygun gerçek fotoğraf ara"
               >
                 🌐 Web
+              </button>
+
+              <button
+                type="button"
+                className="btn sm"
+                onClick={() => {
+                  if (scene.lipSyncVideoUrl) {
+                    updateScene(idx, { lipSyncVideoUrl: undefined, lipSyncStatus: 'idle' });
+                  } else {
+                    generateLipSync(idx);
+                  }
+                }}
+                disabled={lipSyncingSceneId === scene.id}
+                style={{
+                  fontSize: 10.5,
+                  padding: '3px 7px',
+                  background: scene.lipSyncVideoUrl
+                    ? 'linear-gradient(135deg, #be123c, #9f1239)'
+                    : 'linear-gradient(135deg, #f43f5e, #e11d48)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  backdropFilter: 'blur(4px)',
+                  fontWeight: 600
+                }}
+                title={scene.lipSyncVideoUrl ? 'Dudak senkronunu kaldır' : 'Seslendirme ile uyumlu dudak senkronu klibi oluştur'}
+              >
+                {lipSyncingSceneId === scene.id
+                  ? '👄 İşleniyor...'
+                  : scene.lipSyncVideoUrl
+                  ? '👄 Senkron Aktif'
+                  : '👄 Dudak'}
               </button>
             </div>
 

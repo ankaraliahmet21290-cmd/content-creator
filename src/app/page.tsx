@@ -55,19 +55,25 @@ export default function StudioPage() {
   });
   const [formError, setFormError] = useState('');
   const [isProducing, setIsProducing] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('klaket_theme') as 'dark' | 'light' | null;
-      if (savedTheme) return savedTheme;
-    }
-    return 'light';
-  });
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
   const [showSettings, setShowSettings] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [activeLogModal, setActiveLogModal] = useState<VideoItem | null>(null);
   const [mobileTab, setMobileTab] = useState<'brief' | 'stage' | 'videos'>('brief');
 
-  // Tema Değişimi
+  // Tema Değişimi & İstemci Senkronizasyonu
+  useEffect(() => {
+    try {
+      const savedTheme = localStorage.getItem('klaket_theme') as 'dark' | 'light' | null;
+      if (savedTheme) {
+        setTheme(savedTheme);
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     try {
@@ -76,6 +82,26 @@ export default function StudioPage() {
       // ignore
     }
   }, [theme]);
+
+  // Sayfa açıldığında güncel master videoyu (Korkmaz Gayrimenkul) doğrudan seçili ve aktif yap
+  useEffect(() => {
+    if (defaultShowcase) {
+      setVideos(prev => {
+        const filtered = prev.filter(v => v.id !== defaultShowcase.id);
+        const updated = [defaultShowcase as VideoItem, ...filtered];
+        try {
+          localStorage.setItem('klaket_sop_vids', JSON.stringify(updated));
+        } catch {
+          // ignore
+        }
+        return updated;
+      });
+      setSelectedId(defaultShowcase.id);
+      if (defaultShowcase.mode) {
+        setMode(defaultShowcase.mode as AppMode);
+      }
+    }
+  }, []);
 
   // Mod Değişimi (Sinema / YouTube / Reklam / Klasik)
   const handleToggleMode = useCallback((newMode: AppMode) => {
@@ -113,7 +139,11 @@ export default function StudioPage() {
         // Kota aşılırsa ses verisi olmadan senaryo ve görselleri sakla
         const compact = readyVideos.map(v => ({
           ...v,
-          scenes: v.scenes.map(({ audioUrl: _a, ...rest }) => rest)
+          scenes: v.scenes.map(s => {
+            const copy = { ...s };
+            delete copy.audioUrl;
+            return copy;
+          })
         }));
         localStorage.setItem('klaket_sop_vids', JSON.stringify(compact));
       } catch {

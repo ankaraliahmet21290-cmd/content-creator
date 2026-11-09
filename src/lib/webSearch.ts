@@ -50,8 +50,16 @@ export async function searchWikimediaCommons(query: string, limit = 8): Promise<
 
       const data = await res.json();
       const pages = data.query?.pages || {};
-      const results: WebImageResult[] = Object.values(pages)
-        .map((p: any) => {
+      interface WikiPageItem {
+        title?: string;
+        imageinfo?: Array<{
+          url?: string;
+          width?: number;
+          height?: number;
+        }>;
+      }
+      const results: WebImageResult[] = Object.values(pages as Record<string, WikiPageItem>)
+        .map(p => {
           const info = p.imageinfo?.[0];
           return {
             url: (info?.url as string) || '',

@@ -98,8 +98,10 @@ export function Header({ theme, mode, onToggleTheme, onToggleMode, onOpenSetting
             className="btn sm hdr-act-btn"
             onClick={onToggleTheme}
             title="Temayı Değiştir"
+            suppressHydrationWarning
           >
-            {theme === 'light' ? '🌙' : '☀️'} <span className="hdr-btn-text">{theme === 'light' ? 'Koyu' : 'Açık'}</span>
+            <span suppressHydrationWarning>{theme === 'light' ? '🌙' : '☀️'}</span>{' '}
+            <span className="hdr-btn-text" suppressHydrationWarning>{theme === 'light' ? 'Koyu' : 'Açık'}</span>
           </button>
         </div>
       </div>

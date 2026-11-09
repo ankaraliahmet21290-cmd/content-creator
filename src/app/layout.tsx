@@ -47,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" className={`${inter.variable} ${bricolage.variable} ${jetbrains.variable}`}>
+    <html lang="tr" suppressHydrationWarning className={`${inter.variable} ${bricolage.variable} ${jetbrains.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { RATIOS, resolveBgmTrackPath } from './constants';
+import { resolveBgmTrackPath } from './constants';
 import { VideoItem } from '@/types';
 import { sleep } from './providers';
 
@@ -15,6 +15,23 @@ function loadImage(src?: string): Promise<HTMLImageElement | null> {
   });
 }
 
+function loadVideoElement(src?: string): Promise<HTMLVideoElement | null> {
+  if (!src) return Promise.resolve(null);
+  return new Promise(resolve => {
+    const vid = document.createElement('video');
+    vid.crossOrigin = 'anonymous';
+    vid.muted = true;
+    vid.loop = true;
+    vid.playsInline = true;
+    vid.onloadeddata = () => {
+      vid.play().catch(() => {});
+      resolve(vid);
+    };
+    vid.onerror = () => resolve(null);
+    vid.src = src;
+  });
+}
+
 function loadAudioBuffer(audioCtx: AudioContext, url: string): Promise<AudioBuffer | null> {
   return fetch(url)
     .then(r => r.arrayBuffer())
@@ -25,7 +42,10 @@ function loadAudioBuffer(audioCtx: AudioContext, url: string): Promise<AudioBuff
 /**
  * korkmaz-gayrimenkul-tanitim-v5 kalitesinde 1080p sinematik render motoru
  */
-export async function exportVideoFile(video: VideoItem): Promise<void> {
+export async function exportVideoFile(
+  video: VideoItem,
+  onProgress?: (percent: number, statusText: string) => void
+): Promise<void> {
   let canvas = document.getElementById('renderCanvas') as HTMLCanvasElement | null;
   if (!canvas) {
     canvas = document.createElement('canvas');
@@ -34,7 +54,6 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
     document.body.appendChild(canvas);
   }
 
-  const [aspectW, aspectH] = RATIOS[video.ratio] || [16, 9];
   let w = 1920;
   let h = 1080;
   if (video.ratio === '21:9') {
@@ -56,8 +75,9 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D context oluşturulamadı.');
 
-  // Gerçek fotoğrafları önceden yükle
+  // Gerçek fotoğrafları ve dudak senkronlu video kliplerini önceden yükle
   const sceneImages = await Promise.all(video.scenes.map(sc => loadImage(sc.imageUrl)));
+  const sceneVideos = await Promise.all(video.scenes.map(sc => loadVideoElement(sc.lipSyncVideoUrl)));
 
   // Ses sistemi: Satış fon müziği + Gemini AI seslendirmesini miksle
   const AudioCtx =
@@ -68,10 +88,14 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   const isYouTube = video.type === 'youtube';
 
   const audioCtx = AudioCtx ? new AudioCtx() : null;
+  if (audioCtx && audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+  }
   const audioDest = audioCtx ? audioCtx.createMediaStreamDestination() : null;
 
   // Fon müziği miksajı: Kullanıcının seçtiği veya türe/konuya özel parça
   let bgmSource: AudioBufferSourceNode | null = null;
+  let bgmGain: GainNode | null = null;
   if (audioCtx && audioDest && video.bgMusic !== 'none') {
     const bgmTrackPath = resolveBgmTrackPath(video.bgMusic, video.type, video.product);
     if (bgmTrackPath) {
@@ -80,7 +104,7 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
         bgmSource = audioCtx.createBufferSource();
         bgmSource.buffer = bgmBuffer;
         bgmSource.loop = true;
-        const bgmGain = audioCtx.createGain();
+        bgmGain = audioCtx.createGain();
         bgmGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
         bgmSource.connect(bgmGain);
         bgmGain.connect(audioDest);
@@ -101,10 +125,20 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
   }
   const combinedStream = new MediaStream(combinedTracks);
 
-  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
-    ? 'video/webm;codecs=vp9,opus'
-    : 'video/webm';
+  let mimeType = 'video/webm;codecs=vp8,opus';
+  if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')) {
+    mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
+  } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+    mimeType = 'video/mp4';
+  } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+    mimeType = 'video/webm;codecs=vp8,opus';
+  } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+    mimeType = 'video/webm;codecs=vp9,opus';
+  } else if (MediaRecorder.isTypeSupported('video/webm')) {
+    mimeType = 'video/webm';
+  }
 
+  const isMp4 = mimeType.includes('mp4');
   const recorder = new MediaRecorder(combinedStream, { mimeType });
   const chunks: Blob[] = [];
 
@@ -123,12 +157,13 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
         audioCtx.close().catch(() => {});
       }
       try {
-        const blob = new Blob(chunks, { type: 'video/webm' });
+        const fileExt = isMp4 ? 'mp4' : 'webm';
+        const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        const typeSuffix = isCinema ? 'sinema_filmi' : isYouTube ? 'youtube_video' : 'video';
-        a.download = `${video.product.replace(/\s+/g, '_')}_${typeSuffix}.webm`;
+        const typeSuffix = isCinema ? 'sinema_filmi' : isYouTube ? 'youtube_video' : 'reklam';
+        a.download = `${video.product.replace(/\s+/g, '_')}_${typeSuffix}.${fileExt}`;
         a.click();
         URL.revokeObjectURL(url);
         resolve();
@@ -142,6 +177,10 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
 
     (async () => {
       try {
+        const totalSec = video.scenes.reduce((acc, s) => acc + s.sec, 0) || video.dur || 45;
+        let accumulatedSec = 0;
+        onProgress?.(2, 'Görseller ve ses kanalları hazırlanıyor...');
+
         for (let idx = 0; idx < video.scenes.length; idx++) {
           const sc = video.scenes[idx];
           const img = sceneImages[idx];
@@ -161,12 +200,20 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
           if (sc.audioUrl && audioCtx && audioDest) {
             const voBuf = await loadAudioBuffer(audioCtx, sc.audioUrl);
             if (voBuf) {
+              if (bgmGain) {
+                bgmGain.gain.setValueAtTime(0.10, audioCtx.currentTime);
+              }
               const voSrc = audioCtx.createBufferSource();
               voSrc.buffer = voBuf;
               const voGain = audioCtx.createGain();
               voGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
               voSrc.connect(voGain);
               voGain.connect(audioDest);
+              voSrc.onended = () => {
+                if (bgmGain && audioCtx) {
+                  bgmGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                }
+              };
               voSrc.start();
             }
           }
@@ -177,10 +224,21 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
           for (let f = 0; f < frames; f++) {
             const progress = f / frames;
 
-            // 1. Sinematik Ken Burns Kamera Hareketi (v5 algoritması)
-            const zoom = isZoomIn ? 1.0 + progress * 0.12 : 1.12 - progress * 0.12;
+            if (f % 15 === 0 || f === frames - 1) {
+              const currentElapsed = accumulatedSec + (f / frames) * sc.sec;
+              const pct = Math.min(99, Math.round((currentElapsed / totalSec) * 100));
+              onProgress?.(
+                pct,
+                `Sahne ${idx + 1}/${video.scenes.length}: ${sc.role} (${Math.round(currentElapsed)}/${Math.round(totalSec)} sn)`
+              );
+            }
 
-            if (img) {
+            // 1. Dudak Senkronlu Video veya Sinematik Ken Burns Kamera Hareketi (v5 algoritması)
+            const sceneVideo = sceneVideos[idx];
+            if (sceneVideo && sceneVideo.readyState >= 2) {
+              ctx.drawImage(sceneVideo, 0, 0, w, h);
+            } else if (img) {
+              const zoom = isZoomIn ? 1.0 + progress * 0.12 : 1.12 - progress * 0.12;
               const drawW = w * zoom;
               const drawH = h * zoom;
               const offsetX = (w - drawW) / 2;
@@ -295,7 +353,9 @@ export async function exportVideoFile(video: VideoItem): Promise<void> {
             ctx.restore();
             await sleep(30);
           }
+          accumulatedSec += sc.sec;
         }
+        onProgress?.(100, 'Video dosyası tamamlandı, tarayıcıya indiriliyor...');
         recorder.stop();
       } catch (err) {
         recorder.stop();

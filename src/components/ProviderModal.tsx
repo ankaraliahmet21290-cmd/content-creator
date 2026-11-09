@@ -61,13 +61,42 @@ export function ProviderModal({ onClose }: ProviderModalProps) {
           <option value="male">Erkek Sesi (Kararlı, Güven Verici, Dinamik)</option>
         </select>
 
-        <label htmlFor="gemini-key-input">Özel Gemini API Key (Boş bırakılırsa .env.local anahtarı kullanılır)</label>
+        {/* DUDAK SENKRONU VE AÇIK KAYNAK MOTOR */}
+        <label htmlFor="lipsync-select">👄 Dudak Senkronu & Konuşan Yüz Motoru</label>
+        <select
+          id="lipsync-select"
+          value={config.lipSyncEngine || 'local'}
+          onChange={e => setConfig({ ...config, lipSyncEngine: e.target.value as 'local' | 'liveportrait' | 'sadtalker' | 'replicate' })}
+        >
+          <option value="local">Açık Kaynak Yerel Motor: Audio Viseme & Waveform (Ücretsiz, Sıfır Kota, Anında)</option>
+          <option value="liveportrait">Açık Kaynak: LivePortrait (Açık Model - Yüz & Dudak Mimikleri)</option>
+          <option value="sadtalker">Açık Kaynak: SadTalker (Açık Model - Konuşan İnsan Sentezi)</option>
+          <option value="replicate">Bulut API: Replicate / Fal.ai Video Motoru</option>
+        </select>
+
+        <label htmlFor="gemini-key-input">
+          Google AI Studio / Google One Premium API Anahtarı
+        </label>
         <input
           id="gemini-key-input"
           type="password"
           value={config.geminiApiKey || ''}
-          placeholder=".env.local içerisindeki GEMINI_API_KEY aktif"
+          placeholder="AIzaSy... (Google One / AI Studio ücretsiz anahtarınız)"
           onChange={e => setConfig({ ...config, geminiApiKey: e.target.value })}
+        />
+        <div style={{ fontSize: 11.5, color: '#38bdf8', marginBottom: 10 }}>
+          💡 Google One hesabınızla <strong>aistudio.google.com</strong> adresinden ücretsiz API anahtarı alabilirsiniz. Gemini 2.5/3.6, Imagen 3 ve Studio TTS için günlük 1.500 istek tamamen ücretsizdir.
+        </div>
+
+        <label htmlFor="hf-key-input">
+          Hugging Face / Açık Kaynak API Token (İsteğe Bağlı)
+        </label>
+        <input
+          id="hf-key-input"
+          type="password"
+          value={config.huggingFaceApiKey || ''}
+          placeholder="hf_... (Boş bırakılırsa yerel motor kullanılır)"
+          onChange={e => setConfig({ ...config, huggingFaceApiKey: e.target.value })}
         />
 
         <label htmlFor="render-select">Görsel / Video Render Motoru</label>
@@ -76,7 +105,7 @@ export function ProviderModal({ onClose }: ProviderModalProps) {
           value={config.renderEngine}
           onChange={e => setConfig({ ...config, renderEngine: e.target.value })}
         >
-          <option value="canvas">HTML5 Canvas + AudioStream MediaRecorder (.webm)</option>
+          <option value="canvas">HTML5 Canvas + AudioStream MediaRecorder (.webm / 1080p Full HD)</option>
           <option value="ffmpeg">Bulut FFmpeg / Worker Render Motoru</option>
         </select>
 

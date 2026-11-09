@@ -507,8 +507,6 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
   // En yeni ve güçlü Gemini 3.6 Flash'ı öncelikli kullan; yoğunluk (503/429) durumunda 2.5 Flash'a geç
   const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
   let rawText = '[]';
-  let lastError: Error | null = null;
-
   for (const model of candidateModels) {
     const url = `${GEMINI_BASE_URL}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
     try {
@@ -538,8 +536,8 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
           break;
         }
       }
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
+    } catch {
+      // Bir sonraki yedek modeli dene
     }
   }
 
@@ -726,8 +724,9 @@ Yanıtı SADECE aşağıdaki JSON dizisi formatında döndür:
         sceneIndex: number,
         apiKey: string,
         voiceGender: 'female' | 'male' = 'female',
-        type: string = 'sinema'
+        _type: string = 'sinema'
       ): Promise<string | undefined> {
+        void _type;
         if (!text || !text.trim()) return undefined;
 
         const cleanText = text.trim();

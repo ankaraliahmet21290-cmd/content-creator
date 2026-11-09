@@ -16,7 +16,10 @@ export function getSavedProviderConfig(): ProviderConfig {
           voiceGender: parsed.voiceGender || 'female',
           renderEngine: parsed.renderEngine || 'canvas',
           mcpUrl: parsed.mcpUrl || '',
-          geminiApiKey: parsed.geminiApiKey || ''
+          geminiApiKey: parsed.geminiApiKey || '',
+          lipSyncEngine: parsed.lipSyncEngine || 'local',
+          huggingFaceApiKey: parsed.huggingFaceApiKey || '',
+          replicateApiKey: parsed.replicateApiKey || ''
         };
       }
     } catch {
@@ -29,7 +32,10 @@ export function getSavedProviderConfig(): ProviderConfig {
     voiceGender: 'female',
     renderEngine: 'canvas',
     mcpUrl: '',
-    geminiApiKey: ''
+    geminiApiKey: '',
+    lipSyncEngine: 'local',
+    huggingFaceApiKey: '',
+    replicateApiKey: ''
   };
 }
 
@@ -327,7 +333,8 @@ export const providers = {
   },
 
   // 2. Görsel ve Ses Modelleri
-  async clips(scenes: Scene[], brief: BriefForm, mode: AppMode = 'sinema', addLog: (msg: string) => void): Promise<Scene[]> {
+  async clips(scenes: Scene[], brief: BriefForm, _mode: AppMode = 'sinema', addLog: (msg: string) => void): Promise<Scene[]> {
+    void _mode;
     const cfg = getSavedProviderConfig();
     const isCinema = brief.type === 'sinema';
     const isDocumentary = brief.type === 'belgesel';
@@ -348,7 +355,11 @@ export const providers = {
     if (visualSource === 'curated' && ttsDisabled) {
       addLog(`${logTag} Küratörlü tematik fotoğraf kütüphanesi ve tarayıcı seslendirmesi hazırlandı.`);
       await sleep(300);
-      return scenes.map(({ audioUrl: _a, ...rest }) => rest);
+      return scenes.map(s => {
+        const copy = { ...s };
+        delete copy.audioUrl;
+        return copy;
+      });
     }
 
     addLog(`${logTag} ${visualLabel} ve seslendirme pipeline başlatılıyor...`);

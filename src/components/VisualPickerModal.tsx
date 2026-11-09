@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ALL_CURATED_ASSETS, VisualAssetItem } from '@/lib/assets';
+import { ALL_CURATED_ASSETS } from '@/lib/assets';
 
 interface VisualPickerModalProps {
   currentUrl?: string;
@@ -79,9 +79,15 @@ export function VisualPickerModal({
   }, []);
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (activeTab === 'web' && !hasSearchedWeb && webQuery.trim()) {
-      handleSearchWeb(webQuery);
+      timer = setTimeout(() => {
+        handleSearchWeb(webQuery);
+      }, 0);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [activeTab, hasSearchedWeb, webQuery, handleSearchWeb]);
 
   const handleGenerateAiImage = async () => {
@@ -338,6 +344,7 @@ export function VisualPickerModal({
             {aiResultUrl && (
               <div style={{ textAlign: 'center', padding: 10 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>Son Üretilen AI Görseli:</div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={aiResultUrl}
                   alt="AI Generated"

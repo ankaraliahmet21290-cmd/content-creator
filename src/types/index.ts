@@ -41,6 +41,7 @@ export interface BriefForm {
   bgMusic?: string;
   character?: CharacterProfile;
   visualSource?: VisualSourceMode;
+  enableLipSync?: boolean;
 }
 
 export interface Scene {
@@ -55,6 +56,9 @@ export interface Scene {
   grad: [string, string];
   imageUrl?: string;
   audioUrl?: string;
+  lipSyncVideoUrl?: string;
+  lipSyncStatus?: 'idle' | 'generating' | 'ready' | 'error';
+  lipSyncProvider?: 'local' | 'liveportrait' | 'sadtalker' | 'replicate';
   zoomDir?: 'in' | 'out';
   speaker?: string;
   voiceGender?: VoiceGender;
@@ -109,4 +113,7 @@ export interface ProviderConfig {
   renderEngine: string;
   mcpUrl: string;
   geminiApiKey?: string;
+  lipSyncEngine?: 'local' | 'liveportrait' | 'sadtalker' | 'replicate';
+  replicateApiKey?: string;
+  huggingFaceApiKey?: string;
 }

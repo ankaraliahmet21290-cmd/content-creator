@@ -23,6 +23,7 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const [editScene, setEditScene] = useState<Scene | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isPosterLoading, setIsPosterLoading] = useState(false);
+  const [exportProgress, setExportProgress] = useState<{ percent: number; statusText: string } | null>(null);
 
   const scenes = video.scenes;
   const curScene = scenes[curIndex] || scenes[0];
@@ -30,7 +31,6 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
   const isCinema = video.type === 'sinema' || video.ratio === '21:9';
   const isDocumentary = video.type === 'belgesel';
   const isYouTube = video.type === 'youtube';
-  const isAi = video.mode !== 'classic';
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -90,13 +90,20 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
 
   async function handleExportVideo() {
     setIsExporting(true);
+    setExportProgress({ percent: 1, statusText: 'Render motoru başlatılıyor...' });
     try {
-      await exportVideoFile({ ...video, bgMusic: currentBgm });
+      await exportVideoFile(
+        { ...video, bgMusic: currentBgm },
+        (percent, statusText) => {
+          setExportProgress({ percent, statusText });
+        }
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       alert('Video render hatası: ' + msg);
     } finally {
       setIsExporting(false);
+      setExportProgress(null);
     }
   }
 
@@ -121,18 +128,36 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               width: `min(${maxWidthPx}px, 100%)`
             }}
           >
-            {/* 1. Arka Plan Sinematik Fotoğrafı (Ken Burns Canlı Zoom) */}
-            <div
-              className="v5-photo-layer"
-              style={{
-                backgroundImage: curScene?.imageUrl
-                  ? `url("${curScene.imageUrl}")`
-                  : `linear-gradient(135deg, ${curScene?.grad?.[0] || '#0a1020'}, ${curScene?.grad?.[1] || '#000000'})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                transform: `scale(${zoomScale})`
-              }}
-            />
+            {/* 1. Arka Plan: Dudak Senkronlu Video veya Sinematik Fotoğraf (Ken Burns Canlı Zoom) */}
+            {curScene?.lipSyncVideoUrl ? (
+              <video
+                key={`lipsync-${curIndex}`}
+                src={curScene.lipSyncVideoUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="v5-photo-layer"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transform: 'scale(1)'
+                }}
+              />
+            ) : (
+              <div
+                className="v5-photo-layer"
+                style={{
+                  backgroundImage: curScene?.imageUrl
+                    ? `url("${curScene.imageUrl}")`
+                    : `linear-gradient(135deg, ${curScene?.grad?.[0] || '#0a1020'}, ${curScene?.grad?.[1] || '#000000'})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  transform: `scale(${zoomScale})`
+                }}
+              />
+            )}
 
             {/* 2. Sinematik Koyu Alt Kuşak (Dark / Gradient Overlay) */}
             <div className={`v5-gradient-overlay ${isCinema || isDocumentary ? 'cinema-overlay' : ''}`} />
@@ -153,6 +178,11 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
                 {curScene?.audioUrl && (
                   <span style={{ marginLeft: 6, color: '#38bdf8', fontWeight: 600 }} title="Gerçek Gemini 24kHz Stüdyo Seslendirmesi">
                     🎙️ AI Ses
+                  </span>
+                )}
+                {curScene?.lipSyncVideoUrl && (
+                  <span style={{ marginLeft: 6, color: '#f43f5e', fontWeight: 600 }} title="Dudak Senkronizasyonu Aktif">
+                    👄 Dudak Senkronu
                   </span>
                 )}
                 {curScene?.imageUrl?.includes('ai_scene_') && (
@@ -273,6 +303,39 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
             </div>
           </div>
 
+          {/* Canlı Render İlerleme Çubuğu */}
+          {exportProgress && (
+            <div
+              style={{
+                marginTop: 12,
+                marginBottom: 8,
+                padding: '12px 16px',
+                background: 'rgba(15, 23, 42, 0.95)',
+                border: '1px solid rgba(56, 189, 248, 0.4)',
+                borderRadius: '8px',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.4)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13, fontWeight: 600 }}>
+                <span style={{ color: '#38bdf8' }}>⏳ 1080p MP4 Video Oluşturuluyor (Canlı Miksaj)...</span>
+                <span style={{ color: '#facc15' }}>%{exportProgress.percent}</span>
+              </div>
+              <div style={{ width: '100%', height: 8, background: '#334155', borderRadius: 4, overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: `${exportProgress.percent}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, #38bdf8 0%, #3b82f6 50%, #10b981 100%)',
+                    transition: 'width 0.25s ease'
+                  }}
+                />
+              </div>
+              <div style={{ marginTop: 6, fontSize: 12, color: '#94a3b8' }}>
+                {exportProgress.statusText}
+              </div>
+            </div>
+          )}
+
           {/* Dışa Aktarma Butonları */}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
             <button
@@ -282,12 +345,12 @@ export function Player({ video, onUpdateScene }: PlayerProps) {
               onClick={handleExportVideo}
             >
               {isExporting
-                ? '⏳ 1080p Sinematik Render Ediliyor...'
+                ? `⏳ Render Ediliyor: %${exportProgress?.percent || 0}`
                 : isCinema
-                ? '📥 Sinema Filmi İndir (.webm)'
+                ? '🎬 Sinema Filmi İndir (1080p MP4)'
                 : isDocumentary
-                ? '📥 Sinematik Belgesel İndir (.webm)'
-                : '📥 Video İndir (.webm)'}
+                ? '🎙️ Sinematik Belgesel İndir (1080p MP4)'
+                : '🎬 1080p MP4 Olarak İndir'}
             </button>
             <button
               type="button"

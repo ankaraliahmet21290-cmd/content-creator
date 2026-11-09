@@ -413,19 +413,22 @@ export const PRESETS: Preset[] = [
     }
   },
   {
-    name: '🏢 Gayrimenkul / Lüks Emlak',
+    name: '🏢 Korkmaz Gayrimenkul & İnşaat (Resmi Reklam)',
     data: {
-      type: 'tanitim',
-      product: 'Korkmaz Gayrimenkul - Elit Rezidans',
-      audience: 'Yatırımcılar ve prestijli ev arayan aileler',
-      points: 'Merkezi konum ve panoramik şehir manzarası\nAkıllı ev altyapısı ve 7/24 özel güvenlik\nYüksek kira getirisi ve uygun ödeme planı',
-      cta: 'Özel randevu ve kat planları için hemen arayın.',
+      type: 'reklam',
+      product: 'Korkmaz Gayrimenkul İnşaat',
+      audience: 'Kırşehir ve çevre illerde konut, iş yeri, arsa arayan alıcılar ve yatırımcılar',
+      points: 'Mustafa Korkmaz liderliğinde 15 yıllık brokerlik tecrübesi\nSalih Korkmaz denetiminde inşaat mühendisliği ve kentsel dönüşüm\nEİDS doğrulamalı güvenilir portföy ve mutlu müşteri memnuniyeti',
+      cta: 'Medrese, 88. Sokak Kırşehir Merkez | korkmazgayrimenkulinsaat.com',
       tone: 'Prestijli & Lüks',
-      dur: 30,
-      ratio: '9:16',
-      platform: 'Instagram Reels',
+      dur: 45,
+      ratio: '16:9',
+      platform: 'TV & YouTube & Web (16:9)',
       lang: 'tr-TR',
-      bgMusic: 'sales_corporate'
+      voiceGender: 'male',
+      bgMusic: 'sales_corporate',
+      enableLipSync: true,
+      customInstructions: 'Kırşehir Korkmaz Gayrimenkul İnşaat için prestijli kurumsal tanıtım reklamı. Telefon numarası kesinlikle verilmeyecek. Mustafa Korkmaz ve Salih Korkmaz ekip olarak vurgulanacak. Gerçek ofis önü, müşteri uğurlama ve korkmazgayrimenkulinsaat.com web adresi işlenecek.'
     }
   },
   {

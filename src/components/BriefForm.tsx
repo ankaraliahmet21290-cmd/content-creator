@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BriefForm as IBriefForm, Preset, AspectRatio, AppMode, CharacterProfile, VisualSourceMode } from '@/types';
+import { BriefForm as IBriefForm, Preset, AspectRatio, AppMode, CharacterProfile } from '@/types';
 import { TYPES, RATIOS, LANGUAGES, PRESETS, BG_MUSIC_OPTIONS, CHARACTER_PRESETS } from '@/lib/constants';
 import { audioMgr } from '@/lib/audio';
 
@@ -1018,6 +1018,41 @@ Sahne 4 (Dış Ses): "Nefes kesen bir macera... Çok yakında sinemalarda!"`
               </div>
             );
           })}
+        </div>
+      </div>
+      {/* 13. ADIM: DUDAK SENKRONİZASYONU (LIP-SYNC) */}
+      <div
+        style={{
+          marginTop: 14,
+          padding: '12px 14px',
+          background: form.enableLipSync ? 'rgba(244, 63, 94, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+          border: `1px solid ${form.enableLipSync ? 'rgba(244, 63, 94, 0.4)' : 'var(--line)'}`,
+          borderRadius: 10
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 22 }}>👄</span>
+            <div>
+              <strong style={{ color: 'var(--txt)', fontSize: 13 }}>
+                13. Adım: Dudak Senkronizasyonu & Konuşan Karakterler (Lip-Sync AI)
+              </strong>
+              <div style={{ color: 'var(--mute)', fontSize: 11.5 }}>
+                Karakterlerin dudakları, çenesi ve yüz hareketleri Gemini stüdyo seslendirmesine birebir uyumlu hareket eder.
+              </div>
+            </div>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', margin: 0 }}>
+            <input
+              type="checkbox"
+              checked={!!form.enableLipSync}
+              onChange={e => onUpdateField('enableLipSync', e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: '#f43f5e', cursor: 'pointer' }}
+            />
+            <span style={{ color: form.enableLipSync ? '#f43f5e' : 'var(--mute)', fontSize: 12, fontWeight: 600 }}>
+              {form.enableLipSync ? '✓ Dudak Senkronu Açık' : 'Dudak Senkronunu Aç'}
+            </span>
+          </label>
         </div>
       </div>
 
