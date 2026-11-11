@@ -189,13 +189,32 @@ export async function generateLocalLipSyncClip(options: LipSyncOptions): Promise
     recorder.start();
     if (audioSource) audioSource.start();
 
-    // Ağız ve çene anatomik bölgesini hesapla (Altın oran / tipik portre kuralı)
-    // Tipik portrelerde ağız dikey olarak %58 - %68, yatayda %42 - %58 arasındadır.
+    // Ağız ve çene anatomik bölgesini en-boy oranına göre hesapla (Dikey 9:16, Sinematik 21:9 veya Yatay 16:9)
+    const aspect = w / h;
+    let mouthYRatio = 0.58;
+    let mouthWRatio = 0.16;
+    let mouthHRatio = 0.12;
+    let eyeYRatio = 0.42;
+
+    if (aspect < 0.8) {
+      // 9:16 Dikey Shorts / Reels (Karakter başı dikeyde daha yukarıda konumlanır)
+      mouthYRatio = 0.46;
+      mouthWRatio = 0.20;
+      mouthHRatio = 0.09;
+      eyeYRatio = 0.34;
+    } else if (aspect > 2.0) {
+      // 21:9 Cinemascope Geniş Ekran
+      mouthYRatio = 0.55;
+      mouthWRatio = 0.14;
+      mouthHRatio = 0.13;
+      eyeYRatio = 0.38;
+    }
+
     const mouthBox = {
-      x: Math.round(w * 0.42),
-      y: Math.round(h * 0.58),
-      w: Math.round(w * 0.16),
-      h: Math.round(h * 0.12)
+      x: Math.round(w * (0.50 - mouthWRatio / 2)),
+      y: Math.round(h * mouthYRatio),
+      w: Math.round(w * mouthWRatio),
+      h: Math.round(h * mouthHRatio)
     };
 
     let frame = 0;
@@ -292,7 +311,7 @@ export async function generateLocalLipSyncClip(options: LipSyncOptions): Promise
       // 3. Doğal Göz Kırpma (Blinking) - Her 3-4 saniyede bir 4 frame
       const blinkCycle = Math.floor(t * 10) % 36;
       if (blinkCycle === 0 || blinkCycle === 1) {
-        const eyeY = Math.round(h * 0.42 + headSwayY);
+        const eyeY = Math.round(h * eyeYRatio + headSwayY);
         const eyeW = Math.round(w * 0.08);
         const eyeH = Math.round(h * 0.025);
         ctx.save();

@@ -39,6 +39,10 @@ export async function POST(request: Request) {
       enhancedPrompt = `${charPrefix}${rawPrompt.trim()}, National Geographic and BBC Earth documentary film still, shot on Hasselblad, natural sunlight, organic textures, photorealistic documentary cinematography, 8k resolution, atmospheric depth`;
     } else if (briefType === 'youtube') {
       enhancedPrompt = `${charPrefix}${rawPrompt.trim()}, high production value YouTube 4K video frame, studio lighting, crisp focus, vibrant colors, cinematic b-roll, 8k`;
+    } else if (briefType === 'reklam') {
+      enhancedPrompt = `${charPrefix}${rawPrompt.trim()}, professional commercial advertising photography, luxury studio lighting, 8k resolution, photorealistic, premium commercial aesthetic, crisp sharp detail, award-winning cinematography`;
+    } else if (briefType === 'sosyal') {
+      enhancedPrompt = `${charPrefix}${rawPrompt.trim()}, trending high-retention 9:16 vertical frame for YouTube Shorts and TikTok, vibrant colors, crisp mobile cinematography, 8k resolution, dynamic focal depth`;
     }
 
     const encoded = encodeURIComponent(enhancedPrompt);
